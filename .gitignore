@@ -6,3 +6,7 @@ build/
 .DS_Store
 coverage/
 .nyc_output/
+tmpclaude-*
+skills-lock.json
+.agents/
+.claude/
