@@ -93,13 +93,13 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Username</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-sm">epicbox.app/p/</span>
+              <div className="flex items-center bg-white/5 border border-white/10 rounded-xl focus-within:border-white/40 focus-within:bg-white/10 transition overflow-hidden">
+                <span className="pl-4 pr-1 text-white/30 text-sm whitespace-nowrap flex-shrink-0 select-none">epicbox.app/p/</span>
                 <input
                   {...register('username')}
                   type="text"
                   placeholder="janedoe"
-                  className={INPUT + ' pl-36'}
+                  className="flex-1 min-w-0 bg-transparent py-3 pr-4 text-white placeholder-white/30 focus:outline-none text-sm"
                 />
               </div>
               {errors.username && <p className="text-red-400 text-xs mt-1">{errors.username.message}</p>}
