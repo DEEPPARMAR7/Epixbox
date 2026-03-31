@@ -53,6 +53,27 @@ const plans = [
   },
 ]
 
+const testimonials = [
+  {
+    quote: "EpicBox transformed how I run my photography business. Client proofing is seamless and my print sales doubled.",
+    author: "Sarah Chen",
+    role: "Wedding Photographer",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80"
+  },
+  {
+    quote: "The portfolio looks incredible. My clients are blown away every time I send them a gallery link.",
+    author: "Marcus Rivera",
+    role: "Portrait Photographer",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80"
+  },
+  {
+    quote: "Finally, a platform that doesn't compromise on image quality. The upload process is fast and the galleries are stunning.",
+    author: "Emily Park",
+    role: "Commercial Photographer",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=80"
+  },
+]
+
 export default function LandingPage() {
   const heroRef = useRef(null)
 
@@ -219,6 +240,36 @@ export default function LandingPage() {
                 <div className="text-7xl font-black text-white/5 mb-2 leading-none">{step.num}</div>
                 <h3 className="text-lg font-semibold text-white mb-2 -mt-4">{step.title}</h3>
                 <p className="text-white/50 text-sm">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 px-4 bg-black">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-center text-white/40 tracking-widest uppercase text-sm mb-4">Testimonials</p>
+          <h2 className="text-4xl font-bold text-center text-white mb-4">Loved by photographers worldwide</h2>
+          <p className="text-center text-white/50 mb-16 max-w-2xl mx-auto">
+            Join thousands of professional photographers growing their business with EpicBox
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((t, i) => (
+              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition">
+                <div className="flex items-center gap-4 mb-6">
+                  <img src={t.image} alt={t.author} className="w-14 h-14 rounded-full object-cover" />
+                  <div>
+                    <p className="font-semibold text-white">{t.author}</p>
+                    <p className="text-white/40 text-sm">{t.role}</p>
+                  </div>
+                </div>
+                <p className="text-white/70 leading-relaxed italic">"{t.quote}"</p>
+                <div className="mt-4 flex gap-0.5">
+                  {[...Array(5)].map((_, j) => (
+                    <span key={j} className="text-yellow-400 text-lg">★</span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
