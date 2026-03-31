@@ -16,6 +16,98 @@ const GRID_PHOTOS = [
   { src: 'https://images.unsplash.com/photo-1502657877623-f66bf489d236?w=600&q=80', span: '' },
 ]
 
+const platformFeatures = [
+  {
+    icon: '📸',
+    title: 'Smart Photo Management',
+    desc: 'Automatic EXIF extraction, intelligent tagging, and powerful search. Find any photo in seconds.',
+    benefit: 'Save hours organizing'
+  },
+  {
+    icon: '🎯',
+    title: 'Client-First Design',
+    desc: 'Password-protected galleries, download permissions, and custom watermarks. Full control.',
+    benefit: 'Professional delivery'
+  },
+  {
+    icon: '💳',
+    title: 'Integrated Commerce',
+    desc: 'Sell prints, digital files, and photo packages. Payments handled automatically via Stripe.',
+    benefit: 'Monetize instantly'
+  },
+  {
+    icon: '⚡',
+    title: 'Lightning-Fast Delivery',
+    desc: 'Global CDN ensures your images load instantly anywhere in the world.',
+    benefit: 'Impress every client'
+  },
+]
+
+const galleryStyles = [
+  {
+    name: 'Classic Grid',
+    desc: 'Clean, uniform layout perfect for portfolios',
+    preview: 'https://images.unsplash.com/photo-1452457807411-4979b707c5be?w=800&q=80',
+    cols: 'grid-cols-3',
+  },
+  {
+    name: 'Masonry',
+    desc: 'Dynamic, Pinterest-style cascading layout',
+    preview: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+    cols: 'row-span-2',
+  },
+  {
+    name: 'Slideshow',
+    desc: 'Full-screen presentation with auto-advance',
+    preview: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80',
+    cols: 'grid-cols-3',
+  },
+]
+
+const templates = [
+  {
+    name: 'Minimal',
+    desc: 'Clean, modern design that puts photos first',
+    image: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=600&q=80',
+    tag: 'Most Popular'
+  },
+  {
+    name: 'Editorial',
+    desc: 'Magazine-style layout for storytelling',
+    image: 'https://images.unsplash.com/photo-1618004912476-29818d81ae2e?w=600&q=80',
+    tag: null
+  },
+  {
+    name: 'Bold',
+    desc: 'Make a statement with dramatic full-screen',
+    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80',
+    tag: 'New'
+  },
+]
+
+const growthFeatures = [
+  {
+    icon: '📊',
+    title: 'Analytics Dashboard',
+    desc: 'Track views, engagement, and sales. Understand what resonates with your audience.',
+  },
+  {
+    icon: '📧',
+    title: 'Email Marketing',
+    desc: 'Built-in email tools to announce new galleries and promote your work to clients.',
+  },
+  {
+    icon: '🔗',
+    title: 'SEO Optimized',
+    desc: 'Get discovered on Google. Every portfolio is automatically optimized for search engines.',
+  },
+  {
+    icon: '🤝',
+    title: 'Client Management',
+    desc: 'Keep track of inquiries, bookings, and client communications in one place.',
+  },
+]
+
 const features = [
   { icon: '🖼️', title: 'Stunning Galleries', desc: 'Organize your work into beautiful, customizable galleries with masonry layouts.' },
   { icon: '✅', title: 'Client Proofing', desc: 'Share private galleries. Clients star, select, and comment — no login needed.' },
@@ -103,7 +195,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div ref={heroRef} className="absolute inset-0 will-change-transform">
           <img
@@ -171,7 +263,67 @@ export default function LandingPage() {
         </h2>
       </section>
 
-      {/* Features */}
+      {/* Platform Section - NEW */}
+      <section className="py-28 px-4 bg-gradient-to-b from-black to-zinc-950">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-20">
+            <p className="text-white/40 tracking-widest uppercase text-sm mb-4">Platform</p>
+            <h2 className="text-5xl font-black text-white mb-6">The complete photographer toolkit</h2>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+              Everything you need to showcase, deliver, and sell your photography — all in one powerful platform.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {platformFeatures.map((feature, i) => (
+              <div
+                key={i}
+                className="relative group bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-3xl p-10 hover:border-white/30 transition-all duration-300 overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition" />
+                <div className="relative">
+                  <div className="text-6xl mb-6 filter grayscale group-hover:grayscale-0 transition">{feature.icon}</div>
+                  <h3 className="text-2xl font-bold text-white mb-3">{feature.title}</h3>
+                  <p className="text-white/60 leading-relaxed mb-4">{feature.desc}</p>
+                  <p className="text-sm text-white/40 font-semibold">→ {feature.benefit}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Styles Section - NEW */}
+      <section className="py-28 px-4 bg-zinc-950">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <p className="text-white/40 tracking-widest uppercase text-sm mb-4">Gallery Styles</p>
+            <h2 className="text-5xl font-black text-white mb-6">Your photos, your way</h2>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+              Choose from multiple gallery layouts. Switch styles anytime to match your vision.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {galleryStyles.map((style, i) => (
+              <div key={i} className="group relative rounded-2xl overflow-hidden border border-white/10 hover:border-white/30 transition">
+                <div className="aspect-[4/3] overflow-hidden relative">
+                  <img
+                    src={style.preview}
+                    alt={style.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-80" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="text-2xl font-bold text-white mb-2">{style.name}</h3>
+                    <p className="text-white/70 text-sm">{style.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
       <section className="py-24 px-4 bg-zinc-950">
         <div className="max-w-6xl mx-auto">
           <p className="text-center text-white/40 tracking-widest uppercase text-sm mb-4">Features</p>
@@ -185,6 +337,47 @@ export default function LandingPage() {
                 <div className="text-4xl mb-5 grayscale group-hover:grayscale-0 transition">{f.icon}</div>
                 <h3 className="text-lg font-semibold text-white mb-3">{f.title}</h3>
                 <p className="text-white/50 text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Templates Section - NEW */}
+      <section className="py-28 px-4 bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <p className="text-white/40 tracking-widest uppercase text-sm mb-4">Templates</p>
+            <h2 className="text-5xl font-black text-white mb-6">Professionally designed templates</h2>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+              Launch your portfolio in minutes with beautiful, mobile-responsive templates. No coding required.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {templates.map((template, i) => (
+              <div key={i} className="group relative rounded-2xl overflow-hidden border border-white/10 hover:border-white/30 transition-all duration-300">
+                {template.tag && (
+                  <div className="absolute top-4 right-4 z-10 bg-white text-black text-xs font-bold px-3 py-1.5 rounded-full">
+                    {template.tag}
+                  </div>
+                )}
+                <div className="aspect-[3/4] overflow-hidden relative">
+                  <img
+                    src={template.image}
+                    alt={template.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90" />
+                  <div className="absolute bottom-0 left-0 right-0 p-8">
+                    <h3 className="text-3xl font-bold text-white mb-3">{template.name}</h3>
+                    <p className="text-white/80 leading-relaxed">{template.desc}</p>
+                  </div>
+                </div>
+                <div className="bg-white/5 p-6 backdrop-blur-sm border-t border-white/10">
+                  <button className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-3 rounded-lg transition text-sm">
+                    Preview Template
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -221,6 +414,43 @@ export default function LandingPage() {
                 Turn your photography into revenue with a built-in print store powered by Stripe.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Grow Section - NEW */}
+      <section className="py-28 px-4 bg-gradient-to-b from-zinc-950 to-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <p className="text-white/40 tracking-widest uppercase text-sm mb-4">Grow Your Business</p>
+            <h2 className="text-5xl font-black text-white mb-6">Tools to scale your photography business</h2>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+              Marketing, analytics, and client management tools designed specifically for photographers.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {growthFeatures.map((feature, i) => (
+              <div
+                key={i}
+                className="bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl p-10 hover:from-white/15 hover:to-white/10 transition group"
+              >
+                <div className="flex items-start gap-6">
+                  <div className="text-5xl flex-shrink-0 filter grayscale group-hover:grayscale-0 transition">{feature.icon}</div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white mb-3">{feature.title}</h3>
+                    <p className="text-white/60 leading-relaxed">{feature.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-16 text-center">
+            <Link
+              to="/register"
+              className="inline-block bg-white text-black font-bold px-10 py-4 rounded-xl hover:bg-gray-100 transition shadow-2xl"
+            >
+              Start Growing Today
+            </Link>
           </div>
         </div>
       </section>
