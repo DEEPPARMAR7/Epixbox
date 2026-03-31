@@ -128,8 +128,8 @@ export default function LandingPage() {
       </section>
 
       {/* Photo Grid Showcase */}
-      <section className="py-4 bg-black">
-        <div className="grid grid-cols-3 grid-rows-2 gap-1 h-[70vh]">
+      <section className="py-2 bg-black">
+        <div className="grid grid-cols-3 grid-rows-2 gap-0.5 h-[70vh]">
           {GRID_PHOTOS.map((p, i) => (
             <div key={i} className={`overflow-hidden group relative ${p.span}`}>
               <img
@@ -299,8 +299,51 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-black border-t border-white/10 py-12 px-6 text-center">
-        <p className="text-white/20 text-sm">© 2025 EpicBox. All rights reserved.</p>
+      <footer className="bg-zinc-950 border-t border-white/10 py-16 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            <div>
+              <h3 className="text-white font-semibold text-sm mb-4">Product</h3>
+              <ul className="space-y-2">
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Features</Link></li>
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Pricing</Link></li>
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Examples</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-sm mb-4">Company</h3>
+              <ul className="space-y-2">
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">About</Link></li>
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Blog</Link></li>
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Careers</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-sm mb-4">Support</h3>
+              <ul className="space-y-2">
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Help Center</Link></li>
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Contact Us</Link></li>
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Community</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-white font-semibold text-sm mb-4">Legal</h3>
+              <ul className="space-y-2">
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Privacy</Link></li>
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Terms</Link></li>
+                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Cookie Policy</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-white/30 text-sm">© 2025 EpicBox. All rights reserved.</p>
+            <div className="flex gap-6">
+              <a href="#" className="text-white/30 hover:text-white transition text-sm">Twitter</a>
+              <a href="#" className="text-white/30 hover:text-white transition text-sm">Instagram</a>
+              <a href="#" className="text-white/30 hover:text-white transition text-sm">YouTube</a>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   )

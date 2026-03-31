@@ -184,13 +184,13 @@ export default function PortfolioGalleryPage() {
         ) : (
           <Masonry
             breakpointCols={BREAKPOINTS}
-            className="flex -ml-2 w-auto"
-            columnClassName="pl-2 bg-clip-padding"
+            className="flex -ml-1 w-auto"
+            columnClassName="pl-1 bg-clip-padding"
           >
             {photos.map((photo, idx) => (
               <div
                 key={photo.id}
-                className="mb-2 group relative cursor-pointer overflow-hidden bg-zinc-900 rounded-sm"
+                className="mb-1 group relative cursor-pointer overflow-hidden bg-zinc-900"
                 onClick={() => setLightboxIdx(idx)}
               >
                 <img
