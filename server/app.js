@@ -12,10 +12,14 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 // CORS
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow development ports and env-specified URL
+    // Allow localhost and LAN/private network origins during development.
     const allowedOrigins = [
       process.env.CLIENT_URL || 'http://localhost:5173',
-      /^http:\/\/localhost:\d+$/  // Allow any localhost dev port
+      /^http:\/\/localhost:\d+$/,
+      /^http:\/\/127\.0\.0\.1:\d+$/,
+      /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
+      /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
+      /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:\d+$/
     ];
     if (!origin || allowedOrigins.some(allowed => 
       typeof allowed === 'string' ? allowed === origin : allowed.test(origin)

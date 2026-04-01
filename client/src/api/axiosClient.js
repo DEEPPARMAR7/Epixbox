@@ -1,7 +1,8 @@
 import axios from 'axios'
 import useAuthStore from '../store/authStore'
 
-const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'
+const computedBase = `${window.location.protocol}//${window.location.hostname}:4000/api`
+const BASE = import.meta.env.VITE_API_BASE_URL || computedBase
 const axiosClient = axios.create({ baseURL: BASE, timeout: 30000 })
 
 axiosClient.interceptors.request.use((config) => {
