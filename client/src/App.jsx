@@ -5,7 +5,6 @@ import useAuthStore from './store/authStore'
 import LandingPage from './pages/public/LandingPage'
 import LoginPage from './pages/public/LoginPage'
 import RegisterPage from './pages/public/RegisterPage'
-import ForgotPasswordPage from './pages/ForgotPassword.tsx'
 
 // Dashboard pages
 import DashboardHome from './pages/dashboard/DashboardHome'
@@ -35,10 +34,7 @@ function ProtectedRoute({ children }) {
   const token = useAuthStore(s => s.token)
   const hasHydrated = useAuthStore(s => s.hasHydrated)
 
-  if (!hasHydrated) {
-    return <div className="min-h-screen bg-white" />
-  }
-
+  if (!hasHydrated) return <div className="min-h-screen bg-black" />
   if (!isAuthenticated || !token) return <Navigate to="/login" replace />
   return children
 }
@@ -63,7 +59,6 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/signup" element={<RegisterPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       {/* Protected Dashboard */}
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
