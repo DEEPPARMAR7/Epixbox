@@ -11,7 +11,20 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
 // CORS
 app.use(cors({
-  origin: [process.env.CLIENT_URL || 'http://localhost:5173', 'http://localhost:5173'],
+  origin: (origin, callback) => {
+    // Allow development ports and env-specified URL
+    const allowedOrigins = [
+      process.env.CLIENT_URL || 'http://localhost:5173',
+      /^http:\/\/localhost:\d+$/  // Allow any localhost dev port
+    ];
+    if (!origin || allowedOrigins.some(allowed => 
+      typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+    )) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 

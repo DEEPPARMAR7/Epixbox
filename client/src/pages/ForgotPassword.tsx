@@ -2,10 +2,30 @@ import Navbar from "@/components/Navbar";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const { forgotPassword } = useAuth();
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      await forgotPassword(email);
+      setSubmitted(true);
+      toast.success("Reset link sent");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Request failed";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -24,7 +44,7 @@ const ForgotPasswordPage = () => {
           </div>
 
           {!submitted ? (
-            <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}>
+            <form className="space-y-5" onSubmit={onSubmit}>
               <div>
                 <label className="font-heading text-xs uppercase tracking-wider text-foreground block mb-2">
                   Email
@@ -38,8 +58,8 @@ const ForgotPasswordPage = () => {
                   required
                 />
               </div>
-              <button type="submit" className="btn-cta w-full justify-center">
-                Send Reset Link <ArrowRight size={18} />
+              <button type="submit" className="btn-cta w-full justify-center" disabled={submitting}>
+                {submitting ? "Sending..." : "Send Reset Link"} <ArrowRight size={18} />
               </button>
             </form>
           ) : (

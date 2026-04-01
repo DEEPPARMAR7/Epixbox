@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import BrandLogo from "@/components/BrandLogo";
+import { useAuth } from "@/hooks/use-auth";
 
 const navLinks = [
   { label: "features", href: "/features" },
@@ -13,6 +14,16 @@ const navLinks = [
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
+
+  const links = isAuthenticated
+    ? navLinks.filter((l) => l.href !== "/login")
+    : navLinks;
+
+  const onLogout = async () => {
+    await logout();
+    setMobileOpen(false);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -22,7 +33,7 @@ const Navbar = () => {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
+          {links.map((link) => (
             <Link
               key={link.label}
               to={link.href}
@@ -35,9 +46,15 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          <Link to="/signup" className="btn-cta text-xs py-3 px-6">
-            try free
-          </Link>
+          {isAuthenticated ? (
+            <button onClick={onLogout} className="btn-outline-cta text-xs py-3 px-6">
+              logout
+            </button>
+          ) : (
+            <Link to="/signup" className="btn-cta text-xs py-3 px-6">
+              try free
+            </Link>
+          )}
         </div>
 
         <button
@@ -51,7 +68,7 @@ const Navbar = () => {
 
       {mobileOpen && (
         <div className="md:hidden bg-background border-t border-border px-6 py-6 space-y-4">
-          {navLinks.map((link) => (
+          {links.map((link) => (
             <Link
               key={link.label}
               to={link.href}
@@ -61,9 +78,15 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          <Link to="/signup" className="btn-cta text-xs py-3 px-6 w-full justify-center" onClick={() => setMobileOpen(false)}>
-            try free
-          </Link>
+          {isAuthenticated ? (
+            <button onClick={onLogout} className="btn-outline-cta text-xs py-3 px-6 w-full justify-center">
+              logout
+            </button>
+          ) : (
+            <Link to="/signup" className="btn-cta text-xs py-3 px-6 w-full justify-center" onClick={() => setMobileOpen(false)}>
+              try free
+            </Link>
+          )}
         </div>
       )}
     </nav>

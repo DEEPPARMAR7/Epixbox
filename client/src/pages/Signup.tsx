@@ -1,7 +1,9 @@
 import Navbar from "@/components/Navbar";
 import { ArrowRight, Eye, EyeOff, Check } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 const benefits = [
   "14-day free trial, no credit card needed",
@@ -16,6 +18,25 @@ const SignupPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [plan, setPlan] = useState("pro");
+  const [submitting, setSubmitting] = useState(false);
+  const { signup } = useAuth();
+  const navigate = useNavigate();
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      await signup({ name, email, password });
+      toast.success("Account created");
+      navigate("/dashboard");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Signup failed";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,7 +91,7 @@ const SignupPage = () => {
               ))}
             </div>
 
-            <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-5" onSubmit={onSubmit}>
               <div>
                 <label className="font-heading text-xs uppercase tracking-wider text-foreground block mb-2">
                   Full Name
@@ -81,6 +102,7 @@ const SignupPage = () => {
                   onChange={(e) => setName(e.target.value)}
                   className="w-full bg-card border-2 border-border px-4 py-3 font-body text-sm text-foreground focus:border-foreground focus:outline-none transition-colors"
                   placeholder="Jane Doe"
+                  required
                 />
               </div>
 
@@ -94,6 +116,7 @@ const SignupPage = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-card border-2 border-border px-4 py-3 font-body text-sm text-foreground focus:border-foreground focus:outline-none transition-colors"
                   placeholder="you@example.com"
+                  required
                 />
               </div>
 
@@ -108,6 +131,7 @@ const SignupPage = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full bg-card border-2 border-border px-4 py-3 font-body text-sm text-foreground focus:border-foreground focus:outline-none transition-colors pr-12"
                     placeholder="8+ characters"
+                    required
                   />
                   <button
                     type="button"
@@ -119,8 +143,8 @@ const SignupPage = () => {
                 </div>
               </div>
 
-              <button type="submit" className="btn-cta w-full justify-center">
-                Start Free Trial <ArrowRight size={18} />
+              <button type="submit" className="btn-cta w-full justify-center" disabled={submitting}>
+                {submitting ? "Creating..." : "Start Free Trial"} <ArrowRight size={18} />
               </button>
             </form>
 

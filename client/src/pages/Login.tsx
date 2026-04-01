@@ -1,12 +1,33 @@
 import Navbar from "@/components/Navbar";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      await login(email, password);
+      toast.success("Welcome back");
+      navigate("/dashboard");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Login failed";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,7 +43,7 @@ const LoginPage = () => {
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={onSubmit}>
             <div>
               <label className="font-heading text-xs uppercase tracking-wider text-foreground block mb-2">
                 Email
@@ -33,6 +54,7 @@ const LoginPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-card border-2 border-border px-4 py-3 font-body text-sm text-foreground focus:border-foreground focus:outline-none transition-colors"
                 placeholder="you@example.com"
+                required
               />
             </div>
 
@@ -63,8 +85,8 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn-cta w-full justify-center">
-              Log In <ArrowRight size={18} />
+            <button type="submit" className="btn-cta w-full justify-center" disabled={submitting}>
+              {submitting ? "Logging in..." : "Log In"} <ArrowRight size={18} />
             </button>
           </form>
 
