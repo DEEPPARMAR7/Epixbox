@@ -26,6 +26,11 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const isAuthenticated = useAuthStore((s: any) => s.isAuthenticated);
   const token = useAuthStore((s: any) => s.token);
+  const hasHydrated = useAuthStore((s: any) => s.hasHydrated);
+
+  if (!hasHydrated) {
+    return <div className="min-h-screen bg-background" />;
+  }
 
   if (!isAuthenticated || !token) {
     return <Navigate to="/login" replace />;

@@ -16,9 +16,12 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const isAuthenticated = useAuthStore((s: any) => s.isAuthenticated);
+  const token = useAuthStore((s: any) => s.token);
+  const hasHydrated = useAuthStore((s: any) => s.hasHydrated);
   const logout = useAuthStore((s: any) => s.logout);
+  const authed = hasHydrated && isAuthenticated && !!token;
 
-  const links = isAuthenticated
+  const links = authed
     ? navLinks.filter((l) => l.href !== "/login")
     : navLinks;
 
@@ -52,7 +55,7 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          {isAuthenticated ? (
+          {authed ? (
             <button onClick={onLogout} className="btn-outline-cta text-xs py-3 px-6">
               logout
             </button>
@@ -84,7 +87,7 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          {isAuthenticated ? (
+          {authed ? (
             <button onClick={onLogout} className="btn-outline-cta text-xs py-3 px-6 w-full justify-center">
               logout
             </button>
