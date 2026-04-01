@@ -1,10 +1,34 @@
 import BrandLogo from "@/components/BrandLogo";
+import { Link } from "react-router-dom";
 
 const footerLinks = {
-  Product: ["Features", "Pricing", "Templates", "Portfolio Sites", "Client Galleries"],
-  Resources: ["Blog", "Help Center", "Community", "Webinars", "API"],
-  Company: ["About", "Careers", "Press", "Contact", "Partners"],
-  Legal: ["Privacy Policy", "Terms of Service", "Cookie Policy", "DMCA"],
+  Product: [
+    { label: "Features", href: "/#features" },
+    { label: "Pricing", href: "/#pricing" },
+    { label: "Templates", href: "/#templates" },
+    { label: "Portfolio Sites", href: "/signup" },
+    { label: "Client Galleries", href: "/dashboard/galleries" },
+  ],
+  Resources: [
+    { label: "Blog", href: "/resources" },
+    { label: "Help Center", href: "/resources" },
+    { label: "Community", href: "/resources" },
+    { label: "Webinars", href: "/resources" },
+    { label: "API", href: "/resources" },
+  ],
+  Company: [
+    { label: "About", href: "/#signup" },
+    { label: "Careers", href: "/resources" },
+    { label: "Press", href: "/resources" },
+    { label: "Contact", href: "/#contact" },
+    { label: "Partners", href: "/resources" },
+  ],
+  Legal: [
+    { label: "Privacy Policy", href: "/signup" },
+    { label: "Terms of Service", href: "/signup" },
+    { label: "Cookie Policy", href: "/signup" },
+    { label: "DMCA", href: "/signup" },
+  ],
 };
 
 const Footer = () => {
@@ -29,10 +53,10 @@ const Footer = () => {
             </h4>
             <ul className="space-y-2">
               {links.map((link) => (
-                <li key={link}>
-                  <a href="#" className="font-body text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">
-                    {link}
-                  </a>
+                <li key={link.label}>
+                  <Link to={link.href} className="font-body text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -45,13 +69,13 @@ const Footer = () => {
           © {new Date().getFullYear()} EpixBox. All rights reserved.
         </p>
         <div className="flex gap-6">
-          <a href="#" className="font-body text-sm text-primary-foreground/50 hover:text-primary-foreground transition-colors">
+          <a href="https://twitter.com" target="_blank" rel="noreferrer" className="font-body text-sm text-primary-foreground/50 hover:text-primary-foreground transition-colors">
             Twitter
           </a>
-          <a href="#" className="font-body text-sm text-primary-foreground/50 hover:text-primary-foreground transition-colors">
+          <a href="https://instagram.com" target="_blank" rel="noreferrer" className="font-body text-sm text-primary-foreground/50 hover:text-primary-foreground transition-colors">
             Instagram
           </a>
-          <a href="#" className="font-body text-sm text-primary-foreground/50 hover:text-primary-foreground transition-colors">
+          <a href="https://youtube.com" target="_blank" rel="noreferrer" className="font-body text-sm text-primary-foreground/50 hover:text-primary-foreground transition-colors">
             YouTube
           </a>
         </div>

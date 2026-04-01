@@ -4,12 +4,12 @@ import { ArrowRight, BookOpen, Video, HelpCircle, MessageCircle, FileText, Users
 import { Link } from "react-router-dom";
 
 const resources = [
-  { icon: BookOpen, title: "Blog", desc: "Tips, tutorials, and inspiration for photographers at every level.", link: "#", count: "200+ articles" },
-  { icon: Video, title: "Webinars", desc: "Live and on-demand sessions with photography and business experts.", link: "#", count: "Weekly sessions" },
-  { icon: HelpCircle, title: "Help Center", desc: "Step-by-step guides and answers to common questions.", link: "#", count: "500+ articles" },
-  { icon: MessageCircle, title: "Community Forum", desc: "Connect with fellow photographers, share tips, and get feedback.", link: "#", count: "10K+ members" },
-  { icon: FileText, title: "API Documentation", desc: "Build custom integrations and extend EpixBox with our REST API.", link: "#", count: "Full API access" },
-  { icon: Users, title: "Partner Program", desc: "Earn commissions by referring photographers to EpixBox.", link: "#", count: "30% commission" },
+  { icon: BookOpen, title: "Blog", desc: "Tips, tutorials, and inspiration for photographers at every level.", link: "/#signup", count: "200+ articles" },
+  { icon: Video, title: "Webinars", desc: "Live and on-demand sessions with photography and business experts.", link: "/#signup", count: "Weekly sessions" },
+  { icon: HelpCircle, title: "Help Center", desc: "Step-by-step guides and answers to common questions.", link: "/#contact", count: "500+ articles" },
+  { icon: MessageCircle, title: "Community Forum", desc: "Connect with fellow photographers, share tips, and get feedback.", link: "/#contact", count: "10K+ members" },
+  { icon: FileText, title: "API Documentation", desc: "Build custom integrations and extend EpixBox with our REST API.", link: "/#contact", count: "Full API access" },
+  { icon: Users, title: "Partner Program", desc: "Earn commissions by referring photographers to EpixBox.", link: "/#contact", count: "30% commission" },
 ];
 
 const blogPosts = [
@@ -38,7 +38,7 @@ const ResourcesPage = () => {
       <section className="section-padding pt-0">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {resources.map((r) => (
-            <a key={r.title} href={r.link} className="bg-card border-2 border-border p-8 hover:border-foreground transition-colors group">
+              <a key={r.title} href={r.link} className="bg-card border-2 border-border p-8 hover:border-foreground transition-colors group">
               <div className="w-12 h-12 bg-accent flex items-center justify-center mb-4 group-hover:bg-foreground transition-colors">
                 <r.icon size={24} className="text-accent-foreground group-hover:text-primary-foreground transition-colors" />
               </div>
@@ -56,7 +56,7 @@ const ResourcesPage = () => {
           <h2 className="heading-lg text-foreground mb-10 text-center">Latest from the blog</h2>
           <div className="space-y-0 border-t-2 border-foreground">
             {blogPosts.map((post) => (
-              <a key={post.title} href="#" className="flex items-center justify-between py-5 border-b border-border hover:bg-background/50 px-4 -mx-4 transition-colors">
+              <a key={post.title} href="/#contact" className="flex items-center justify-between py-5 border-b border-border hover:bg-background/50 px-4 -mx-4 transition-colors">
                 <div>
                   <span className="font-heading text-xs uppercase tracking-wider text-accent-foreground mr-3">{post.category}</span>
                   <span className="font-body text-sm md:text-base text-foreground font-medium">{post.title}</span>
