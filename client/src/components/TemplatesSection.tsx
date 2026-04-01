@@ -5,7 +5,7 @@ import template4 from "@/assets/template-4.jpg";
 
 const TemplatesSection = () => {
   return (
-    <section className="section-padding" id="templates">
+    <section className="section-padding">
       <h2 className="heading-lg text-foreground mb-12 text-center">
         Show off with gorgeous drag-and-drop site templates.
       </h2>

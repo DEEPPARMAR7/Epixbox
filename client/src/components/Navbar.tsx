@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import BrandLogo from "@/components/BrandLogo";
-import useAuthStore from "../store/authStore";
-import { logout as apiLogout } from "../api/authApi";
+import { useAuth } from "@/hooks/use-auth";
 
 const navLinks = [
   { label: "features", href: "/features" },
@@ -15,22 +14,14 @@ const navLinks = [
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const isAuthenticated = useAuthStore((s: any) => s.isAuthenticated);
-  const token = useAuthStore((s: any) => s.token);
-  const hasHydrated = useAuthStore((s: any) => s.hasHydrated);
-  const logout = useAuthStore((s: any) => s.logout);
-  const authed = hasHydrated && isAuthenticated && !!token;
+  const { isAuthenticated, logout } = useAuth();
 
-  const links = authed
+  const links = isAuthenticated
     ? navLinks.filter((l) => l.href !== "/login")
     : navLinks;
 
   const onLogout = async () => {
-    try {
-      await apiLogout();
-    } finally {
-      logout();
-    }
+    await logout();
     setMobileOpen(false);
   };
 
@@ -55,7 +46,7 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          {authed ? (
+          {isAuthenticated ? (
             <button onClick={onLogout} className="btn-outline-cta text-xs py-3 px-6">
               logout
             </button>
@@ -87,7 +78,7 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
-          {authed ? (
+          {isAuthenticated ? (
             <button onClick={onLogout} className="btn-outline-cta text-xs py-3 px-6 w-full justify-center">
               logout
             </button>

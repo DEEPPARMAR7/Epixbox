@@ -3,9 +3,7 @@ import { ArrowRight, Eye, EyeOff, Check } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { register as apiRegister } from "../api/authApi";
-import useAuthStore from "../store/authStore";
-import axios from "axios";
+import { useAuth } from "@/hooks/use-auth";
 
 const benefits = [
   "14-day free trial, no credit card needed",
@@ -19,57 +17,21 @@ const SignupPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [plan, setPlan] = useState("pro");
   const [submitting, setSubmitting] = useState(false);
-  const login = useAuthStore((s: any) => s.login);
+  const { signup } = useAuth();
   const navigate = useNavigate();
-
-  const makeUsername = (value: string, mail: string) => {
-    const base = (value || mail.split("@")[0] || "user")
-      .toLowerCase()
-      .replace(/[^a-z0-9_]/g, "_")
-      .replace(/_+/g, "_")
-      .replace(/^_+|_+$/g, "")
-      .slice(0, 18);
-    return `${base || "user"}${Math.floor(Math.random() * 900 + 100)}`;
-  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      const emailValue = email.trim();
-
-      if (!name.trim()) {
-        throw new Error("Full name is required");
-      }
-      if (!emailValue) {
-        throw new Error("Email is required");
-      }
-      if (password !== confirmPassword) {
-        throw new Error("Passwords do not match");
-      }
-      if (password.length < 8) {
-        throw new Error("Password must be at least 8 characters");
-      }
-
-      const parts = name.trim().split(/\s+/).filter(Boolean);
-      const first_name = parts[0] || "User";
-      const last_name = parts.slice(1).join(" ");
-      const username = makeUsername(name, emailValue);
-
-      const res = await apiRegister({ email: emailValue, password, username, first_name, last_name });
-      login(res.user, res.accessToken, res.refreshToken);
+      await signup({ name, email, password });
       toast.success("Account created");
       navigate("/dashboard");
     } catch (err) {
-      const message = axios.isAxiosError(err)
-        ? err.response?.data?.error || err.message
-        : err instanceof Error
-          ? err.message
-          : "Signup failed";
+      const message = err instanceof Error ? err.message : "Signup failed";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -117,7 +79,6 @@ const SignupPage = () => {
               {["basic", "power", "pro"].map((p) => (
                 <button
                   key={p}
-                  type="button"
                   onClick={() => setPlan(p)}
                   className={`font-heading text-xs uppercase tracking-wider py-3 border-2 transition-colors ${
                     plan === p
@@ -143,29 +104,6 @@ const SignupPage = () => {
                   placeholder="Jane Doe"
                   required
                 />
-              </div>
-
-              <div>
-                <label className="font-heading text-xs uppercase tracking-wider text-foreground block mb-2">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-card border-2 border-border px-4 py-3 font-body text-sm text-foreground focus:border-foreground focus:outline-none transition-colors pr-12"
-                    placeholder="8+ characters"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
               </div>
 
               <div>
@@ -218,10 +156,10 @@ const SignupPage = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <button type="button" className="btn-outline-cta py-3 px-4 text-xs justify-center">
+              <button className="btn-outline-cta py-3 px-4 text-xs justify-center">
                 Google
               </button>
-              <button type="button" className="btn-outline-cta py-3 px-4 text-xs justify-center">
+              <button className="btn-outline-cta py-3 px-4 text-xs justify-center">
                 Apple
               </button>
             </div>

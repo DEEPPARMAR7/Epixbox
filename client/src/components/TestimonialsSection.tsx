@@ -1,5 +1,4 @@
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 import testimonial1 from "@/assets/testimonial-1.jpg";
 import testimonial2 from "@/assets/testimonial-2.jpg";
 import testimonial3 from "@/assets/testimonial-3.jpg";
@@ -54,9 +53,9 @@ const TestimonialsSection = () => {
             <h4 className="font-heading font-bold text-sm uppercase tracking-wider text-foreground">
               {testimonials[0].name}
             </h4>
-            <Link to="/resources" className="font-body text-muted-foreground underline text-sm">
+            <a href="#" className="font-body text-muted-foreground underline text-sm">
               {testimonials[0].business}
-            </Link>
+            </a>
             <div className="flex gap-2 mt-3">
               {testimonials[0].tags.map((tag) => (
                 <span key={tag} className="font-heading text-xs tracking-wider bg-secondary text-secondary-foreground px-3 py-1">
@@ -84,9 +83,9 @@ const TestimonialsSection = () => {
               <h4 className="font-heading font-bold text-sm uppercase tracking-wider text-foreground">
                 {t.name}
               </h4>
-              <Link to="/resources" className="font-body text-muted-foreground underline text-sm">
+              <a href="#" className="font-body text-muted-foreground underline text-sm">
                 {t.business}
-              </Link>
+              </a>
               <div className="flex gap-2 mt-2">
                 {t.tags.map((tag) => (
                   <span key={tag} className="font-heading text-xs tracking-wider bg-secondary text-secondary-foreground px-3 py-1">

@@ -28,7 +28,7 @@ const HeroSection = () => {
         <p className="body-lg mb-8">
           EpixBox powers your photography–and your business. You bring the visuals, we'll bring the everything else.
         </p>
-        <a href="/signup" className="btn-cta">
+        <a href="#signup" className="btn-cta">
           Try for Free <ArrowRight size={18} />
         </a>
       </div>

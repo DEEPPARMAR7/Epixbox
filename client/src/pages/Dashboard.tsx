@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Image, LayoutGrid, Globe, ShoppingBag, BarChart3, Settings, Users, Upload,
   ChevronLeft, ChevronRight, Plus, Search, Filter, MoreHorizontal, Eye, Trash2,
-  Edit, Star, Download, FolderOpen, Clock, TrendingUp, DollarSign, Camera, Menu, Check
+  Edit, Star, Download, FolderOpen, Clock, TrendingUp, DollarSign, Camera, Menu
 } from "lucide-react";
 
 import template1 from "@/assets/template-1.jpg";

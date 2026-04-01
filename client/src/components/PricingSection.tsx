@@ -94,7 +94,7 @@ const PricingSection = () => {
               ))}
             </ul>
             <a
-              href="/signup"
+              href="#signup"
               className={`w-full justify-center ${plan.featured ? "btn-cta" : "btn-outline-cta"}`}
             >
               {plan.cta} <ArrowRight size={16} />
