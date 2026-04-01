@@ -3,7 +3,9 @@ import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth";
+import { login as apiLogin } from "../api/authApi";
+import useAuthStore from "../store/authStore";
+import axios from "axios";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -11,18 +13,23 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const login = useAuthStore((s: any) => s.login);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      await login(email, password);
+      const res = await apiLogin({ email: email.trim(), password: password.trim() });
+      login(res.user, res.accessToken, res.refreshToken);
       toast.success("Welcome back");
       navigate("/dashboard");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Login failed";
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || err.message
+        : err instanceof Error
+          ? err.message
+          : "Login failed";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -74,6 +81,7 @@ const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-card border-2 border-border px-4 py-3 font-body text-sm text-foreground focus:border-foreground focus:outline-none transition-colors pr-12"
                   placeholder="••••••••"
+                  required
                 />
                 <button
                   type="button"
@@ -99,10 +107,10 @@ const LoginPage = () => {
 
           {/* Social */}
           <div className="grid grid-cols-2 gap-4">
-            <button className="btn-outline-cta py-3 px-4 text-xs justify-center">
+            <button type="button" className="btn-outline-cta py-3 px-4 text-xs justify-center">
               Google
             </button>
-            <button className="btn-outline-cta py-3 px-4 text-xs justify-center">
+            <button type="button" className="btn-outline-cta py-3 px-4 text-xs justify-center">
               Apple
             </button>
           </div>

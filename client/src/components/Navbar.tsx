@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import BrandLogo from "@/components/BrandLogo";
-import { useAuth } from "@/hooks/use-auth";
+import useAuthStore from "../store/authStore";
+import { logout as apiLogout } from "../api/authApi";
 
 const navLinks = [
   { label: "features", href: "/features" },
@@ -14,14 +15,19 @@ const navLinks = [
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const isAuthenticated = useAuthStore((s: any) => s.isAuthenticated);
+  const logout = useAuthStore((s: any) => s.logout);
 
   const links = isAuthenticated
     ? navLinks.filter((l) => l.href !== "/login")
     : navLinks;
 
   const onLogout = async () => {
-    await logout();
+    try {
+      await apiLogout();
+    } finally {
+      logout();
+    }
     setMobileOpen(false);
   };
 

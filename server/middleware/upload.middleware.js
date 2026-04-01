@@ -3,7 +3,7 @@ const multerS3 = require('multer-s3');
 const s3Client = require('../config/s3');
 const path = require('path');
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/tiff', 'image/heic'];
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/tiff', 'image/heic', 'image/heif'];
 
 const storage = multerS3({
   s3: s3Client,

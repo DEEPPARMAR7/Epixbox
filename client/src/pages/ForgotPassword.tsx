@@ -3,20 +3,19 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth";
+import { forgotPassword as apiForgotPassword } from "../api/authApi";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { forgotPassword } = useAuth();
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      await forgotPassword(email);
+      await apiForgotPassword(email);
       setSubmitted(true);
       toast.success("Reset link sent");
     } catch (err) {
