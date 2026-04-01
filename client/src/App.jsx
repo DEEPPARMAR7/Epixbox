@@ -33,7 +33,6 @@ function ProtectedRoute({ children }) {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
   const token = useAuthStore(s => s.token)
   const hasHydrated = useAuthStore(s => s.hasHydrated)
-
   if (!hasHydrated) return <div className="min-h-screen bg-black" />
   if (!isAuthenticated || !token) return <Navigate to="/login" replace />
   return children

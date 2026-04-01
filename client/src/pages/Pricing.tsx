@@ -1,5 +1,5 @@
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { ArrowRight, Check, HelpCircle } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";

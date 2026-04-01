@@ -1,5 +1,5 @@
 import { ArrowRight, Mountain } from "lucide-react";
-import growImg from "@/assets/grow-section.jpg";
+import growImg from "../assets/grow-section.jpg";
 
 const GrowSection = () => {
   return (

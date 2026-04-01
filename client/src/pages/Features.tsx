@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { ArrowRight, Cloud, Image, ShoppingBag, Globe, Shield, Palette, Users, BarChart3, Download, Layers, Zap, Lock, Smartphone, Search, Mail } from "lucide-react";
-import featuresHero from "@/assets/features-hero.jpg";
+import featuresHero from "../assets/features-hero.jpg";
 
 const featureCategories = [
   {

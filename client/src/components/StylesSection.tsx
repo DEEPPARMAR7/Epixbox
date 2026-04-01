@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import featuresImg from "@/assets/features-hero.jpg";
+import featuresImg from "../assets/features-hero.jpg";
 
 const StylesSection = () => {
   return (

@@ -1,4 +1,4 @@
-import BrandLogo from "@/components/BrandLogo";
+import BrandLogo from "./BrandLogo";
 
 const footerLinks = {
   Product: ["Features", "Pricing", "Templates", "Portfolio Sites", "Client Galleries"],

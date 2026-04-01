@@ -1,9 +1,9 @@
-import Navbar from "@/components/Navbar";
+import Navbar from "../components/Navbar";
 import { ArrowRight, Eye, EyeOff, Check } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "../hooks/use-auth";
 
 const benefits = [
   "14-day free trial, no credit card needed",

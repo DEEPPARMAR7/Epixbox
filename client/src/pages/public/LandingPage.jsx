@@ -53,27 +53,6 @@ const plans = [
   },
 ]
 
-const testimonials = [
-  {
-    quote: "EpicBox transformed how I run my photography business. Client proofing is seamless and my print sales doubled.",
-    author: "Sarah Chen",
-    role: "Wedding Photographer",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80"
-  },
-  {
-    quote: "The portfolio looks incredible. My clients are blown away every time I send them a gallery link.",
-    author: "Marcus Rivera",
-    role: "Portrait Photographer",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80"
-  },
-  {
-    quote: "Finally, a platform that doesn't compromise on image quality. The upload process is fast and the galleries are stunning.",
-    author: "Emily Park",
-    role: "Commercial Photographer",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=80"
-  },
-]
-
 export default function LandingPage() {
   const heroRef = useRef(null)
 
@@ -149,8 +128,8 @@ export default function LandingPage() {
       </section>
 
       {/* Photo Grid Showcase */}
-      <section className="py-2 bg-black">
-        <div className="grid grid-cols-3 grid-rows-2 gap-0.5 h-[70vh]">
+      <section className="py-4 bg-black">
+        <div className="grid grid-cols-3 grid-rows-2 gap-1 h-[70vh]">
           {GRID_PHOTOS.map((p, i) => (
             <div key={i} className={`overflow-hidden group relative ${p.span}`}>
               <img
@@ -246,36 +225,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 px-4 bg-black">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-center text-white/40 tracking-widest uppercase text-sm mb-4">Testimonials</p>
-          <h2 className="text-4xl font-bold text-center text-white mb-4">Loved by photographers worldwide</h2>
-          <p className="text-center text-white/50 mb-16 max-w-2xl mx-auto">
-            Join thousands of professional photographers growing their business with EpicBox
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((t, i) => (
-              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition">
-                <div className="flex items-center gap-4 mb-6">
-                  <img src={t.image} alt={t.author} className="w-14 h-14 rounded-full object-cover" />
-                  <div>
-                    <p className="font-semibold text-white">{t.author}</p>
-                    <p className="text-white/40 text-sm">{t.role}</p>
-                  </div>
-                </div>
-                <p className="text-white/70 leading-relaxed italic">"{t.quote}"</p>
-                <div className="mt-4 flex gap-0.5">
-                  {[...Array(5)].map((_, j) => (
-                    <span key={j} className="text-yellow-400 text-lg">★</span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Pricing */}
       <section className="py-24 px-4 bg-black">
         <div className="max-w-5xl mx-auto">
@@ -350,51 +299,8 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-zinc-950 border-t border-white/10 py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <h3 className="text-white font-semibold text-sm mb-4">Product</h3>
-              <ul className="space-y-2">
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Features</Link></li>
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Pricing</Link></li>
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Examples</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold text-sm mb-4">Company</h3>
-              <ul className="space-y-2">
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">About</Link></li>
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Blog</Link></li>
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Careers</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold text-sm mb-4">Support</h3>
-              <ul className="space-y-2">
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Help Center</Link></li>
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Contact Us</Link></li>
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Community</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold text-sm mb-4">Legal</h3>
-              <ul className="space-y-2">
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Privacy</Link></li>
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Terms</Link></li>
-                <li><Link to="/register" className="text-white/50 hover:text-white text-sm transition">Cookie Policy</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-white/30 text-sm">© 2025 EpicBox. All rights reserved.</p>
-            <div className="flex gap-6">
-              <a href="#" className="text-white/30 hover:text-white transition text-sm">Twitter</a>
-              <a href="#" className="text-white/30 hover:text-white transition text-sm">Instagram</a>
-              <a href="#" className="text-white/30 hover:text-white transition text-sm">YouTube</a>
-            </div>
-          </div>
-        </div>
+      <footer className="bg-black border-t border-white/10 py-12 px-6 text-center">
+        <p className="text-white/20 text-sm">© 2025 EpicBox. All rights reserved.</p>
       </footer>
     </div>
   )

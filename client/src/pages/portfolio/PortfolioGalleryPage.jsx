@@ -19,7 +19,7 @@ const SAMPLE_PHOTOS = [
   'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=600&q=80',
 ]
 
-function Lightbox({ photo, index, total, onClose, onPrev, onNext, isSlideshow, setIsSlideshow }) {
+function Lightbox({ photo, index, total, onClose, onPrev, onNext }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     const handler = (e) => {
@@ -43,17 +43,9 @@ function Lightbox({ photo, index, total, onClose, onPrev, onNext, isSlideshow, s
         &times;
       </button>
 
-      {/* Counter & Slideshow Toggle */}
-      <div className="absolute top-5 left-1/2 -translate-x-1/2 flex items-center gap-4 z-10">
-        <span className="text-white/40 text-sm tracking-widest">{index + 1} / {total}</span>
-        {isSlideshow !== undefined && (
-          <button
-            onClick={(e) => { e.stopPropagation(); setIsSlideshow(!isSlideshow); }}
-            className="text-white/60 hover:text-white transition text-sm"
-          >
-            {isSlideshow ? '⏸ Pause' : '▶ Play'}
-          </button>
-        )}
+      {/* Counter */}
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/40 text-sm tracking-widest">
+        {index + 1} / {total}
       </div>
 
       {/* Prev */}
@@ -90,43 +82,6 @@ function Lightbox({ photo, index, total, onClose, onPrev, onNext, isSlideshow, s
         )}
       </div>
 
-      {/* EXIF Info Panel */}
-      <div className="absolute bottom-6 left-6 bg-black/80 backdrop-blur-sm border border-white/10 rounded-lg p-4 max-w-xs" onClick={e => e.stopPropagation()}>
-        {photo.title && <p className="text-white font-semibold text-sm mb-3">{photo.title}</p>}
-        <div className="space-y-1.5 text-xs text-white/60">
-          {photo.exif_make && photo.exif_model && (
-            <div className="flex justify-between gap-4">
-              <span>Camera</span>
-              <span className="text-white/80">{photo.exif_make} {photo.exif_model}</span>
-            </div>
-          )}
-          {photo.exif_focal_length && (
-            <div className="flex justify-between gap-4">
-              <span>Focal Length</span>
-              <span className="text-white/80">{photo.exif_focal_length}mm</span>
-            </div>
-          )}
-          {photo.exif_aperture && (
-            <div className="flex justify-between gap-4">
-              <span>Aperture</span>
-              <span className="text-white/80">f/{photo.exif_aperture}</span>
-            </div>
-          )}
-          {photo.exif_shutter_speed && (
-            <div className="flex justify-between gap-4">
-              <span>Shutter</span>
-              <span className="text-white/80">{photo.exif_shutter_speed}s</span>
-            </div>
-          )}
-          {photo.exif_iso && (
-            <div className="flex justify-between gap-4">
-              <span>ISO</span>
-              <span className="text-white/80">{photo.exif_iso}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Buy Print */}
       <div className="absolute bottom-6 right-6">
         <Link
@@ -152,7 +107,6 @@ export default function PortfolioGalleryPage() {
   const [loading, setLoading] = useState(true)
   const [lightboxIdx, setLightboxIdx] = useState(null)
   const [scrolled, setScrolled] = useState(false)
-  const [isSlideshow, setIsSlideshow] = useState(false)
 
   useEffect(() => {
     Promise.all([getPhotographerProfile(username), getPublicGallery(username, slug)])
@@ -173,15 +127,6 @@ export default function PortfolioGalleryPage() {
 
   const handlePrev = useCallback(() => setLightboxIdx(i => Math.max(0, i - 1)), [])
   const handleNext = useCallback(() => setLightboxIdx(i => Math.min(photos.length - 1, i + 1)), [photos.length])
-
-  // Slideshow auto-advance
-  useEffect(() => {
-    if (!isSlideshow || lightboxIdx === null) return
-    const timer = setInterval(() => {
-      setLightboxIdx(i => (i + 1 >= photos.length ? 0 : i + 1))
-    }, 3000)
-    return () => clearInterval(timer)
-  }, [isSlideshow, lightboxIdx, photos.length])
 
   const displayName = photographer?.brand_name ||
     `${photographer?.first_name || ''} ${photographer?.last_name || ''}`.trim() ||
@@ -224,18 +169,8 @@ export default function PortfolioGalleryPage() {
           <p className="text-white/50 max-w-xl mx-auto">{gallery.description}</p>
         )}
         <div className="mt-4 w-12 h-px bg-white/20 mx-auto" />
-        <div className="mt-6 flex justify-center gap-3 items-center">
+        <div className="mt-6 flex justify-center">
           <ShareBar url={window.location.href} title={`${gallery?.title} — ${displayName}`} />
-          <button
-            onClick={() => { setLightboxIdx(0); setIsSlideshow(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white text-sm font-medium rounded-lg hover:bg-white/20 transition"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Slideshow
-          </button>
         </div>
       </div>
 
@@ -249,13 +184,13 @@ export default function PortfolioGalleryPage() {
         ) : (
           <Masonry
             breakpointCols={BREAKPOINTS}
-            className="flex -ml-1 w-auto"
-            columnClassName="pl-1 bg-clip-padding"
+            className="flex -ml-2 w-auto"
+            columnClassName="pl-2 bg-clip-padding"
           >
             {photos.map((photo, idx) => (
               <div
                 key={photo.id}
-                className="mb-1 group relative cursor-pointer overflow-hidden bg-zinc-900"
+                className="mb-2 group relative cursor-pointer overflow-hidden bg-zinc-900 rounded-sm"
                 onClick={() => setLightboxIdx(idx)}
               >
                 <img
@@ -304,11 +239,9 @@ export default function PortfolioGalleryPage() {
           photo={photos[lightboxIdx]}
           index={lightboxIdx}
           total={photos.length}
-          onClose={() => { setLightboxIdx(null); setIsSlideshow(false); }}
+          onClose={() => setLightboxIdx(null)}
           onPrev={handlePrev}
           onNext={handleNext}
-          isSlideshow={isSlideshow}
-          setIsSlideshow={setIsSlideshow}
         />
       )}
     </div>

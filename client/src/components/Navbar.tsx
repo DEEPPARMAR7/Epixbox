@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import BrandLogo from "@/components/BrandLogo";
-import { useAuth } from "@/hooks/use-auth";
+import BrandLogo from "./BrandLogo";
+import { useAuth } from "../hooks/use-auth";
 
 const navLinks = [
   { label: "features", href: "/features" },

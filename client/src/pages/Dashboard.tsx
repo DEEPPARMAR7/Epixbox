@@ -6,15 +6,15 @@ import {
   Edit, Star, Download, FolderOpen, Clock, TrendingUp, DollarSign, Camera, Menu
 } from "lucide-react";
 
-import template1 from "@/assets/template-1.jpg";
-import template2 from "@/assets/template-2.jpg";
-import template3 from "@/assets/template-3.jpg";
-import template4 from "@/assets/template-4.jpg";
-import platformImg from "@/assets/platform-showcase.jpg";
-import heroImg from "@/assets/hero-main.jpg";
-import featuresImg from "@/assets/features-hero.jpg";
-import growImg from "@/assets/grow-section.jpg";
-import BrandLogo from "@/components/BrandLogo";
+import template1 from "../assets/template-1.jpg";
+import template2 from "../assets/template-2.jpg";
+import template3 from "../assets/template-3.jpg";
+import template4 from "../assets/template-4.jpg";
+import platformImg from "../assets/platform-showcase.jpg";
+import heroImg from "../assets/hero-main.jpg";
+import featuresImg from "../assets/features-hero.jpg";
+import growImg from "../assets/grow-section.jpg";
+import BrandLogo from "../components/BrandLogo";
 
 const sidebarItems = [
   { icon: LayoutGrid, label: "Dashboard", path: "/dashboard" },

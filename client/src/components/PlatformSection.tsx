@@ -1,5 +1,5 @@
 import { ArrowRight, Mountain } from "lucide-react";
-import platformImg from "@/assets/platform-showcase.jpg";
+import platformImg from "../assets/platform-showcase.jpg";
 
 const PlatformSection = () => {
   return (

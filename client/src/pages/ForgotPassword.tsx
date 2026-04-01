@@ -1,9 +1,9 @@
-import Navbar from "@/components/Navbar";
+import Navbar from "../components/Navbar";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "../hooks/use-auth";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");

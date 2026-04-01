@@ -1,7 +1,7 @@
-import template1 from "@/assets/template-1.jpg";
-import template2 from "@/assets/template-2.jpg";
-import template3 from "@/assets/template-3.jpg";
-import template4 from "@/assets/template-4.jpg";
+import template1 from "../assets/template-1.jpg";
+import template2 from "../assets/template-2.jpg";
+import template3 from "../assets/template-3.jpg";
+import template4 from "../assets/template-4.jpg";
 
 const TemplatesSection = () => {
   return (
