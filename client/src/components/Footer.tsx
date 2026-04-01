@@ -17,10 +17,10 @@ const footerLinks = {
     { label: "API", href: "/resources" },
   ],
   Company: [
-    { label: "About", href: "/#signup" },
+    { label: "About", href: "/signup" },
     { label: "Careers", href: "/resources" },
     { label: "Press", href: "/resources" },
-    { label: "Contact", href: "/#contact" },
+    { label: "Contact", href: "/resources" },
     { label: "Partners", href: "/resources" },
   ],
   Legal: [
