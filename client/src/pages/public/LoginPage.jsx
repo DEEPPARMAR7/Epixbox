@@ -68,7 +68,7 @@ export default function LoginPage() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-xs font-semibold text-white/50 uppercase tracking-wider">Password</label>
-                <Link to="/login" className="text-xs text-white/40 hover:text-white transition">Forgot password?</Link>
+                <Link to="/forgot-password" className="text-xs text-white/40 hover:text-white transition">Forgot password?</Link>
               </div>
               <input {...register('password')} type="password" placeholder="••••••••" className={INPUT} />
               {errors.password && <p className="text-red-400 text-xs mt-1.5">{errors.password.message}</p>}
