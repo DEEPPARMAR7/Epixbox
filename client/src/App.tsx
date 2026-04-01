@@ -13,6 +13,13 @@ import SignupPage from "./pages/Signup.tsx";
 import ForgotPasswordPage from "./pages/ForgotPassword.tsx";
 import ResourcesPage from "./pages/Resources.tsx";
 import DashboardPage from "./pages/Dashboard.tsx";
+import GalleryOrganizerPage from "./pages/dashboard/GalleryOrganizerPage";
+import GalleryEditorPage from "./pages/dashboard/GalleryEditorPage";
+import UploadManagerPage from "./pages/dashboard/UploadManagerPage";
+import PhotoDetailsPage from "./pages/dashboard/PhotoDetailsPage";
+import ClientProofingAdminPage from "./pages/dashboard/ClientProofingAdminPage";
+import PricingEditorPage from "./pages/dashboard/PricingEditorPage";
+import AccountSettingsPage from "./pages/dashboard/AccountSettingsPage";
 import PortfolioHomePage from "./pages/portfolio/PortfolioHomePage";
 import PortfolioGalleryPage from "./pages/portfolio/PortfolioGalleryPage";
 import ClientProofingPage from "./pages/proofing/ClientProofingPage";
@@ -56,6 +63,13 @@ const App = () => (
           <Route path="/resources" element={<ResourcesPage />} />
 
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/dashboard/galleries" element={<ProtectedRoute><GalleryOrganizerPage /></ProtectedRoute>} />
+          <Route path="/dashboard/galleries/:id/edit" element={<ProtectedRoute><GalleryEditorPage /></ProtectedRoute>} />
+          <Route path="/dashboard/galleries/:id/upload" element={<ProtectedRoute><UploadManagerPage /></ProtectedRoute>} />
+          <Route path="/dashboard/photos/:id" element={<ProtectedRoute><PhotoDetailsPage /></ProtectedRoute>} />
+          <Route path="/dashboard/proofing" element={<ProtectedRoute><ClientProofingAdminPage /></ProtectedRoute>} />
+          <Route path="/dashboard/pricing" element={<ProtectedRoute><PricingEditorPage /></ProtectedRoute>} />
+          <Route path="/dashboard/settings" element={<ProtectedRoute><AccountSettingsPage /></ProtectedRoute>} />
           <Route path="/dashboard/*" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
 
           <Route path="/p/:username" element={<PortfolioHomePage />} />
