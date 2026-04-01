@@ -69,8 +69,8 @@ export default function GalleryOrganizerPage() {
       toast.success('Gallery deleted')
       setDeleteId(null)
       fetchGalleries()
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to delete gallery')
+    } catch {
+      toast.error('Failed to delete gallery')
     } finally {
       setDeleting(false)
     }

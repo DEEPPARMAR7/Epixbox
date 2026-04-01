@@ -36,15 +36,6 @@
 
     --radius: 0rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-
     --font-heading: 'Space Mono', monospace;
     --font-body: 'DM Sans', sans-serif;
   }
@@ -69,24 +60,14 @@
     --border: 0 0% 20%;
     --input: 0 0% 20%;
     --ring: 40 23% 90%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
-    @apply bg-background text-foreground font-body;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-body);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -96,19 +77,27 @@
 
 @layer components {
   .btn-cta {
-    @apply inline-flex items-center gap-2 bg-accent text-accent-foreground font-heading font-bold px-8 py-4 text-sm uppercase tracking-wider border-2 border-foreground transition-all duration-200;
+    @apply inline-flex items-center gap-2 font-heading font-bold px-8 py-4 text-sm uppercase tracking-wider border-2 transition-all duration-200;
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    border-color: hsl(var(--foreground));
   }
 
   .btn-cta:hover {
-    @apply bg-foreground text-background;
+    background-color: hsl(var(--foreground));
+    color: hsl(var(--background));
   }
 
   .btn-outline-cta {
-    @apply inline-flex items-center gap-2 bg-transparent text-foreground font-heading font-bold px-8 py-4 text-sm uppercase tracking-wider border-2 border-foreground transition-all duration-200;
+    @apply inline-flex items-center gap-2 font-heading font-bold px-8 py-4 text-sm uppercase tracking-wider border-2 transition-all duration-200;
+    background-color: transparent;
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--foreground));
   }
 
   .btn-outline-cta:hover {
-    @apply bg-foreground text-background;
+    background-color: hsl(var(--foreground));
+    color: hsl(var(--background));
   }
 
   .section-padding {
@@ -128,6 +117,7 @@
   }
 
   .body-lg {
-    @apply text-lg md:text-xl font-body leading-relaxed text-muted-foreground;
+    @apply text-lg md:text-xl leading-relaxed;
+    color: hsl(var(--muted-foreground));
   }
 }

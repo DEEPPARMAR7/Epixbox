@@ -55,7 +55,7 @@ export default function UploadManagerPage() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.heic', '.heif'] },
+    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.heic'] },
     multiple: true,
   })
 

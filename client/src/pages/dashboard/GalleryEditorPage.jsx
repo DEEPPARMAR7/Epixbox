@@ -51,8 +51,8 @@ export default function GalleryEditorPage() {
       const updated = await updateGallery(id, form)
       setGallery(updated)
       toast.success('Gallery saved!')
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to save')
+    } catch {
+      toast.error('Failed to save')
     } finally {
       setSaving(false)
     }
@@ -64,8 +64,8 @@ export default function GalleryEditorPage() {
       await deletePhoto(photoId)
       setPhotos(p => p.filter(ph => ph.id !== photoId))
       toast.success('Photo deleted')
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to delete photo')
+    } catch {
+      toast.error('Failed to delete photo')
     }
   }
 
