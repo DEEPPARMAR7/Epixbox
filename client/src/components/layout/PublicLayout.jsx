@@ -4,8 +4,11 @@ import { useCart } from '../../hooks/useCart'
 
 export default function PublicLayout({ children }) {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated)
+  const token = useAuthStore(s => s.token)
+  const hasHydrated = useAuthStore(s => s.hasHydrated)
   const { items } = useCart()
   const cartCount = items.reduce((s, i) => s + i.quantity, 0)
+  const authed = hasHydrated && isAuthenticated && !!token
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -25,7 +28,9 @@ export default function PublicLayout({ children }) {
                 </span>
               )}
             </Link>
-            {isAuthenticated ? (
+            {!hasHydrated ? (
+              <div className="h-9 w-24 rounded-lg bg-gray-100 animate-pulse" />
+            ) : authed ? (
               <Link
                 to="/dashboard"
                 className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm font-medium"

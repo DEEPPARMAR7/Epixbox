@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { register as apiRegister } from "../api/authApi";
 import useAuthStore from "../store/authStore";
+import axios from "axios";
 
 const benefits = [
   "14-day free trial, no credit card needed",
@@ -39,6 +40,14 @@ const SignupPage = () => {
     setSubmitting(true);
 
     try {
+      const emailValue = email.trim();
+
+      if (!name.trim()) {
+        throw new Error("Full name is required");
+      }
+      if (!emailValue) {
+        throw new Error("Email is required");
+      }
       if (password !== confirmPassword) {
         throw new Error("Passwords do not match");
       }
@@ -49,14 +58,18 @@ const SignupPage = () => {
       const parts = name.trim().split(/\s+/).filter(Boolean);
       const first_name = parts[0] || "User";
       const last_name = parts.slice(1).join(" ");
-      const username = makeUsername(name, email);
+      const username = makeUsername(name, emailValue);
 
-      const res = await apiRegister({ email, password, username, first_name, last_name });
+      const res = await apiRegister({ email: emailValue, password, username, first_name, last_name });
       login(res.user, res.accessToken, res.refreshToken);
       toast.success("Account created");
       navigate("/dashboard");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Signup failed";
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || err.message
+        : err instanceof Error
+          ? err.message
+          : "Signup failed";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -104,6 +117,7 @@ const SignupPage = () => {
               {["basic", "power", "pro"].map((p) => (
                 <button
                   key={p}
+                  type="button"
                   onClick={() => setPlan(p)}
                   className={`font-heading text-xs uppercase tracking-wider py-3 border-2 transition-colors ${
                     plan === p
@@ -204,10 +218,10 @@ const SignupPage = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <button className="btn-outline-cta py-3 px-4 text-xs justify-center">
+              <button type="button" className="btn-outline-cta py-3 px-4 text-xs justify-center">
                 Google
               </button>
-              <button className="btn-outline-cta py-3 px-4 text-xs justify-center">
+              <button type="button" className="btn-outline-cta py-3 px-4 text-xs justify-center">
                 Apple
               </button>
             </div>
