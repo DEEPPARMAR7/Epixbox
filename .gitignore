@@ -10,3 +10,4 @@ tmpclaude-*
 skills-lock.json
 .agents/
 .claude/
+bun.lock
