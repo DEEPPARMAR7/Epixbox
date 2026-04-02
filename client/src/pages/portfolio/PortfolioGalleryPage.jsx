@@ -135,6 +135,7 @@ function Lightbox({ photo, index, total, onClose, onPrev, onNext, slideshowActiv
         {slideshowActive && (
           <div className="absolute bottom-0 inset-x-0 h-0.5 bg-white/20 rounded-b overflow-hidden">
             <div
+              key={index}
               className="h-full bg-white/70"
               style={{ animation: `lightboxProgress ${SLIDESHOW_INTERVAL}ms linear` }}
             />
