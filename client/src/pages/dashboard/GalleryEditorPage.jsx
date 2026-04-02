@@ -17,12 +17,12 @@ const SAMPLE_PHOTOS = [
 ]
 
 const VISIBILITY_CONFIG = {
-  public: { label: 'Public', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-  private: { label: 'Private', color: 'text-red-600 bg-red-50 border-red-200' },
-  unlisted: { label: 'Unlisted', color: 'text-amber-600 bg-amber-50 border-amber-200' },
+  public: { label: 'Public', color: 'text-emerald-200 bg-emerald-500/20 border-emerald-300/30' },
+  private: { label: 'Private', color: 'text-red-200 bg-red-500/20 border-red-300/30' },
+  unlisted: { label: 'Unlisted', color: 'text-amber-200 bg-amber-500/20 border-amber-300/30' },
 }
 
-const INPUT = 'w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm bg-white transition'
+const INPUT = 'w-full px-3 py-2.5 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-300/50 focus:border-transparent text-sm bg-white/5 text-white transition'
 
 export default function GalleryEditorPage() {
   const { id } = useParams()
@@ -81,10 +81,10 @@ export default function GalleryEditorPage() {
   return (
     <DashboardLayout>
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <Link to="/dashboard/galleries" className="hover:text-indigo-600 transition">Galleries</Link>
+      <div className="flex items-center gap-2 text-sm text-slate-400 mb-6">
+        <Link to="/dashboard/galleries" className="hover:text-emerald-300 transition">Library</Link>
         <span>/</span>
-        <span className="text-gray-700 font-medium truncate">{gallery?.title}</span>
+        <span className="text-slate-200 font-medium truncate">{gallery?.title}</span>
       </div>
 
       {/* Gallery hero strip */}
@@ -104,7 +104,7 @@ export default function GalleryEditorPage() {
           <div className="flex gap-2 flex-shrink-0">
             <button
               onClick={() => navigate(`/dashboard/galleries/${id}/upload`)}
-              className="bg-white text-gray-900 text-sm font-semibold px-4 py-2 rounded-xl hover:bg-gray-100 transition"
+              className="bg-emerald-300 text-[#06210f] text-sm font-extrabold uppercase tracking-wide px-4 py-2 rounded-xl hover:bg-emerald-200 transition"
             >
               + Upload Photos
             </button>
@@ -123,10 +123,10 @@ export default function GalleryEditorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Settings panel */}
         <div className="lg:col-span-1">
-          <form onSubmit={handleSave} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
-            <h2 className="text-base font-bold text-gray-900 mb-2">Gallery Settings</h2>
+          <form onSubmit={handleSave} className="bg-white/5 rounded-2xl border border-white/10 p-6 space-y-4">
+            <h2 className="text-base font-bold text-white mb-2">Site Settings</h2>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Title</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Title</label>
               <input
                 value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -134,7 +134,7 @@ export default function GalleryEditorPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Visibility</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Visibility</label>
               <select
                 value={form.visibility}
                 onChange={e => setForm(f => ({ ...f, visibility: e.target.value }))}
@@ -146,7 +146,7 @@ export default function GalleryEditorPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Description</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Description</label>
               <textarea
                 value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -161,24 +161,24 @@ export default function GalleryEditorPage() {
 
         {/* Photos grid */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-gray-900">Photos <span className="text-gray-400 font-normal text-sm">({photos.length})</span></h2>
+              <h2 className="text-base font-bold text-white">Photos <span className="text-slate-400 font-normal text-sm">({photos.length})</span></h2>
               <button
                 onClick={() => navigate(`/dashboard/galleries/${id}/upload`)}
-                className="text-sm text-indigo-600 font-medium hover:underline"
+                className="text-sm text-emerald-300 font-medium hover:underline"
               >
                 + Add More
               </button>
             </div>
 
             {photos.length === 0 ? (
-              <div className="text-center py-16 border-2 border-dashed border-gray-200 rounded-xl">
+              <div className="text-center py-16 border-2 border-dashed border-white/20 rounded-xl">
                 <div className="text-4xl mb-3">📷</div>
-                <p className="text-gray-500 text-sm font-medium mb-1">No photos yet</p>
+                <p className="text-slate-300 text-sm font-medium mb-1">No photos yet</p>
                 <button
                   onClick={() => navigate(`/dashboard/galleries/${id}/upload`)}
-                  className="text-indigo-600 text-sm hover:underline font-medium"
+                  className="text-emerald-300 text-sm hover:underline font-medium"
                 >
                   Upload photos
                 </button>
@@ -186,7 +186,7 @@ export default function GalleryEditorPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {photos.map((photo, idx) => (
-                  <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-100">
+                  <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden bg-[#0a0f19] border border-white/10">
                     <img
                       src={photo.thumb_url || SAMPLE_PHOTOS[idx % SAMPLE_PHOTOS.length]}
                       alt={photo.title || ''}

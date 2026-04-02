@@ -9,26 +9,26 @@ import { formatFileSize } from '../../utils/formatters'
 
 function FileItem({ file, progress, status }) {
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-      <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xl flex-shrink-0">
+    <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
+      <div className="w-10 h-10 bg-[#0a0f19] rounded flex items-center justify-center text-xl flex-shrink-0">
         📷
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-700 truncate">{file.name}</p>
-        <p className="text-xs text-gray-400">{formatFileSize(file.size)}</p>
+        <p className="text-sm font-medium text-slate-100 truncate">{file.name}</p>
+        <p className="text-xs text-slate-400">{formatFileSize(file.size)}</p>
         {status === 'uploading' && (
-          <div className="mt-1.5 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div className="mt-1.5 h-1.5 bg-white/10 rounded-full overflow-hidden">
             <div
-              className="h-full bg-indigo-500 rounded-full transition-all duration-300"
+              className="h-full bg-emerald-300 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
         )}
       </div>
       <span className={`text-xs font-medium flex-shrink-0 ${
-        status === 'done' ? 'text-green-600' :
-        status === 'error' ? 'text-red-500' :
-        status === 'uploading' ? 'text-indigo-600' : 'text-gray-400'
+        status === 'done' ? 'text-emerald-300' :
+        status === 'error' ? 'text-red-300' :
+        status === 'uploading' ? 'text-emerald-200' : 'text-slate-400'
       }`}>
         {status === 'done' ? '✓ Done' :
          status === 'error' ? '✗ Error' :
@@ -99,30 +99,31 @@ export default function UploadManagerPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <Link to={`/dashboard/galleries/${galleryId}/edit`} className="text-sm text-indigo-600 hover:underline">← Back to Gallery</Link>
-        <h1 className="text-2xl font-bold text-gray-900 mt-2">Upload Photos</h1>
+        <Link to={`/dashboard/galleries/${galleryId}/edit`} className="text-sm text-emerald-300 hover:underline">← Back to Gallery</Link>
+        <h1 className="text-2xl font-black text-white mt-2">Upload</h1>
+        <p className="text-sm text-slate-400 mt-1">Drag files into your library and publish when ready.</p>
       </div>
 
       {/* Drop Zone */}
       <div
         {...getRootProps()}
         className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition mb-6 ${
-          isDragActive ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 bg-white hover:border-indigo-400 hover:bg-gray-50'
+          isDragActive ? 'border-emerald-300 bg-emerald-300/10' : 'border-white/20 bg-white/5 hover:border-emerald-300/50 hover:bg-white/10'
         }`}
       >
         <input {...getInputProps()} />
         <div className="text-5xl mb-3">📤</div>
-        <p className="text-base font-semibold text-gray-700">
+        <p className="text-base font-semibold text-white">
           {isDragActive ? 'Drop your photos here!' : 'Drag & drop photos here'}
         </p>
-        <p className="text-sm text-gray-400 mt-1">or click to browse — JPG, PNG, WEBP, TIFF, HEIC up to 50MB each</p>
+        <p className="text-sm text-slate-400 mt-1">or click to browse — JPG, PNG, WEBP, TIFF, HEIC up to 50MB each</p>
       </div>
 
       {/* Queue */}
       {queue.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white/5 rounded-xl border border-white/10 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-gray-900">
+            <h2 className="text-base font-semibold text-white">
               Upload Queue ({queue.length} file{queue.length !== 1 ? 's' : ''})
             </h2>
             <div className="flex gap-3">

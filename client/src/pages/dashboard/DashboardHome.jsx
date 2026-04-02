@@ -68,15 +68,15 @@ export default function DashboardHome() {
       {/* Header greeting */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">
+          <h1 className="text-2xl font-black text-white">
             Hello, {user?.first_name || user?.username} 👋
           </h1>
-          <p className="text-gray-400 text-sm mt-1">Here's your photography business at a glance.</p>
+          <p className="text-slate-400 text-sm mt-1">Here's your photography business at a glance.</p>
         </div>
         <div className="flex gap-3 flex-shrink-0">
           <button
             onClick={handleCopyPortfolioLink}
-            className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition"
+            className="inline-flex items-center gap-2 border border-white/20 text-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10 transition"
           >
             <span>🔗</span> Copy Link
           </button>
@@ -84,7 +84,7 @@ export default function DashboardHome() {
             href={`/p/${user?.username}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-black transition shadow-sm"
+            className="inline-flex items-center gap-2 bg-emerald-300 text-[#06210f] px-5 py-2.5 rounded-xl text-sm font-extrabold uppercase tracking-wide hover:bg-emerald-200 transition shadow-sm"
           >
             <span>🌐</span> View Portfolio ↗
           </a>
@@ -137,36 +137,36 @@ export default function DashboardHome() {
 
           {/* Quick actions */}
           <div>
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">Quick Actions</h2>
+            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <button
                 onClick={() => navigate('/dashboard/galleries')}
-                className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 hover:border-indigo-200 hover:shadow-md transition group text-left"
+                className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-emerald-300/30 hover:bg-emerald-400/10 transition group text-left"
               >
-                <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-2xl group-hover:bg-indigo-100 transition">🖼️</div>
+                <div className="w-12 h-12 bg-emerald-300/15 rounded-xl flex items-center justify-center text-2xl group-hover:bg-emerald-300/25 transition">🖼️</div>
                 <div>
-                  <p className="font-semibold text-gray-900 text-sm">New Gallery</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Organize your work</p>
+                  <p className="font-semibold text-white text-sm">New Gallery</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Organize your work</p>
                 </div>
               </button>
               <button
                 onClick={() => navigate('/dashboard/proofing')}
-                className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 hover:border-violet-200 hover:shadow-md transition group text-left"
+                className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-sky-300/30 hover:bg-sky-400/10 transition group text-left"
               >
-                <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center text-2xl group-hover:bg-violet-100 transition">✅</div>
+                <div className="w-12 h-12 bg-sky-300/15 rounded-xl flex items-center justify-center text-2xl group-hover:bg-sky-300/25 transition">✅</div>
                 <div>
-                  <p className="font-semibold text-gray-900 text-sm">Client Proofing</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Share for review</p>
+                  <p className="font-semibold text-white text-sm">Client Proofing</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Share for review</p>
                 </div>
               </button>
               <button
                 onClick={() => navigate('/dashboard/pricing')}
-                className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 hover:border-emerald-200 hover:shadow-md transition group text-left"
+                className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-amber-300/30 hover:bg-amber-400/10 transition group text-left"
               >
-                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-2xl group-hover:bg-emerald-100 transition">💰</div>
+                <div className="w-12 h-12 bg-amber-300/15 rounded-xl flex items-center justify-center text-2xl group-hover:bg-amber-300/25 transition">💰</div>
                 <div>
-                  <p className="font-semibold text-gray-900 text-sm">Pricing</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Set print prices</p>
+                  <p className="font-semibold text-white text-sm">Pricing</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Set print prices</p>
                 </div>
               </button>
             </div>
@@ -176,15 +176,15 @@ export default function DashboardHome() {
           {galleries.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Recent Galleries</h2>
-                <Link to="/dashboard/galleries" className="text-sm text-indigo-600 font-medium hover:underline">View all →</Link>
+                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">Recent Galleries</h2>
+                <Link to="/dashboard/galleries" className="text-sm text-emerald-300 font-medium hover:underline">View all →</Link>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {galleries.slice(0, 3).map((g, i) => (
                   <Link
                     key={g.id}
                     to={`/dashboard/galleries/${g.id}/edit`}
-                    className="group block bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition"
+                    className="group block bg-white/5 rounded-2xl border border-white/10 overflow-hidden hover:border-white/20 transition"
                   >
                     <div className="relative h-36 overflow-hidden">
                       <img
@@ -203,8 +203,8 @@ export default function DashboardHome() {
                       </span>
                     </div>
                     <div className="p-4">
-                      <p className="font-semibold text-gray-900 text-sm truncate">{g.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{g.photos_count || 0} photos</p>
+                      <p className="font-semibold text-white text-sm truncate">{g.title}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{g.photos_count || 0} photos</p>
                     </div>
                   </Link>
                 ))}
@@ -215,25 +215,25 @@ export default function DashboardHome() {
           {/* Recent orders */}
           {orders.length > 0 && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">Recent Orders</h2>
-              <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">Recent Orders</h2>
+              <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
                 <table className="w-full text-sm">
-                  <thead className="border-b border-gray-100 bg-gray-50/50">
+                  <thead className="border-b border-white/10 bg-white/5">
                     <tr>
-                      <th className="text-left text-xs text-gray-400 font-semibold uppercase tracking-wider px-6 py-3">Order</th>
-                      <th className="text-left text-xs text-gray-400 font-semibold uppercase tracking-wider px-4 py-3">Date</th>
-                      <th className="text-left text-xs text-gray-400 font-semibold uppercase tracking-wider px-4 py-3">Buyer</th>
-                      <th className="text-left text-xs text-gray-400 font-semibold uppercase tracking-wider px-4 py-3">Total</th>
-                      <th className="text-left text-xs text-gray-400 font-semibold uppercase tracking-wider px-4 py-3">Status</th>
+                      <th className="text-left text-xs text-slate-400 font-semibold uppercase tracking-wider px-6 py-3">Order</th>
+                      <th className="text-left text-xs text-slate-400 font-semibold uppercase tracking-wider px-4 py-3">Date</th>
+                      <th className="text-left text-xs text-slate-400 font-semibold uppercase tracking-wider px-4 py-3">Buyer</th>
+                      <th className="text-left text-xs text-slate-400 font-semibold uppercase tracking-wider px-4 py-3">Total</th>
+                      <th className="text-left text-xs text-slate-400 font-semibold uppercase tracking-wider px-4 py-3">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white/5">
                     {orders.slice(0, 5).map((o) => (
-                      <tr key={o.id} className="hover:bg-gray-50/50 transition">
-                        <td className="px-6 py-4 font-mono text-xs text-gray-400">#{o.id.slice(0, 8)}</td>
-                        <td className="px-4 py-4 text-gray-600 whitespace-nowrap">{formatDate(o.created_at)}</td>
-                        <td className="px-4 py-4 text-gray-700 font-medium truncate max-w-[140px]">{o.buyer_name || o.buyer_email}</td>
-                        <td className="px-4 py-4 font-semibold text-gray-900">{formatCurrency(o.total_cents || 0)}</td>
+                      <tr key={o.id} className="hover:bg-white/5 transition">
+                        <td className="px-6 py-4 font-mono text-xs text-slate-400">#{o.id.slice(0, 8)}</td>
+                        <td className="px-4 py-4 text-slate-300 whitespace-nowrap">{formatDate(o.created_at)}</td>
+                        <td className="px-4 py-4 text-slate-200 font-medium truncate max-w-[140px]">{o.buyer_name || o.buyer_email}</td>
+                        <td className="px-4 py-4 font-semibold text-white">{formatCurrency(o.total_cents || 0)}</td>
                         <td className="px-4 py-4">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[o.status] || 'bg-gray-100 text-gray-600'}`}>
                             {o.status}
@@ -249,13 +249,13 @@ export default function DashboardHome() {
 
           {/* Empty state */}
           {galleries.length === 0 && orders.length === 0 && (
-            <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
+            <div className="text-center py-16 bg-white/5 rounded-2xl border border-dashed border-white/20">
               <div className="text-5xl mb-4">📷</div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Start building your portfolio</h3>
-              <p className="text-gray-400 text-sm mb-6 max-w-sm mx-auto">Create your first gallery, upload photos, and share your work with the world.</p>
+              <h3 className="text-lg font-bold text-white mb-2">Start building your portfolio</h3>
+              <p className="text-slate-400 text-sm mb-6 max-w-sm mx-auto">Create your first gallery, upload photos, and share your work with the world.</p>
               <Link
                 to="/dashboard/galleries"
-                className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition"
+                className="inline-flex items-center gap-2 bg-emerald-300 text-[#06210f] px-6 py-3 rounded-xl text-sm font-extrabold uppercase tracking-wide hover:bg-emerald-200 transition"
               >
                 + Create First Gallery
               </Link>

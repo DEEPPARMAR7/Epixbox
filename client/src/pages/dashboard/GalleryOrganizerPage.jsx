@@ -19,9 +19,9 @@ const COVER_IMAGES = [
 ]
 
 const VISIBILITY_CONFIG = {
-  public: { label: 'Public', color: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-400' },
-  private: { label: 'Private', color: 'bg-red-100 text-red-700', dot: 'bg-red-400' },
-  unlisted: { label: 'Unlisted', color: 'bg-amber-100 text-amber-700', dot: 'bg-amber-400' },
+  public: { label: 'Public', color: 'bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-300/30', dot: 'bg-emerald-300' },
+  private: { label: 'Private', color: 'bg-red-500/20 text-red-200 ring-1 ring-red-300/30', dot: 'bg-red-300' },
+  unlisted: { label: 'Unlisted', color: 'bg-amber-500/20 text-amber-200 ring-1 ring-amber-300/30', dot: 'bg-amber-300' },
 }
 
 export default function GalleryOrganizerPage() {
@@ -76,18 +76,21 @@ export default function GalleryOrganizerPage() {
     }
   }
 
-  const INPUT = 'w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm bg-white transition'
+  const INPUT = 'w-full px-3 py-2.5 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-300/50 focus:border-transparent text-sm bg-white/5 text-white transition'
+  const publicCount = galleries.filter(g => g.visibility === 'public').length
+  const privateCount = galleries.filter(g => g.visibility === 'private').length
+  const unlistedCount = galleries.filter(g => g.visibility === 'unlisted').length
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">Galleries</h1>
-          <p className="text-gray-400 text-sm mt-1">{galleries.length} {galleries.length === 1 ? 'collection' : 'collections'}</p>
+          <h1 className="text-2xl font-black text-white">Organize</h1>
+          <p className="text-slate-400 text-sm mt-1">{galleries.length} {galleries.length === 1 ? 'item' : 'items'} in your library</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition shadow-sm"
+          className="inline-flex items-center gap-2 bg-emerald-300 text-[#06210f] px-5 py-2.5 rounded-xl text-sm font-extrabold uppercase tracking-wide hover:bg-emerald-200 transition shadow-sm"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -96,16 +99,38 @@ export default function GalleryOrganizerPage() {
         </button>
       </div>
 
+      <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 transition"
+          >
+            + Create
+          </button>
+          <button
+            onClick={fetchGalleries}
+            className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 transition"
+          >
+            Refresh
+          </button>
+          <div className="ml-auto flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full bg-emerald-500/20 px-2.5 py-1 text-emerald-200 ring-1 ring-emerald-300/30">Public {publicCount}</span>
+            <span className="rounded-full bg-amber-500/20 px-2.5 py-1 text-amber-200 ring-1 ring-amber-300/30">Unlisted {unlistedCount}</span>
+            <span className="rounded-full bg-red-500/20 px-2.5 py-1 text-red-200 ring-1 ring-red-300/30">Private {privateCount}</span>
+          </div>
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-20"><Spinner /></div>
       ) : galleries.length === 0 ? (
-        <div className="text-center py-24 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
-          <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">🖼️</div>
-          <h3 className="text-lg font-bold text-gray-800 mb-2">No galleries yet</h3>
-          <p className="text-gray-400 text-sm mb-6">Create your first gallery to organize your photos.</p>
+        <div className="text-center py-24 border-2 border-dashed border-white/20 rounded-2xl bg-white/5">
+          <div className="w-16 h-16 bg-emerald-300/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">🖼️</div>
+          <h3 className="text-lg font-bold text-white mb-2">No galleries yet</h3>
+          <p className="text-slate-400 text-sm mb-6">Create your first gallery to organize your photos.</p>
           <button
             onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition"
+            className="inline-flex items-center gap-2 bg-emerald-300 text-[#06210f] px-6 py-3 rounded-xl text-sm font-extrabold uppercase tracking-wide hover:bg-emerald-200 transition"
           >
             + Create Gallery
           </button>
@@ -115,7 +140,7 @@ export default function GalleryOrganizerPage() {
           {/* Create new card */}
           <button
             onClick={() => setShowCreate(true)}
-            className="group flex flex-col items-center justify-center aspect-[4/3] border-2 border-dashed border-gray-200 rounded-2xl hover:border-indigo-300 hover:bg-indigo-50/30 transition text-gray-400 hover:text-indigo-600"
+            className="group flex flex-col items-center justify-center aspect-[4/3] border-2 border-dashed border-white/20 rounded-2xl hover:border-emerald-300/40 hover:bg-emerald-300/10 transition text-slate-400 hover:text-emerald-200"
           >
             <div className="w-10 h-10 rounded-full border-2 border-current flex items-center justify-center mb-2 text-xl font-light">+</div>
             <span className="text-sm font-semibold">New Gallery</span>
@@ -124,9 +149,9 @@ export default function GalleryOrganizerPage() {
           {galleries.map((g, i) => {
             const vis = VISIBILITY_CONFIG[g.visibility] || VISIBILITY_CONFIG.public
             return (
-              <div key={g.id} className="group relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition">
+              <div key={g.id} className="group relative bg-white/5 rounded-2xl border border-white/10 overflow-hidden hover:border-white/25 transition">
                 {/* Cover image */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+                <div className="relative aspect-[4/3] overflow-hidden bg-slate-900/60">
                   <img
                     src={g.cover_url || COVER_IMAGES[i % COVER_IMAGES.length]}
                     alt={g.title}
@@ -166,12 +191,12 @@ export default function GalleryOrganizerPage() {
 
                 {/* Info */}
                 <div className="p-4">
-                  <h3 className="font-bold text-gray-900 text-sm truncate">{g.title}</h3>
+                  <h3 className="font-bold text-white text-sm truncate">{g.title}</h3>
                   <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-gray-400">{g.photos_count || 0} photos</p>
+                    <p className="text-xs text-slate-400">{g.photos_count || 0} photos</p>
                     <Link
                       to={`/dashboard/galleries/${g.id}/edit`}
-                      className="text-xs text-indigo-600 font-medium hover:underline"
+                      className="text-xs text-emerald-300 font-medium hover:underline"
                     >
                       Manage →
                     </Link>
@@ -187,7 +212,7 @@ export default function GalleryOrganizerPage() {
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create New Gallery">
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Title *</label>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Title *</label>
             <input
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -198,7 +223,7 @@ export default function GalleryOrganizerPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Description</label>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Description</label>
             <textarea
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -208,7 +233,7 @@ export default function GalleryOrganizerPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Visibility</label>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Visibility</label>
             <select
               value={form.visibility}
               onChange={e => setForm(f => ({ ...f, visibility: e.target.value }))}
@@ -228,7 +253,7 @@ export default function GalleryOrganizerPage() {
 
       {/* Delete Confirm Modal */}
       <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Gallery" size="sm">
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-slate-300 mb-6">
           This will permanently delete the gallery and all its photos. This action cannot be undone.
         </p>
         <div className="flex gap-3 justify-end">

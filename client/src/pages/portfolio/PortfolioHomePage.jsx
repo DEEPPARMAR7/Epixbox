@@ -71,15 +71,30 @@ export default function PortfolioHomePage() {
         scrolled ? 'bg-black/90 backdrop-blur-md border-b border-white/10' : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="text-sm text-white/50 hover:text-white transition">EpicBox</Link>
-          <h1 className="text-base font-semibold tracking-wide text-white">{displayName}</h1>
-          {photographer?.website_url
-            ? <a href={photographer.website_url} target="_blank" rel="noopener noreferrer" className="text-sm text-white/50 hover:text-white transition">Website</a>
-            : <div />}
+          <div className="flex items-center gap-6 min-w-0">
+            <Link to="/" className="text-sm font-bold tracking-wide text-white/80 hover:text-white transition">EpicBox</Link>
+            <div className="hidden md:flex items-center gap-5 text-xs font-semibold uppercase tracking-wider">
+              <a href="#top" className="text-white/80 hover:text-white transition">Home</a>
+              <a href="#galleries" className="text-white/50 hover:text-white transition">Browse</a>
+              <a href="#galleries" className="text-white/50 hover:text-white transition">Search</a>
+            </div>
+          </div>
+          <h1 className="hidden lg:block text-base font-semibold tracking-wide text-white truncate px-4">{displayName}</h1>
+          <div className="flex items-center gap-2">
+            {photographer?.website_url && (
+              <a href={photographer.website_url} target="_blank" rel="noopener noreferrer" className="text-xs text-white/60 hover:text-white transition">Website</a>
+            )}
+            <a
+              href="#galleries"
+              className="rounded-full bg-emerald-300 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wide text-[#06210f] hover:bg-emerald-200 transition"
+            >
+              Browse
+            </a>
+          </div>
         </div>
       </nav>
 
-      <section className="relative h-screen flex items-end justify-center overflow-hidden">
+      <section id="top" className="relative h-screen flex items-end justify-center overflow-hidden">
         <img src={photographer?.avatar_url || HERO_BG} alt={displayName} className="absolute inset-0 w-full h-full object-cover scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/30" />
         <div className="relative z-10 text-center pb-24 px-4">
@@ -104,7 +119,7 @@ export default function PortfolioHomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-black">
+      <section id="galleries" className="py-20 px-4 bg-black">
         <div className="max-w-7xl mx-auto">
           {galleries.length === 0 ? (
             <div className="text-center py-20 text-white/30">

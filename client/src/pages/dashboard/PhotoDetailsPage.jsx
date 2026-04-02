@@ -80,45 +80,52 @@ export default function PhotoDetailsPage() {
   ] : []
 
   if (loading) return <DashboardLayout><div className="flex justify-center py-12"><Spinner /></div></DashboardLayout>
-  if (!photo) return <DashboardLayout><p className="text-center text-gray-500 mt-12">Photo not found</p></DashboardLayout>
+  if (!photo) return <DashboardLayout><p className="text-center text-slate-400 mt-12">Photo not found</p></DashboardLayout>
+
+  const previewSrc = photo.thumb_url || photo.medium_url || photo.url
 
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <button onClick={() => navigate(-1)} className="text-sm text-indigo-600 hover:underline">← Back</button>
-        <h1 className="text-2xl font-bold text-gray-900 mt-2">{photo.title || photo.filename_original}</h1>
+        <button onClick={() => navigate(-1)} className="text-sm text-emerald-300 hover:underline">← Back</button>
+        <h1 className="text-2xl font-black text-white mt-2">{photo.title || photo.filename_original}</h1>
+        <p className="text-sm text-slate-400 mt-1">Manage details, tags, and file information.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Photo Preview */}
-        <div className="bg-gray-900 rounded-2xl overflow-hidden aspect-[4/3] flex items-center justify-center">
-          <p className="text-gray-600 text-6xl">📷</p>
+        <div className="bg-[#0a0f19] rounded-2xl overflow-hidden aspect-[4/3] flex items-center justify-center border border-white/10">
+          {previewSrc ? (
+            <img src={previewSrc} alt={photo.title || photo.filename_original || 'Photo'} className="w-full h-full object-contain" />
+          ) : (
+            <p className="text-slate-500 text-6xl">📷</p>
+          )}
         </div>
 
         {/* Edit Panel */}
         <div className="space-y-5">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+          <div className="bg-white/5 rounded-xl border border-white/10 p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Title</label>
               <input
                 value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="Add a title..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-300/50 text-sm bg-white/5 text-white"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
               <textarea
                 value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                 placeholder="Add a description..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
+                className="w-full px-3 py-2 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-300/50 text-sm resize-none bg-white/5 text-white"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Tags</label>
               <CreatableSelect
                 isMulti
                 value={tags}
@@ -126,7 +133,10 @@ export default function PhotoDetailsPage() {
                 placeholder="Add tags..."
                 classNamePrefix="select"
                 styles={{
-                  control: (base) => ({ ...base, borderColor: '#d1d5db', borderRadius: '0.5rem', minHeight: '38px' }),
+                  control: (base) => ({ ...base, borderColor: 'rgba(255,255,255,0.2)', borderRadius: '0.5rem', minHeight: '38px', backgroundColor: 'rgba(255,255,255,0.05)', color: '#ffffff' }),
+                  menu: (base) => ({ ...base, backgroundColor: '#0a0f19', color: '#fff' }),
+                  singleValue: (base) => ({ ...base, color: '#fff' }),
+                  input: (base) => ({ ...base, color: '#fff' }),
                 }}
               />
             </div>
@@ -137,24 +147,24 @@ export default function PhotoDetailsPage() {
           </div>
 
           {/* EXIF Data */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Photo Information</h3>
+          <div className="bg-white/5 rounded-xl border border-white/10 p-6">
+            <h3 className="text-sm font-semibold text-white mb-3">Photo Information</h3>
             <div className="space-y-2">
               {exifRows.map(row => (
                 <div key={row.label} className="flex justify-between text-sm">
-                  <span className="text-gray-500">{row.label}</span>
-                  <span className="text-gray-900 font-medium">{row.value}</span>
+                  <span className="text-slate-400">{row.label}</span>
+                  <span className="text-slate-100 font-medium">{row.value}</span>
                 </div>
               ))}
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Dimensions</span>
-                <span className="text-gray-900 font-medium">
+                <span className="text-slate-400">Dimensions</span>
+                <span className="text-slate-100 font-medium">
                   {photo.width && photo.height ? `${photo.width} × ${photo.height}` : '—'}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">File Size</span>
-                <span className="text-gray-900 font-medium">{formatFileSize(photo.file_size_bytes)}</span>
+                <span className="text-slate-400">File Size</span>
+                <span className="text-slate-100 font-medium">{formatFileSize(photo.file_size_bytes)}</span>
               </div>
             </div>
           </div>

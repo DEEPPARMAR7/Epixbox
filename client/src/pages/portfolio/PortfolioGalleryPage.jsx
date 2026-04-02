@@ -151,14 +151,18 @@ export default function PortfolioGalleryPage() {
         scrolled ? 'bg-black/90 backdrop-blur-md border-b border-white/10' : 'bg-black/50 backdrop-blur-sm'
       }`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to={`/p/${username}`} className="flex items-center gap-2 text-sm text-white/60 hover:text-white transition">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            {displayName}
-          </Link>
-          <h2 className="text-sm font-semibold text-white tracking-wide">{gallery?.title}</h2>
-          <p className="text-sm text-white/30">{photos.length} photos</p>
+          <div className="flex items-center gap-5 min-w-0">
+            <Link to={`/p/${username}`} className="text-sm font-bold tracking-wide text-white/80 hover:text-white transition">
+              {displayName}
+            </Link>
+            <div className="hidden md:flex items-center gap-4 text-[11px] font-semibold uppercase tracking-wider">
+              <Link to={`/p/${username}`} className="text-white/60 hover:text-white transition">Home</Link>
+              <a href="#grid" className="text-white/80 hover:text-white transition">Browse</a>
+              <a href="#grid" className="text-white/60 hover:text-white transition">Search</a>
+            </div>
+          </div>
+          <h2 className="hidden lg:block text-sm font-semibold text-white tracking-wide truncate px-4">{gallery?.title}</h2>
+          <p className="text-sm text-white/40">{photos.length} photos</p>
         </div>
       </nav>
 
@@ -175,7 +179,7 @@ export default function PortfolioGalleryPage() {
       </div>
 
       {/* Masonry grid */}
-      <div className="px-2 pb-20 max-w-7xl mx-auto">
+      <div id="grid" className="px-2 pb-20 max-w-7xl mx-auto">
         {photos.length === 0 ? (
           <div className="text-center py-20 text-white/30">
             <div className="text-6xl mb-4">📷</div>
