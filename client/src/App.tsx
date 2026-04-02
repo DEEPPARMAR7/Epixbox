@@ -1,20 +1,21 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import type { ReactElement } from "react";
 import { AuthProvider, useAuth } from "./hooks/use-auth";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import FeaturesPage from "./pages/Features.tsx";
-import PricingPage from "./pages/Pricing.tsx";
-import LoginPage from "./pages/Login.tsx";
-import SignupPage from "./pages/Signup.tsx";
-import ForgotPasswordPage from "./pages/ForgotPassword.tsx";
-import DashboardPage from "./pages/Dashboard.tsx";
-import ResourcesPage from "./pages/Resources.tsx";
-import AboutPage from "./pages/About.tsx";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import FeaturesPage from "./pages/Features";
+import PricingPage from "./pages/Pricing";
+import LoginPage from "./pages/Login";
+import SignupPage from "./pages/Signup";
+import ForgotPasswordPage from "./pages/ForgotPassword";
+import DashboardPage from "./pages/Dashboard";
+import ResourcesPage from "./pages/Resources";
+import AboutPage from "./pages/About";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+const ProtectedRoute = ({ children }: { children: ReactElement }) => {
 	const { isAuthenticated, isLoading } = useAuth();
 
 	if (isLoading) {
