@@ -1,10 +1,36 @@
+import { Link } from "react-router-dom";
 import BrandLogo from "./BrandLogo";
 
-const footerLinks = {
-  Product: ["Features", "Pricing", "Templates", "Portfolio Sites", "Client Galleries"],
-  Resources: ["Blog", "Help Center", "Community", "Webinars", "API"],
-  Company: ["About", "Careers", "Press", "Contact", "Partners"],
-  Legal: ["Privacy Policy", "Terms of Service", "Cookie Policy", "DMCA"],
+type FooterLink = { label: string; href: string };
+
+const footerLinks: Record<string, FooterLink[]> = {
+  Product: [
+    { label: "Features", href: "/features" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "Templates", href: "#" },
+    { label: "Portfolio Sites", href: "#" },
+    { label: "Client Galleries", href: "#" },
+  ],
+  Resources: [
+    { label: "Blog", href: "/resources" },
+    { label: "Help Center", href: "/resources" },
+    { label: "Community", href: "/resources" },
+    { label: "Webinars", href: "/resources" },
+    { label: "API", href: "/resources" },
+  ],
+  Company: [
+    { label: "About", href: "/about" },
+    { label: "Careers", href: "#" },
+    { label: "Press", href: "#" },
+    { label: "Contact", href: "#" },
+    { label: "Partners", href: "#" },
+  ],
+  Legal: [
+    { label: "Privacy Policy", href: "#" },
+    { label: "Terms of Service", href: "#" },
+    { label: "Cookie Policy", href: "#" },
+    { label: "DMCA", href: "#" },
+  ],
 };
 
 const Footer = () => {
@@ -28,11 +54,17 @@ const Footer = () => {
               {title}
             </h4>
             <ul className="space-y-2">
-              {links.map((link) => (
-                <li key={link}>
-                  <a href="#" className="font-body text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">
-                    {link}
-                  </a>
+              {links.map(({ label, href }) => (
+                <li key={label}>
+                  {href.startsWith("/") && href !== "/" ? (
+                    <Link to={href} className="font-body text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">
+                      {label}
+                    </Link>
+                  ) : (
+                    <a href={href} className="font-body text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">
+                      {label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
