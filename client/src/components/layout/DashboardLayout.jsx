@@ -164,7 +164,7 @@ export default function DashboardLayout({ children }) {
                       <span>Quickstart Guide</span>
                       <span className="rounded-full bg-cyan-400/20 px-2 py-0.5 text-[10px] font-semibold text-cyan-200">NEW</span>
                     </button>
-                    <button onClick={() => goTo('/dashboard/settings?category=site&tab=profile')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-white/5">Edit My Profile</button>
+                    <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-white/5">Edit My Profile</button>
                     <button onClick={() => goTo('/dashboard/settings?category=site&tab=branding')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-white/5">Edit Site Profile</button>
                     <button onClick={() => goTo('/dashboard/settings?category=site&tab=general')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-white/5">Site Settings</button>
                   </div>
