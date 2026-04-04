@@ -24,14 +24,15 @@ router.post('/register', async (req, res, next) => {
     if (password.length < 8) {
       return res.status(400).json({ error: 'Password must be at least 8 characters' });
     }
-    const existing = await User.findOne({ where: { email } });
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const existing = await User.findOne({ where: { email: normalizedEmail } });
     if (existing) return res.status(409).json({ error: 'Email already in use' });
     const existingUsername = await User.findOne({ where: { username: username.toLowerCase() } });
     if (existingUsername) return res.status(409).json({ error: 'Username already taken' });
 
     const password_hash = await bcrypt.hash(password, 12);
     const user = await User.create({
-      email,
+      email: normalizedEmail,
       password_hash,
       username: username.toLowerCase(),
       first_name,
@@ -63,7 +64,8 @@ router.post('/login', async (req, res, next) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
-    const user = await User.findOne({ where: { email } });
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = await User.findOne({ where: { email: normalizedEmail } });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
     const valid = await bcrypt.compare(password, user.password_hash);
@@ -102,6 +104,8 @@ router.post('/refresh', async (req, res, next) => {
     const { refreshToken } = req.body;
     if (!refreshToken) return res.status(401).json({ error: 'Refresh token required' });
     const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
+    const user = await User.findByPk(decoded.id);
+    if (!user || !user.is_active) return res.status(401).json({ error: 'Invalid refresh token' });
     const { accessToken, refreshToken: newRefreshToken } = generateTokens(decoded.id);
     res.json({ accessToken, refreshToken: newRefreshToken });
   } catch {
