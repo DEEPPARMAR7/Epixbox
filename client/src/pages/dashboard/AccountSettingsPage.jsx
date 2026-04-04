@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Button from '../../components/common/Button'
@@ -28,11 +28,9 @@ const INFO_CHIPS = [
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate()
-  const location = useLocation()
   const { user, updateUser } = useAuthStore()
   const [loading, setLoading] = useState(false)
   const [domainSaving, setDomainSaving] = useState(false)
-  const [profileSaving, setProfileSaving] = useState(false)
   const [showQr, setShowQr] = useState(false)
   const [profile, setProfile] = useState({
     first_name: '',
@@ -115,49 +113,6 @@ export default function AccountSettingsPage() {
       setLoading(false)
     }
   }
-
-  const handleSaveProfile = async () => {
-    setProfileSaving(true)
-    try {
-      const updated = await updateProfile({
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        brand_name: profile.brand_name,
-        brand_color: profile.brand_color,
-      })
-      updateUser(updated)
-      setProfile((prev) => ({
-        ...prev,
-        first_name: updated.first_name || prev.first_name,
-        last_name: updated.last_name || prev.last_name,
-        brand_name: updated.brand_name || prev.brand_name,
-        brand_color: updated.brand_color || prev.brand_color,
-      }))
-      toast.success('Profile updated')
-    } catch {
-      toast.error('Failed to update profile')
-    } finally {
-      setProfileSaving(false)
-    }
-  }
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    const tab = params.get('tab')
-    const targetMap = {
-      profile: 'profile-card',
-      branding: 'profile-card',
-      general: 'site-url-card',
-    }
-    const targetId = targetMap[tab]
-    if (!targetId) return
-    const node = document.getElementById(targetId)
-    if (node) {
-      window.setTimeout(() => {
-        node.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }, 60)
-    }
-  }, [location.search])
 
   const handleConnectDomain = async () => {
     const domain = customDomain.trim().toLowerCase()
@@ -272,57 +227,6 @@ export default function AccountSettingsPage() {
         </aside>
 
         <div className="space-y-4">
-          <div id="profile-card" className="rounded-sm border border-white/10 bg-[#101827] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.38)]">
-            <h4 className="text-2xl font-black text-white">Edit My Profile</h4>
-            <p className="mt-2 text-sm text-slate-300">Update your display details used across your dashboard and public profile.</p>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">First Name</label>
-                <input
-                  value={profile.first_name}
-                  onChange={(e) => setProfile((prev) => ({ ...prev, first_name: e.target.value }))}
-                  placeholder="First name"
-                  className="w-full rounded-sm border border-white/20 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-emerald-300"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Last Name</label>
-                <input
-                  value={profile.last_name}
-                  onChange={(e) => setProfile((prev) => ({ ...prev, last_name: e.target.value }))}
-                  placeholder="Last name"
-                  className="w-full rounded-sm border border-white/20 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-emerald-300"
-                />
-              </div>
-            </div>
-
-            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr,180px]">
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Brand Name</label>
-                <input
-                  value={profile.brand_name}
-                  onChange={(e) => setProfile((prev) => ({ ...prev, brand_name: e.target.value }))}
-                  placeholder="Your brand name"
-                  className="w-full rounded-sm border border-white/20 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-emerald-300"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Brand Color</label>
-                <input
-                  type="color"
-                  value={profile.brand_color || '#22d3ee'}
-                  onChange={(e) => setProfile((prev) => ({ ...prev, brand_color: e.target.value }))}
-                  className="h-10 w-full rounded-sm border border-white/20 bg-black/25 p-1"
-                />
-              </div>
-            </div>
-
-            <div className="mt-4 flex justify-end">
-              <Button onClick={handleSaveProfile} loading={profileSaving}>Save Profile</Button>
-            </div>
-          </div>
-
           <div className="rounded-sm border border-white/10 bg-[linear-gradient(180deg,#0b1220,#080e1a)] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.38)]">
             <div className="flex items-start justify-between gap-3">
               <p className="text-lg font-extrabold text-slate-100">{siteHost}</p>
