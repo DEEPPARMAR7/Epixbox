@@ -2,6 +2,22 @@ import axios from 'axios'
 import useAuthStore from '../store/authStore'
 
 const AUTH_STORAGE_KEY = 'epixbox-auth'
+const AUTH_NO_TOKEN_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/forgot-password', '/auth/reset-password']
+const AUTH_NO_REFRESH_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/forgot-password', '/auth/reset-password']
+
+const getRequestPath = (config) => {
+  const rawUrl = config?.url || ''
+  try {
+    return new URL(rawUrl, config?.baseURL || BASE).pathname
+  } catch {
+    return rawUrl
+  }
+}
+
+const isAuthPath = (config, paths) => {
+  const requestPath = getRequestPath(config)
+  return paths.some((path) => requestPath.endsWith(path))
+}
 
 const readPersistedAuth = () => {
   if (typeof window === 'undefined') return null
@@ -34,8 +50,10 @@ const BASE = import.meta.env.VITE_API_BASE_URL || getDefaultApiBase()
 const axiosClient = axios.create({ baseURL: BASE, timeout: 30000 })
 
 axiosClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token || readPersistedAuth()?.accessToken
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  if (!isAuthPath(config, AUTH_NO_TOKEN_PATHS)) {
+    const token = useAuthStore.getState().token || readPersistedAuth()?.accessToken
+    if (token) config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 })
 
@@ -43,7 +61,14 @@ axiosClient.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config
-    if (error.response?.status === 401 && !original._retry) {
+    if (error.response?.status === 401 && original && isAuthPath(original, ['/auth/me'])) {
+      useAuthStore.getState().logout()
+      clearPersistedAuth()
+      window.location.href = '/login'
+      return Promise.reject(error)
+    }
+
+    if (error.response?.status === 401 && original && !original._retry && !isAuthPath(original, AUTH_NO_REFRESH_PATHS)) {
       original._retry = true
       try {
         const storeState = useAuthStore.getState()

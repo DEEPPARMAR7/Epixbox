@@ -14,6 +14,16 @@ type AuthContextValue = {
 
 const STORAGE_KEY = "epixbox-auth";
 
+function isTokenExpired(token: string) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    if (!payload?.exp) return false;
+    return Date.now() >= payload.exp * 1000;
+  } catch {
+    return true;
+  }
+}
+
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function splitName(name: string) {
@@ -57,6 +67,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshToken: string;
         user: AuthUser;
       };
+
+      if (!parsed.accessToken || isTokenExpired(parsed.accessToken)) {
+        localStorage.removeItem(STORAGE_KEY);
+        authStore.logout();
+        setIsLoading(false);
+        return;
+      }
+
       setUser(parsed.user);
       setAccessToken(parsed.accessToken);
       setRefreshToken(parsed.refreshToken);
