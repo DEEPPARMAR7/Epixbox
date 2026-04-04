@@ -41,12 +41,14 @@ router.post('/photos', (req, res, next) => {
           exifData = await extractExif(buffer);
         } catch {}
 
-        // Process thumbnails
+        // Process thumbnails only for images.
         let processedKeys = {};
-        try {
-          processedKeys = await processUploadedPhoto(s3KeyOriginal, req.user.id, gallery_id, photoId);
-        } catch (procErr) {
-          console.error('Image processing error:', procErr.message);
+        if (String(file.mimetype || '').startsWith('image/')) {
+          try {
+            processedKeys = await processUploadedPhoto(s3KeyOriginal, req.user.id, gallery_id, photoId);
+          } catch (procErr) {
+            console.error('Image processing error:', procErr.message);
+          }
         }
 
         const photo = await Photo.create({

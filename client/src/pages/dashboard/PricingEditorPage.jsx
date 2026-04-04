@@ -4,7 +4,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout'
 import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
 import Spinner from '../../components/common/Spinner'
-import { getPriceLists, createPriceList, deletePriceList, getProducts, createProduct, deleteProduct } from '../../api/pricingApi'
+import { getPriceLists, createPriceList, deletePriceList, createProduct, deleteProduct } from '../../api/pricingApi'
 import { formatCurrency } from '../../utils/formatters'
 
 const CATEGORIES = ['print', 'digital', 'canvas', 'metal']
@@ -31,6 +31,7 @@ export default function PricingEditorPage() {
     finally { setLoading(false) }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadLists() }, [])
 
   const selectList = (list) => {
@@ -118,14 +119,23 @@ export default function PricingEditorPage() {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-3xl font-black text-white">Selling Tools</h1>
-        <p className="text-sm text-slate-400 mt-1">Control your sales setup like SmugMug: offers, lists, and revenue settings.</p>
+      <div className="mb-6 rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-6 sm:p-7">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-emerald-200/70">Selling Tools</p>
+        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Revenue Tools</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Control your sales setup like SmugMug: offers, lists, and revenue settings.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full bg-emerald-300/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-300/30">Pricelists {lists.length}</span>
+            <span className="rounded-full bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 ring-1 ring-white/10">Events coming soon</span>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3 mb-8">
         {TOOLS.map((tool) => (
-          <div key={tool.title} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 flex items-center justify-between gap-3">
+          <div key={tool.title} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-base font-bold text-white">{tool.title}</p>
@@ -159,7 +169,7 @@ export default function PricingEditorPage() {
       {loading ? (
         <div className="flex justify-center py-12"><Spinner /></div>
       ) : (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-6">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <h2 className="text-lg font-bold text-white">Pricelists Manager</h2>
             <Button onClick={() => setShowCreateList(true)}>+ New Price List</Button>
@@ -187,7 +197,7 @@ export default function PricingEditorPage() {
           {/* Products */}
           <div className="flex-1">
             {activeList ? (
-              <div className="rounded-xl border border-white/10 bg-[#0a0f19]/80 p-6">
+              <div className="rounded-3xl border border-white/10 bg-[#0a0f19]/80 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-base font-semibold text-white">{activeList.name}</h2>
                   <div className="flex gap-2">

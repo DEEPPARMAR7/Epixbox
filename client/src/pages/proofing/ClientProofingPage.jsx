@@ -4,6 +4,9 @@ import { Helmet } from 'react-helmet-async'
 import Spinner from '../../components/common/Spinner'
 import {
   getClientSession,
+  getPhotoDownloadUrl,
+  getSessionDownloadUrls,
+  downloadProofingFile,
   submitSelection,
   submitComment,
 } from '../../api/proofingApi'
@@ -111,9 +114,11 @@ function CommentModal({ photo, sessionToken, onClose }) {
   )
 }
 
-function PhotoCard({ photo, sessionToken, onUpdate }) {
+function PhotoCard({ photo, sessionToken, onUpdate, onDownload, canDownload }) {
   const [commentOpen, setCommentOpen] = useState(false)
   const [updating, setUpdating] = useState(false)
+  const isVideo = String(photo.mime_type || '').startsWith('video/')
+  const previewUrl = photo.preview_url || photo.medium_url || photo.thumb_url || photo.large_url
 
   const handleStarChange = async (stars) => {
     setUpdating(true)
@@ -155,7 +160,21 @@ function PhotoCard({ photo, sessionToken, onUpdate }) {
         }`}
       >
         <div className="aspect-square bg-gray-100 flex items-center justify-center text-gray-300 text-5xl relative">
-          📷
+          {previewUrl ? (
+            isVideo ? (
+              <video
+                src={previewUrl}
+                className="h-full w-full object-cover"
+                muted
+                playsInline
+                preload="metadata"
+              />
+            ) : (
+              <img src={previewUrl} alt={photo.title || 'File'} className="h-full w-full object-cover" />
+            )
+          ) : (
+            <span>{isVideo ? '🎬' : '📷'}</span>
+          )}
           {photo.is_selected && (
             <div className="absolute top-2 right-2 bg-indigo-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
               ✓
@@ -189,6 +208,13 @@ function PhotoCard({ photo, sessionToken, onUpdate }) {
               >
                 {photo.is_selected ? 'Selected' : 'Select'}
               </button>
+              <button
+                onClick={() => onDownload(photo)}
+                disabled={!canDownload}
+                className="text-xs px-2 py-1 rounded font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Download
+              </button>
             </div>
           </div>
         </div>
@@ -211,6 +237,7 @@ export default function ClientProofingPage() {
   const [photos, setPhotos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [downloadingAll, setDownloadingAll] = useState(false)
 
   useEffect(() => {
     getClientSession(token)
@@ -227,6 +254,64 @@ export default function ClientProofingPage() {
   }
 
   const selectedCount = photos.filter((p) => p.is_selected).length
+  const downloadsAllowed = !!session?.allow_downloads
+  const maxDownloads = session?.max_download_count
+  const usedDownloads = session?.download_count || 0
+  const remainingDownloads = maxDownloads ? Math.max(0, maxDownloads - usedDownloads) : null
+
+  const triggerDirectDownload = (url, filename) => {
+    downloadProofingFile(url)
+      .then((blob) => {
+        const objectUrl = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = objectUrl
+        a.download = filename || ''
+        a.rel = 'noopener noreferrer'
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000)
+      })
+      .catch(() => {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      })
+  }
+
+  const handleDownloadPhoto = async (photo) => {
+    if (!downloadsAllowed) {
+      alert('Downloads are disabled for this link.')
+      return
+    }
+    try {
+      const data = await getPhotoDownloadUrl(token, photo.id)
+      triggerDirectDownload(data.url, data.filename)
+    } catch (err) {
+      alert(err.response?.data?.error || 'Unable to download this file right now.')
+    }
+  }
+
+  const handleDownloadAll = async (selectedOnly = false) => {
+    if (!downloadsAllowed) {
+      alert('Downloads are disabled for this link.')
+      return
+    }
+    setDownloadingAll(true)
+    try {
+      const urls = await getSessionDownloadUrls(token, selectedOnly)
+      if (!urls || urls.length === 0) {
+        alert(selectedOnly ? 'No selected photos to download.' : 'No downloadable files found.')
+        return
+      }
+      urls.forEach((item, index) => {
+        // Small stagger reduces browser blocking when starting multiple downloads.
+        setTimeout(() => triggerDirectDownload(item.url, item.filename), index * 250)
+      })
+    } catch (err) {
+      alert(err.response?.data?.error || 'Unable to start downloads.')
+    } finally {
+      setDownloadingAll(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -261,14 +346,29 @@ export default function ClientProofingPage() {
             <div>
               <h1 className="font-bold text-gray-900">{session?.gallery?.title || 'Photo Review'}</h1>
               <p className="text-sm text-gray-500">
-                {photos.length} photos · Select your favorites
+                {photos.length} files · Select your favorites
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Downloads: {downloadsAllowed ? (maxDownloads ? `${usedDownloads}/${maxDownloads}` : 'Unlimited') : 'Disabled'}
+                {session?.download_mode ? ` · Mode: ${session.download_mode}` : ''}
               </p>
             </div>
-            {selectedCount > 0 && (
-              <div className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                {selectedCount} photo{selectedCount !== 1 ? 's' : ''} selected
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleDownloadAll(false)}
+                disabled={!downloadsAllowed || downloadingAll || photos.length === 0 || remainingDownloads === 0}
+                className="bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {downloadingAll ? 'Starting...' : 'Download All'}
+              </button>
+              <button
+                onClick={() => handleDownloadAll(true)}
+                disabled={!downloadsAllowed || downloadingAll || selectedCount === 0 || remainingDownloads === 0}
+                className="bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+              >
+                Download Selected ({selectedCount})
+              </button>
+            </div>
           </div>
         </div>
 
@@ -278,9 +378,9 @@ export default function ClientProofingPage() {
             <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-800">
               <p className="font-medium mb-1">How to review your photos:</p>
               <ul className="list-disc list-inside space-y-0.5 text-indigo-700">
-                <li>Click <strong>Select</strong> to mark photos you want</li>
+                <li>Click <strong>Select</strong> to mark files you want</li>
                 <li>Use the <strong>★ stars</strong> to rate your favorites</li>
-                {session.allow_comments && <li>Click <strong>💬</strong> to leave feedback on any photo</li>}
+                {session.allow_comments && <li>Click <strong>💬</strong> to leave feedback on any file</li>}
               </ul>
             </div>
           </div>
@@ -289,7 +389,7 @@ export default function ClientProofingPage() {
         {/* Photo Grid */}
         <div className="max-w-7xl mx-auto px-4 py-6">
           {photos.length === 0 ? (
-            <p className="text-center text-gray-400 py-20">No photos in this gallery.</p>
+            <p className="text-center text-gray-400 py-20">No photos or videos in this session.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {photos.map((photo) => (
@@ -298,6 +398,8 @@ export default function ClientProofingPage() {
                   photo={photo}
                   sessionToken={token}
                   onUpdate={handleUpdate}
+                  onDownload={handleDownloadPhoto}
+                  canDownload={downloadsAllowed && remainingDownloads !== 0}
                 />
               ))}
             </div>
@@ -307,7 +409,7 @@ export default function ClientProofingPage() {
         {/* Footer summary */}
         {selectedCount > 0 && (
           <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-600 shadow-lg">
-            You've selected <span className="font-semibold text-indigo-600">{selectedCount}</span> photo{selectedCount !== 1 ? 's' : ''}.
+            You've selected <span className="font-semibold text-indigo-600">{selectedCount}</span> file{selectedCount !== 1 ? 's' : ''}.
             Your selections are saved automatically.
           </div>
         )}

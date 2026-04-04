@@ -17,7 +17,7 @@ import { useEffect } from 'react'
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
 
-function CheckoutForm({ clientSecret, totalCents, onSuccess }) {
+function CheckoutForm({ totalCents, onSuccess }) {
   const stripe = useStripe()
   const elements = useElements()
   const [email, setEmail] = useState('')
@@ -130,7 +130,7 @@ export default function CheckoutPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [])
+  }, [items, navigate])
 
   const handleSuccess = () => {
     clearCart()
@@ -186,7 +186,6 @@ export default function CheckoutPage() {
             {clientSecret ? (
               <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
                 <CheckoutForm
-                  clientSecret={clientSecret}
                   totalCents={totalCents}
                   onSuccess={handleSuccess}
                 />

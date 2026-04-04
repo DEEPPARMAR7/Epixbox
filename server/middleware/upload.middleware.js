@@ -3,7 +3,19 @@ const multerS3 = require('multer-s3');
 const s3Client = require('../config/s3');
 const path = require('path');
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/tiff', 'image/heic', 'image/heif'];
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/tiff',
+  'image/heic',
+  'image/heif',
+  'video/mp4',
+  'video/quicktime',
+  'video/x-m4v',
+  'video/webm',
+];
 
 const storage = multerS3({
   s3: s3Client,
@@ -25,7 +37,7 @@ const uploadPhotos = multer({
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Invalid file type: ${file.mimetype}. Only images are allowed.`));
+      cb(new Error(`Invalid file type: ${file.mimetype}. Only images and videos are allowed.`));
     }
   },
 }).array('photos', 50);

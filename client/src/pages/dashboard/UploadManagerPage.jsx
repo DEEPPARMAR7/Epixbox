@@ -8,10 +8,11 @@ import { uploadPhotos } from '../../api/uploadApi'
 import { formatFileSize } from '../../utils/formatters'
 
 function FileItem({ file, progress, status }) {
+  const isVideo = String(file.type || '').startsWith('video/')
   return (
     <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
       <div className="w-10 h-10 bg-[#0a0f19] rounded flex items-center justify-center text-xl flex-shrink-0">
-        📷
+        {isVideo ? '🎬' : '📷'}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-slate-100 truncate">{file.name}</p>
@@ -55,7 +56,10 @@ export default function UploadManagerPage() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.heic'] },
+    accept: {
+      'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.heic', '.heif'],
+      'video/*': ['.mp4', '.mov', '.m4v', '.webm'],
+    },
     multiple: true,
   })
 
@@ -83,7 +87,7 @@ export default function UploadManagerPage() {
       setQueue(q => q.map(item =>
         pending.find(p => p.id === item.id) ? { ...item, progress: 100, status: 'done' } : item
       ))
-      toast.success(`${pending.length} photo${pending.length > 1 ? 's' : ''} uploaded!`)
+      toast.success(`${pending.length} file${pending.length > 1 ? 's' : ''} uploaded!`)
     } catch (err) {
       setQueue(q => q.map(item =>
         pending.find(p => p.id === item.id) ? { ...item, status: 'error' } : item
@@ -114,9 +118,9 @@ export default function UploadManagerPage() {
         <input {...getInputProps()} />
         <div className="text-5xl mb-3">📤</div>
         <p className="text-base font-semibold text-white">
-          {isDragActive ? 'Drop your photos here!' : 'Drag & drop photos here'}
+          {isDragActive ? 'Drop your files here!' : 'Drag & drop photos or videos here'}
         </p>
-        <p className="text-sm text-slate-400 mt-1">or click to browse — JPG, PNG, WEBP, TIFF, HEIC up to 50MB each</p>
+        <p className="text-sm text-slate-400 mt-1">or click to browse — JPG, PNG, WEBP, TIFF, HEIC, MP4, MOV, M4V, WEBM up to 50MB each</p>
       </div>
 
       {/* Queue */}

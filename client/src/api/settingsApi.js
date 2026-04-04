@@ -9,3 +9,4 @@ export const uploadAvatar = (file) => {
 }
 export const getBilling = () => axiosClient.get('/settings/billing').then(r => r.data)
 export const createBillingPortal = () => axiosClient.post('/settings/billing/portal').then(r => r.data)
+export const connectCustomDomain = (domain) => axiosClient.post('/settings/domain', { domain }).then(r => r.data)

@@ -15,7 +15,7 @@ export function useAuth() {
   }
 
   const handleLogout = async () => {
-    try { await apiLogout() } catch {}
+    try { await apiLogout() } catch (err) { void err }
     logout()
     navigate('/login')
     toast.success('Logged out')

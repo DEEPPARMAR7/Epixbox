@@ -8,6 +8,7 @@ const PhotoTag = require('./PhotoTag');
 const ProofingSession = require('./ProofingSession');
 const ProofingSelection = require('./ProofingSelection');
 const ProofingComment = require('./ProofingComment');
+const ProofingDownload = require('./ProofingDownload');
 const PriceList = require('./PriceList');
 const Product = require('./Product');
 const GalleryPriceList = require('./GalleryPriceList');
@@ -46,10 +47,13 @@ ProofingSession.belongsTo(Gallery, { foreignKey: 'gallery_id' });
 ProofingSession.belongsTo(User, { foreignKey: 'user_id' });
 ProofingSession.hasMany(ProofingSelection, { foreignKey: 'session_id', onDelete: 'CASCADE' });
 ProofingSession.hasMany(ProofingComment, { foreignKey: 'session_id', onDelete: 'CASCADE' });
+ProofingSession.hasMany(ProofingDownload, { foreignKey: 'session_id', onDelete: 'CASCADE' });
 ProofingSelection.belongsTo(ProofingSession, { foreignKey: 'session_id' });
 ProofingSelection.belongsTo(Photo, { foreignKey: 'photo_id' });
 ProofingComment.belongsTo(ProofingSession, { foreignKey: 'session_id' });
 ProofingComment.belongsTo(Photo, { foreignKey: 'photo_id' });
+ProofingDownload.belongsTo(ProofingSession, { foreignKey: 'session_id' });
+ProofingDownload.belongsTo(Photo, { foreignKey: 'photo_id' });
 
 // Pricing associations
 PriceList.belongsTo(User, { foreignKey: 'user_id' });
@@ -83,6 +87,7 @@ module.exports = {
   ProofingSession,
   ProofingSelection,
   ProofingComment,
+  ProofingDownload,
   PriceList,
   Product,
   GalleryPriceList,

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
 import Spinner from '../../components/common/Spinner'
-import { getGalleries, createGallery, deleteGallery } from '../../api/galleryApi'
+import { getGalleries, createGallery, deleteGallery, updateGallery } from '../../api/galleryApi'
+import { createSession } from '../../api/proofingApi'
 
 const COVER_IMAGES = [
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=70',
@@ -27,17 +28,30 @@ const VISIBILITY_CONFIG = {
 export default function GalleryOrganizerPage() {
   const navigate = useNavigate()
   const [galleries, setGalleries] = useState([])
+  const [activeGalleryId, setActiveGalleryId] = useState('')
+  const [draggedGalleryId, setDraggedGalleryId] = useState(null)
+  const [visibilityFilter, setVisibilityFilter] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('date_desc')
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState({ title: '', description: '', visibility: 'public' })
+  const [form, setForm] = useState({ title: '', description: '', visibility: 'public', parent_id: '' })
   const [creating, setCreating] = useState(false)
+  const [reordering, setReordering] = useState(false)
+  const [creatingLink, setCreatingLink] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
   const fetchGalleries = () => {
     setLoading(true)
     getGalleries()
-      .then(setGalleries)
+      .then((items) => {
+        setGalleries(items)
+        setActiveGalleryId((prev) => {
+          if (prev && items.some((g) => g.id === prev)) return prev
+          return items[0]?.id || ''
+        })
+      })
       .catch(() => toast.error('Failed to load galleries'))
       .finally(() => setLoading(false))
   }
@@ -47,12 +61,12 @@ export default function GalleryOrganizerPage() {
   const handleCreate = async (e) => {
     e.preventDefault()
     if (!form.title.trim()) return toast.error('Title is required')
-    setCreating(true)
+    setReordering(true)
     try {
       await createGallery(form)
       toast.success('Gallery created!')
       setShowCreate(false)
-      setForm({ title: '', description: '', visibility: 'public' })
+      setForm({ title: '', description: '', visibility: 'public', parent_id: '' })
       fetchGalleries()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to create gallery')
@@ -76,143 +90,438 @@ export default function GalleryOrganizerPage() {
     }
   }
 
+  const activeGallery = galleries.find((g) => g.id === activeGalleryId) || null
+
+  const parentKey = (gallery) => gallery?.parent_id || 'root'
+
+  const getSiblingsInOrder = (parentId) => galleries
+    .filter((gallery) => parentKey(gallery) === parentId)
+    .sort((a, b) => {
+      const aOrder = Number(a.sort_order ?? 0)
+      const bOrder = Number(b.sort_order ?? 0)
+      if (aOrder !== bOrder) return aOrder - bOrder
+      const aTime = new Date(a.created_at || 0).getTime()
+      const bTime = new Date(b.created_at || 0).getTime()
+      return aTime - bTime
+    })
+
+  const persistSiblingOrder = async (parentId, orderedGalleries) => {
+    await Promise.all(orderedGalleries.map((gallery, index) => updateGallery(gallery.id, {
+      title: gallery.title,
+      description: gallery.description || '',
+      visibility: gallery.visibility || 'public',
+      parent_id: parentId === 'root' ? null : parentId,
+      sort_order: index,
+    })))
+  }
+
+  const handleDropMove = async (targetGalleryId, position) => {
+    if (!draggedGalleryId || draggedGalleryId === targetGalleryId) return
+
+    const draggedGallery = galleries.find((gallery) => gallery.id === draggedGalleryId)
+    const targetGallery = galleries.find((gallery) => gallery.id === targetGalleryId)
+    if (!draggedGallery || !targetGallery) return
+
+    setCreating(true)
+    try {
+      const sourceParentId = parentKey(draggedGallery)
+      const targetParentId = parentKey(targetGallery)
+
+      if (position === 'inside') {
+        const oldParentSiblings = getSiblingsInOrder(sourceParentId).filter((gallery) => gallery.id !== draggedGalleryId)
+        const newParentSiblings = [...getSiblingsInOrder(targetGallery.id), draggedGallery]
+
+        await persistSiblingOrder(sourceParentId, oldParentSiblings)
+        await persistSiblingOrder(targetGallery.id, newParentSiblings)
+      } else {
+        const destinationParentId = targetParentId
+        const sourceSiblings = getSiblingsInOrder(sourceParentId).filter((gallery) => gallery.id !== draggedGalleryId)
+        const destinationSiblings = getSiblingsInOrder(destinationParentId).filter((gallery) => gallery.id !== draggedGalleryId)
+        const insertAt = destinationSiblings.findIndex((gallery) => gallery.id === targetGalleryId)
+        const nextOrder = [...destinationSiblings]
+        nextOrder.splice(position === 'before' ? insertAt : insertAt + 1, 0, draggedGallery)
+
+        await persistSiblingOrder(sourceParentId, sourceSiblings)
+        await persistSiblingOrder(destinationParentId, nextOrder)
+      }
+
+      toast.success('Folder order updated')
+      fetchGalleries()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to reorder folders')
+    } finally {
+      setDraggedGalleryId(null)
+      setReordering(false)
+    }
+  }
+
+  const openUploadForFolder = () => {
+    if (!activeGallery) return toast.error('Select a folder first')
+    navigate(`/dashboard/galleries/${activeGallery.id}/upload`)
+  }
+
+  const createReviewLink = async () => {
+    if (!activeGallery) return toast.error('Select a folder first')
+    setCreatingLink(true)
+    try {
+      const session = await createSession({
+        gallery_id: activeGallery.id,
+        client_name: activeGallery.title,
+        client_email: '',
+        message: '',
+        include_subfolders: true,
+        allow_downloads: true,
+        download_mode: 'original',
+        max_download_count: '',
+      })
+      const link = `${window.location.origin}/proof/${session.share_token}`
+      await navigator.clipboard.writeText(link)
+      toast.success('Review link copied')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to create review link')
+    } finally {
+      setCreatingLink(false)
+    }
+  }
+
   const INPUT = 'w-full px-3 py-2.5 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-300/50 focus:border-transparent text-sm bg-white/5 text-white transition'
   const publicCount = galleries.filter(g => g.visibility === 'public').length
   const privateCount = galleries.filter(g => g.visibility === 'private').length
   const unlistedCount = galleries.filter(g => g.visibility === 'unlisted').length
 
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+  const visibilityFiltered = visibilityFilter === 'all'
+    ? galleries
+    : galleries.filter(g => g.visibility === visibilityFilter)
+  const queriedGalleries = normalizedQuery
+    ? visibilityFiltered.filter(g => {
+      const haystack = `${g.title || ''} ${g.description || ''}`.toLowerCase()
+      return haystack.includes(normalizedQuery)
+    })
+    : visibilityFiltered
+
+  const filteredGalleries = [...queriedGalleries].sort((a, b) => {
+    if (sortBy === 'title_asc') return (a.title || '').localeCompare(b.title || '')
+    if (sortBy === 'title_desc') return (b.title || '').localeCompare(a.title || '')
+    if (sortBy === 'photos_desc') return (b.photos_count || 0) - (a.photos_count || 0)
+
+    const aTime = new Date(a.created_at || 0).getTime()
+    const bTime = new Date(b.created_at || 0).getTime()
+    if (sortBy === 'date_asc') return aTime - bTime
+    return bTime - aTime
+  })
+
+  const totalPhotos = filteredGalleries.reduce((sum, gallery) => sum + (gallery.photos_count || 0), 0)
+  const treeMap = filteredGalleries.reduce((acc, gallery) => {
+    const parentKey = gallery.parent_id || 'root'
+    if (!acc[parentKey]) acc[parentKey] = []
+    acc[parentKey].push(gallery)
+    return acc
+  }, {})
+
+  const renderFolderTree = (parentId = 'root', depth = 0) => {
+    const nodes = treeMap[parentId] || []
+    return nodes.map((gallery, index) => {
+      const vis = VISIBILITY_CONFIG[gallery.visibility] || VISIBILITY_CONFIG.public
+      const childCount = (treeMap[gallery.id] || []).length
+      const isDragging = draggedGalleryId === gallery.id
+
+      return (
+        <div key={gallery.id} className="space-y-2">
+          {sortBy === 'manual' && (
+            <div
+              onDragOver={(e) => {
+                if (!draggedGalleryId || draggedGalleryId === gallery.id) return
+                e.preventDefault()
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                handleDropMove(gallery.id, 'before')
+              }}
+              className={`h-2 rounded-full transition ${draggedGalleryId ? 'bg-emerald-300/10' : 'bg-transparent'}`}
+            />
+          )}
+          <div
+            onClick={() => setActiveGalleryId(gallery.id)}
+            draggable={sortBy === 'manual'}
+            onDragStart={() => setDraggedGalleryId(gallery.id)}
+            onDragEnd={() => setDraggedGalleryId(null)}
+            onDragOver={(e) => {
+              if (!draggedGalleryId || draggedGalleryId === gallery.id) return
+              if (sortBy !== 'manual') return
+              e.preventDefault()
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              handleDropMove(gallery.id, 'inside')
+            }}
+            className={`group relative cursor-pointer overflow-hidden rounded-lg border bg-[#0b1020] transition hover:border-white/25 ${activeGalleryId === gallery.id ? 'border-emerald-300/50 ring-1 ring-emerald-300/30' : 'border-white/10'}`}
+            style={{ marginLeft: `${depth * 18}px`, opacity: isDragging ? 0.45 : 1 }}
+          >
+            <div className="relative aspect-[4/3] bg-[#111827]">
+              <img
+                src={gallery.cover_url || COVER_IMAGES[index % COVER_IMAGES.length]}
+                alt={gallery.title}
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                onError={(e) => { e.target.src = COVER_IMAGES[index % COVER_IMAGES.length] }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+              <span className={`absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${vis.color}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${vis.dot}`} />
+                {vis.label}
+              </span>
+
+              <div className="absolute right-1.5 top-1.5 rounded-full border border-white/15 bg-black/40 px-2 py-0.5 text-[10px] font-semibold text-white">
+                {childCount} {childCount === 1 ? 'folder' : 'folders'}
+              </div>
+
+              {sortBy === 'manual' && draggedGalleryId && draggedGalleryId !== gallery.id && (
+                <div className="absolute inset-x-0 bottom-0 bg-black/40 px-2 py-1 text-center text-[10px] font-semibold text-white/80">
+                  Drop here to move inside
+                </div>
+              )}
+
+              <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/55 opacity-0 transition duration-200 group-hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate(`/dashboard/galleries/${gallery.id}/upload`)
+                  }}
+                  className="rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-gray-900 transition hover:bg-gray-100"
+                >
+                  Upload Files
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveGalleryId(gallery.id)
+                    setForm({ title: '', description: '', visibility: 'public', parent_id: gallery.id })
+                    setShowCreate(true)
+                  }}
+                  className="rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-gray-900 transition hover:bg-gray-100"
+                >
+                  New Folder
+                </button>
+              </div>
+            </div>
+
+            <div className="p-2.5">
+              <h3 className="truncate text-xs font-semibold text-white">{gallery.title}</h3>
+              <div className="mt-0.5 flex items-center justify-between gap-2">
+                <p className="text-[10px] text-slate-400">{gallery.photos_count || 0} files</p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setDeleteId(gallery.id)
+                  }}
+                  className="text-[10px] font-semibold text-red-400 transition hover:text-red-300"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {sortBy === 'manual' && (
+            <div
+              onDragOver={(e) => {
+                if (!draggedGalleryId || draggedGalleryId === gallery.id) return
+                e.preventDefault()
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                handleDropMove(gallery.id, 'after')
+              }}
+              className={`h-2 rounded-full transition ${draggedGalleryId ? 'bg-emerald-300/10' : 'bg-transparent'}`}
+            />
+          )}
+
+          {renderFolderTree(gallery.id, depth + 1)}
+        </div>
+      )
+    })
+  }
+
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-black text-white">Organize</h1>
-          <p className="text-slate-400 text-sm mt-1">{galleries.length} {galleries.length === 1 ? 'item' : 'items'} in your library</p>
-        </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-2 bg-emerald-300 text-[#06210f] px-5 py-2.5 rounded-xl text-sm font-extrabold uppercase tracking-wide hover:bg-emerald-200 transition shadow-sm"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          New Gallery
-        </button>
-      </div>
-
-      <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setShowCreate(true)}
-            className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 transition"
-          >
-            + Create
-          </button>
-          <button
-            onClick={fetchGalleries}
-            className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 transition"
-          >
-            Refresh
-          </button>
-          <div className="ml-auto flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full bg-emerald-500/20 px-2.5 py-1 text-emerald-200 ring-1 ring-emerald-300/30">Public {publicCount}</span>
-            <span className="rounded-full bg-amber-500/20 px-2.5 py-1 text-amber-200 ring-1 ring-amber-300/30">Unlisted {unlistedCount}</span>
-            <span className="rounded-full bg-red-500/20 px-2.5 py-1 text-red-200 ring-1 ring-red-300/30">Private {privateCount}</span>
+      <div className="grid gap-4 lg:grid-cols-[220px,minmax(0,1fr)]">
+        <aside className="rounded-xl border border-white/10 bg-[#0a1020]/80 p-3">
+          <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">AI Media</p>
+          <div className="space-y-0.5">
+            <button
+              onClick={() => setVisibilityFilter('all')}
+              className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition ${visibilityFilter === 'all' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
+            >
+              <span>All Galleries</span>
+              <span className="text-xs text-slate-500">{galleries.length}</span>
+            </button>
+            <button
+              onClick={() => setVisibilityFilter('public')}
+              className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition ${visibilityFilter === 'public' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
+            >
+              <span>Public</span>
+              <span className="text-xs text-slate-500">{publicCount}</span>
+            </button>
+            <button
+              onClick={() => setVisibilityFilter('unlisted')}
+              className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition ${visibilityFilter === 'unlisted' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
+            >
+              <span>By Date</span>
+              <span className="text-xs text-slate-500">{unlistedCount}</span>
+            </button>
+            <button
+              onClick={() => setVisibilityFilter('private')}
+              className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition ${visibilityFilter === 'private' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
+            >
+              <span>Trash</span>
+              <span className="text-xs text-slate-500">{privateCount}</span>
+            </button>
           </div>
-        </div>
-      </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20"><Spinner /></div>
-      ) : galleries.length === 0 ? (
-        <div className="text-center py-24 border-2 border-dashed border-white/20 rounded-2xl bg-white/5">
-          <div className="w-16 h-16 bg-emerald-300/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">🖼️</div>
-          <h3 className="text-lg font-bold text-white mb-2">No galleries yet</h3>
-          <p className="text-slate-400 text-sm mb-6">Create your first gallery to organize your photos.</p>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-2 bg-emerald-300 text-[#06210f] px-6 py-3 rounded-xl text-sm font-extrabold uppercase tracking-wide hover:bg-emerald-200 transition"
-          >
-            + Create Gallery
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {/* Create new card */}
-          <button
-            onClick={() => setShowCreate(true)}
-            className="group flex flex-col items-center justify-center aspect-[4/3] border-2 border-dashed border-white/20 rounded-2xl hover:border-emerald-300/40 hover:bg-emerald-300/10 transition text-slate-400 hover:text-emerald-200"
-          >
-            <div className="w-10 h-10 rounded-full border-2 border-current flex items-center justify-center mb-2 text-xl font-light">+</div>
-            <span className="text-sm font-semibold">New Gallery</span>
-          </button>
+          <div className="mt-4 border-t border-white/10 pt-3">
+            <button
+              onClick={() => setShowCreate(true)}
+              className="w-full rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
+            >
+              + Create
+            </button>
+          </div>
+        </aside>
 
-          {galleries.map((g, i) => {
-            const vis = VISIBILITY_CONFIG[g.visibility] || VISIBILITY_CONFIG.public
-            return (
-              <div key={g.id} className="group relative bg-white/5 rounded-2xl border border-white/10 overflow-hidden hover:border-white/25 transition">
-                {/* Cover image */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-slate-900/60">
-                  <img
-                    src={g.cover_url || COVER_IMAGES[i % COVER_IMAGES.length]}
-                    alt={g.title}
-                    className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
-                    onError={e => { e.target.src = COVER_IMAGES[i % COVER_IMAGES.length] }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        <section className="min-w-0">
+          <div className="mb-4 rounded-xl border border-white/10 bg-[#0a1020]/80 p-4">
+            <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h1 className="text-4xl font-black tracking-tight text-white">All Media</h1>
+                <p className="mt-1 text-sm text-slate-400">{filteredGalleries.length} items · {totalPhotos} photos</p>
+              </div>
 
-                  {/* Visibility badge */}
-                  <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${vis.color}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${vis.dot}`} />
-                    {vis.label}
-                  </span>
+              <div className="relative w-full lg:w-[280px]">
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search all media"
+                  className="w-full rounded-full border border-white/15 bg-black/30 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+                />
+              </div>
+            </div>
 
-                  {/* Hover actions overlay */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-200 flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => navigate(`/dashboard/galleries/${g.id}/upload`)}
-                      className="bg-white text-gray-900 text-xs font-semibold px-3 py-2 rounded-lg hover:bg-gray-100 transition"
-                    >
-                      Upload
-                    </button>
-                    <button
-                      onClick={() => navigate(`/dashboard/galleries/${g.id}/edit`)}
-                      className="bg-white text-gray-900 text-xs font-semibold px-3 py-2 rounded-lg hover:bg-gray-100 transition"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteId(g.id)}
-                      className="bg-red-500 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-red-600 transition"
-                    >
-                      Delete
-                    </button>
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <button className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Media Type</button>
+              <button className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Date</button>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
+              >
+                + Folder
+              </button>
+              <button
+                onClick={fetchGalleries}
+                className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
+              >
+                Refresh
+              </button>
+              {reordering && (
+                <span className="rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-200">
+                  Reordering...
+                </span>
+              )}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="ml-auto rounded-md border border-white/15 bg-black/30 px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+              >
+                <option value="date_desc">Sort: Newest</option>
+                <option value="date_asc">Sort: Oldest</option>
+                <option value="title_asc">Sort: Title A-Z</option>
+                <option value="title_desc">Sort: Title Z-A</option>
+                <option value="photos_desc">Sort: Most Photos</option>
+              </select>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-[1.5fr,1fr]">
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Selected Folder</p>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-bold text-white">{activeGallery?.title || 'None selected'}</h2>
+                    <p className="text-sm text-slate-400">
+                      {activeGallery ? `${activeGallery.photos_count || 0} files inside this folder` : 'Click a folder card below to manage it'}
+                    </p>
                   </div>
-                </div>
-
-                {/* Info */}
-                <div className="p-4">
-                  <h3 className="font-bold text-white text-sm truncate">{g.title}</h3>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-slate-400">{g.photos_count || 0} photos</p>
-                    <Link
-                      to={`/dashboard/galleries/${g.id}/edit`}
-                      className="text-xs text-emerald-300 font-medium hover:underline"
-                    >
-                      Manage →
-                    </Link>
-                  </div>
+                  {activeGallery && (
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${VISIBILITY_CONFIG[activeGallery.visibility]?.color || VISIBILITY_CONFIG.public.color}`}>
+                      {VISIBILITY_CONFIG[activeGallery.visibility]?.label || 'Public'}
+                    </span>
+                  )}
                 </div>
               </div>
-            )
-          })}
-        </div>
-      )}
+
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Folder Actions</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      setForm({ title: '', description: '', visibility: 'public', parent_id: activeGallery?.id || '' })
+                      setShowCreate(true)
+                    }}
+                    className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
+                  >
+                    Create Subfolder
+                  </button>
+                  <button
+                    onClick={openUploadForFolder}
+                    className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
+                  >
+                    Upload Files
+                  </button>
+                  <button
+                    onClick={createReviewLink}
+                    disabled={!activeGallery || creatingLink}
+                    className="rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-300/20 disabled:opacity-50"
+                  >
+                    {creatingLink ? 'Creating Link...' : 'Share Review Link'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-20"><Spinner /></div>
+          ) : galleries.length === 0 ? (
+            <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 py-24 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-300/10 text-3xl">🖼️</div>
+              <h3 className="mb-2 text-lg font-bold text-white">No galleries yet</h3>
+              <p className="mb-6 text-sm text-slate-400">Create your first gallery to organize your photos.</p>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-[#06210f] transition hover:bg-emerald-200"
+              >
+                + Create Gallery
+              </button>
+            </div>
+          ) : filteredGalleries.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 py-16 text-center">
+              <p className="text-base font-semibold text-white">No folders in this view</p>
+              <p className="mt-2 text-sm text-slate-400">Try a different filter or search query.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {renderFolderTree('root', 0)}
+            </div>
+          )}
+        </section>
+      </div>
 
       {/* Create Modal */}
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create New Gallery">
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create New Folder">
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Title *</label>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Folder Name *</label>
             <input
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -221,6 +530,19 @@ export default function GalleryOrganizerPage() {
               autoFocus
               required
             />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Parent Folder</label>
+            <select
+              value={form.parent_id}
+              onChange={(e) => setForm((f) => ({ ...f, parent_id: e.target.value }))}
+              className={INPUT}
+            >
+              <option value="">Root folder</option>
+              {galleries.map((gallery) => (
+                <option key={gallery.id} value={gallery.id}>{gallery.title}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Description</label>
@@ -246,7 +568,7 @@ export default function GalleryOrganizerPage() {
           </div>
           <div className="flex gap-3 justify-end pt-2">
             <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button type="submit" loading={creating}>Create Gallery</Button>
+            <Button type="submit" loading={creating}>Create Folder</Button>
           </div>
         </form>
       </Modal>

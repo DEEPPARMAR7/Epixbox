@@ -67,8 +67,8 @@ router.put('/:id', async (req, res, next) => {
   try {
     const gallery = await Gallery.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
-    const { title, description, visibility, parent_id } = req.body;
-    await gallery.update({ title, description, visibility, parent_id });
+    const { title, description, visibility, parent_id, sort_order } = req.body;
+    await gallery.update({ title, description, visibility, parent_id, sort_order });
     res.json(gallery);
   } catch (err) {
     next(err);

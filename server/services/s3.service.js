@@ -20,10 +20,19 @@ async function deleteFile(key) {
   await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
 }
 
-async function getSignedDownloadUrl(key, expiresIn = 3600) {
+async function getSignedDownloadUrl(key, expiresIn = 3600, filename = null, contentType = null) {
+  const commandInput = { Bucket: BUCKET, Key: key };
+  if (filename) {
+    const safeFilename = String(filename).replace(/"/g, '');
+    commandInput.ResponseContentDisposition = `attachment; filename="${safeFilename}"`;
+  }
+  if (contentType) {
+    commandInput.ResponseContentType = contentType;
+  }
+
   return getSignedUrl(
     s3Client,
-    new GetObjectCommand({ Bucket: BUCKET, Key: key }),
+    new GetObjectCommand(commandInput),
     { expiresIn }
   );
 }

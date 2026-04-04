@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { authApi, type AuthUser } from "../lib/api";
+import useAuthStore from "../store/authStore";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -41,8 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const authStore = useAuthStore.getState();
+
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
+      authStore.logout();
       setIsLoading(false);
       return;
     }
@@ -56,8 +60,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(parsed.user);
       setAccessToken(parsed.accessToken);
       setRefreshToken(parsed.refreshToken);
+      authStore.login(parsed.user, parsed.accessToken, parsed.refreshToken);
     } catch {
       localStorage.removeItem(STORAGE_KEY);
+      authStore.logout();
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setAccessToken(null);
           setRefreshToken(null);
           localStorage.removeItem(STORAGE_KEY);
+          useAuthStore.getState().logout();
         }
       });
 
@@ -90,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(nextUser);
     setAccessToken(nextAccessToken);
     setRefreshToken(nextRefreshToken);
+    useAuthStore.getState().login(nextUser, nextAccessToken, nextRefreshToken);
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
@@ -132,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAccessToken(null);
       setRefreshToken(null);
       localStorage.removeItem(STORAGE_KEY);
+      useAuthStore.getState().logout();
     }
   };
 

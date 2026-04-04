@@ -2,6 +2,7 @@ import axiosClient from './axiosClient'
 export const getSessions = () => axiosClient.get('/proofing').then(r => r.data)
 export const createSession = (data) => axiosClient.post('/proofing', data).then(r => r.data)
 export const getSession = (id) => axiosClient.get(`/proofing/${id}`).then(r => r.data)
+export const getSessionDownloads = (id) => axiosClient.get(`/proofing/${id}/downloads`).then(r => r.data)
 export const updateSession = (id, data) => axiosClient.put(`/proofing/${id}`, data).then(r => r.data)
 export const deleteSession = (id) => axiosClient.delete(`/proofing/${id}`).then(r => r.data)
 export const sendInvite = (id) => axiosClient.post(`/proofing/${id}/send-invite`).then(r => r.data)
@@ -9,3 +10,9 @@ export const getClientSession = (token) => axiosClient.get(`/proofing/session/${
 export const submitSelection = (token, data) => axiosClient.post(`/proofing/session/${token}/select`, data).then(r => r.data)
 export const submitComment = (token, data) => axiosClient.post(`/proofing/session/${token}/comment`, data).then(r => r.data)
 export const getSelectionSummary = (token) => axiosClient.get(`/proofing/session/${token}/summary`).then(r => r.data)
+export const getPhotoDownloadUrl = (token, photoId) => axiosClient.get(`/proofing/session/${token}/photos/${photoId}/download-url`).then(r => r.data)
+export const getSessionDownloadUrls = (token, selectedOnly = false) => axiosClient.get(`/proofing/session/${token}/download-urls`, { params: { selectedOnly } }).then(r => r.data)
+export const downloadProofingFile = (url) => {
+	const normalizedUrl = String(url || '').replace(/^\/api/, '')
+	return axiosClient.get(normalizedUrl, { responseType: 'blob' }).then(r => r.data)
+}

@@ -29,7 +29,8 @@ export default function RegisterPage() {
 
   const onSubmit = async (data) => {
     try {
-      const { confirmPassword, ...payload } = data
+      const payload = { ...data }
+      delete payload.confirmPassword
       const res = await apiRegister(payload)
       login(res.user, res.accessToken, res.refreshToken)
       toast.success('Welcome to EpicBox!')

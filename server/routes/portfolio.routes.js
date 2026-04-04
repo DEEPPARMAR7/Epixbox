@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { User, Gallery, Photo, Tag } = require('../models/index');
 const { getPublicUrl } = require('../services/s3.service');
+const { Op } = require('sequelize');
 
 // Attach public URLs to a photo plain object
 function withPhotoUrls(photo) {
@@ -57,7 +58,7 @@ router.get('/:username/galleries/:slug', async (req, res, next) => {
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
 
     const gallery = await Gallery.findOne({
-      where: { user_id: user.id, slug: req.params.slug, visibility: 'public' },
+      where: { user_id: user.id, slug: req.params.slug, visibility: { [Op.in]: ['public', 'unlisted'] } },
     });
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
 
