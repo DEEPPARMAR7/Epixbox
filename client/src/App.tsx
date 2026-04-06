@@ -10,6 +10,7 @@ import PricingPage from "./pages/Pricing";
 import LoginPage from "./pages/Login";
 import SignupPage from "./pages/Signup";
 import ForgotPasswordPage from "./pages/ForgotPassword";
+import ResetPasswordPage from "./pages/ResetPassword";
 import DashboardPage from "./pages/Dashboard";
 import ResourcesPage from "./pages/Resources";
 import AboutPage from "./pages/About";
@@ -46,6 +47,7 @@ const App = () => (
 						<Route path="/signup" element={<SignupPage />} />
 						<Route path="/register" element={<SignupPage />} />
 						<Route path="/forgot-password" element={<ForgotPasswordPage />} />
+						<Route path="/reset-password" element={<ResetPasswordPage />} />
 						<Route path="/resources" element={<ResourcesPage />} />
 						<Route path="/about" element={<AboutPage />} />
 						<Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />

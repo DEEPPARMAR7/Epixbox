@@ -282,9 +282,9 @@ export default function AccountSettingsPage() {
 
             <div className="mt-4 flex items-center justify-between rounded-lg border border-white/10 bg-black/25 px-4 py-3">
               <span className="font-semibold text-white">Home Page</span>
-              <button onClick={() => navigate('/dashboard/proofing')} className="text-sm font-extrabold uppercase tracking-wide text-emerald-300 hover:text-emerald-200">Edit</button>
+              <button onClick={() => navigate('/dashboard/organize')} className="text-sm font-extrabold uppercase tracking-wide text-emerald-300 hover:text-emerald-200">Edit</button>
             </div>
-            <p className="mt-4 text-sm text-slate-300"><button onClick={() => navigate('/dashboard/proofing')} className="font-semibold text-emerald-300 underline-offset-2 hover:underline">Go to Organize</button> to create and manage new website pages.</p>
+            <p className="mt-4 text-sm text-slate-300"><button onClick={() => navigate('/dashboard/organize')} className="font-semibold text-emerald-300 underline-offset-2 hover:underline">Go to Organize</button> to create and manage new website pages.</p>
           </div>
 
           <div id="site-url-card" className="rounded-sm border border-white/10 bg-[#101827] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.38)]">

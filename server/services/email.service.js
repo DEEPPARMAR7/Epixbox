@@ -38,4 +38,26 @@ async function sendOrderConfirmation({ to, order }) {
   });
 }
 
-module.exports = { sendProofingInvite, sendOrderConfirmation };
+async function sendPasswordResetEmail({ to, resetLink }) {
+  await transporter.sendMail({
+    from: `"EpicBox" <${process.env.EMAIL_FROM || 'noreply@epicbox.app'}>`,
+    to,
+    subject: 'Reset your EpicBox password',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #0f172a;">
+        <h2 style="margin-bottom: 8px;">Reset your password</h2>
+        <p style="margin: 0 0 16px; color: #334155;">We received a request to reset your EpicBox account password.</p>
+        <p style="margin: 0 0 20px;">
+          <a href="${resetLink}" style="display:inline-block;background:#16a34a;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:700;">
+            Set new password
+          </a>
+        </p>
+        <p style="font-size: 13px; color: #64748b;">This link expires in 1 hour.</p>
+        <p style="font-size: 13px; color: #64748b;">If the button does not work, copy this URL into your browser:</p>
+        <p style="font-size: 12px; color: #0f172a; word-break: break-all;">${resetLink}</p>
+      </div>
+    `,
+  });
+}
+
+module.exports = { sendProofingInvite, sendOrderConfirmation, sendPasswordResetEmail };

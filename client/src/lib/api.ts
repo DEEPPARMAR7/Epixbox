@@ -29,7 +29,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 }
 
 export type AuthUser = {
-  id: number;
+  id: string;
   email: string;
   username: string;
   first_name?: string;
@@ -49,6 +49,12 @@ export type AuthResponse = {
 export const authApi = {
   login: (payload: { email: string; password: string }) =>
     request<AuthResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  loginWithGoogle: (payload: { idToken: string }) =>
+    request<AuthResponse>("/auth/google", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
@@ -80,5 +86,11 @@ export const authApi = {
     request<{ message: string }>("/auth/forgot-password", {
       method: "POST",
       body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (token: string, password: string) =>
+    request<{ message: string }>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
     }),
 };

@@ -7,8 +7,10 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   signup: (payload: { name: string; email: string; password: string }) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -131,6 +133,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     persist(res.user, res.accessToken, res.refreshToken);
   };
 
+  const loginWithGoogle = async (idToken: string) => {
+    const res = await authApi.loginWithGoogle({ idToken });
+    persist(res.user, res.accessToken, res.refreshToken);
+  };
+
   const signup = async ({ name, email, password }: { name: string; email: string; password: string }) => {
     const { first, last } = splitName(name);
     const username = makeUsername(name, email);
@@ -148,6 +155,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const forgotPassword = async (email: string) => {
     await authApi.forgotPassword(email);
+  };
+
+  const resetPassword = async (token: string, password: string) => {
+    await authApi.resetPassword(token, password);
   };
 
   const logout = async () => {
@@ -168,8 +179,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: Boolean(user && accessToken),
       isLoading,
       login,
+      loginWithGoogle,
       signup,
       forgotPassword,
+      resetPassword,
       logout,
     }),
     [user, accessToken, isLoading]

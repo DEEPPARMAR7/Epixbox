@@ -124,7 +124,7 @@ export default function PricingEditorPage() {
         <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Revenue Tools</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Control your sales setup like SmugMug: offers, lists, and revenue settings.</p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Control your sales setup with EpicBox: offers, lists, and revenue settings.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-emerald-300/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-300/30">Pricelists {lists.length}</span>

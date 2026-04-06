@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
   { to: '/dashboard/galleries', label: 'Library', icon: '🖼️' },
-  { to: '/dashboard/proofing', label: 'Organize', icon: '🧭' },
+  { to: '/dashboard/organize', label: 'Organize', icon: '🧭' },
   { to: '/dashboard/settings', label: 'My Site', icon: '🌐' },
   { to: '/dashboard/pricing', label: 'Selling Tools', icon: '💰' },
 ]
@@ -146,10 +146,11 @@ export default function DashboardLayout({ children }) {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden sm:inline-flex items-center rounded-full bg-emerald-300/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-300/30">
-              7 DAYS LEFT
-            </span>
-            <button className="hidden sm:inline-flex items-center rounded-full bg-emerald-300 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wide text-[#06210f] hover:bg-emerald-200 transition">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/pricing')}
+              className="hidden sm:inline-flex items-center rounded-full bg-emerald-300 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wide text-[#06210f] hover:bg-emerald-200 transition"
+            >
               Subscribe
             </button>
             <a

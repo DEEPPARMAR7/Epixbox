@@ -1,17 +1,24 @@
 const router = require('express').Router();
 const slugify = require('slugify');
 const { Photo, Tag, PhotoTag, Gallery } = require('../models/index');
-const { deleteFile, getPublicUrl } = require('../services/s3.service');
+const { deleteFile, getPublicUrl, getSignedViewUrl } = require('../services/s3.service');
 const requireAuth = require('../middleware/auth.middleware');
 const { Op } = require('sequelize');
 
 router.use(requireAuth);
 
-function withUrls(photo) {
+async function withUrls(photo) {
   const p = photo.toJSON ? photo.toJSON() : { ...photo };
+  p.original_url = getPublicUrl(p.s3_key_original) || null;
   p.thumb_url  = getPublicUrl(p.s3_key_thumb)  || null;
   p.medium_url = getPublicUrl(p.s3_key_medium) || null;
   p.large_url  = getPublicUrl(p.s3_key_large)  || null;
+  const preferredKey = p.s3_key_thumb || p.s3_key_medium || p.s3_key_large || p.s3_key_original;
+  try {
+    p.display_url = preferredKey ? await getSignedViewUrl(preferredKey, 3600) : null;
+  } catch {
+    p.display_url = p.thumb_url || p.medium_url || p.large_url || p.original_url;
+  }
   return p;
 }
 
@@ -28,7 +35,7 @@ router.get('/', async (req, res, next) => {
       limit: parseInt(limit),
       offset: (parseInt(page) - 1) * parseInt(limit),
     });
-    res.json(photos.map(withUrls));
+    res.json(await Promise.all(photos.map(withUrls)));
   } catch (err) {
     next(err);
   }
@@ -42,7 +49,7 @@ router.get('/:id', async (req, res, next) => {
       include: [{ model: Tag, through: { attributes: [] } }],
     });
     if (!photo) return res.status(404).json({ error: 'Photo not found' });
-    res.json(withUrls(photo));
+    res.json(await withUrls(photo));
   } catch (err) {
     next(err);
   }
@@ -55,7 +62,7 @@ router.put('/:id', async (req, res, next) => {
     if (!photo) return res.status(404).json({ error: 'Photo not found' });
     const { title, description } = req.body;
     await photo.update({ title, description });
-    res.json(withUrls(photo));
+    res.json(await withUrls(photo));
   } catch (err) {
     next(err);
   }

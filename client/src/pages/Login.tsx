@@ -1,17 +1,39 @@
 import Navbar from "../components/Navbar";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../hooks/use-auth";
+
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          initialize: (options: {
+            client_id: string;
+            callback: (response: { credential?: string }) => void;
+          }) => void;
+          renderButton: (
+            element: HTMLElement,
+            options: Record<string, string | number | boolean>
+          ) => void;
+        };
+      };
+    };
+  }
+}
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,6 +50,69 @@ const LoginPage = () => {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (!googleClientId) return;
+
+    const initGoogleButton = () => {
+      if (!window.google?.accounts?.id || !googleButtonRef.current) return;
+
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response) => {
+          if (!response?.credential) {
+            toast.error("Google login failed");
+            return;
+          }
+
+          try {
+            setSubmitting(true);
+            await loginWithGoogle(response.credential);
+            toast.success("Welcome back");
+            navigate("/dashboard");
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Google login failed";
+            toast.error(message);
+          } finally {
+            setSubmitting(false);
+          }
+        },
+      });
+
+      googleButtonRef.current.innerHTML = "";
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: "outline",
+        size: "large",
+        shape: "pill",
+        text: "continue_with",
+        width: 320,
+      });
+      setGoogleReady(true);
+    };
+
+    if (window.google?.accounts?.id) {
+      initGoogleButton();
+      return;
+    }
+
+    const existingScript = document.getElementById("google-identity-script") as HTMLScriptElement | null;
+    if (existingScript) {
+      existingScript.addEventListener("load", initGoogleButton);
+      return () => existingScript.removeEventListener("load", initGoogleButton);
+    }
+
+    const script = document.createElement("script");
+    script.id = "google-identity-script";
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = initGoogleButton;
+    document.head.appendChild(script);
+
+    return () => {
+      script.onload = null;
+    };
+  }, [googleClientId, loginWithGoogle, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -98,13 +183,19 @@ const LoginPage = () => {
           </div>
 
           {/* Social */}
-          <div className="grid grid-cols-2 gap-4">
-            <button className="btn-outline-cta py-3 px-4 text-xs justify-center">
-              Google
-            </button>
-            <button className="btn-outline-cta py-3 px-4 text-xs justify-center">
-              Apple
-            </button>
+          <div className="space-y-3">
+            {googleClientId ? (
+              <div className="flex justify-center">
+                <div ref={googleButtonRef} />
+              </div>
+            ) : (
+              <p className="text-center font-body text-xs text-muted-foreground">
+                Google login is not configured yet. Add VITE_GOOGLE_CLIENT_ID in your env.
+              </p>
+            )}
+            {!googleReady && googleClientId && (
+              <p className="text-center font-body text-xs text-muted-foreground">Loading Google Sign-In...</p>
+            )}
           </div>
 
           <p className="text-center font-body text-sm text-muted-foreground mt-8">

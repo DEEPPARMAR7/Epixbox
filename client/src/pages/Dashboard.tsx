@@ -15,6 +15,7 @@ const DashboardPage = () => {
     <Routes>
       <Route index element={<DashboardHome />} />
       <Route path="galleries" element={<GalleryOrganizerPage />} />
+      <Route path="organize" element={<GalleryOrganizerPage />} />
       <Route path="galleries/:id/edit" element={<GalleryEditorPage />} />
       <Route path="galleries/:id/upload" element={<UploadManagerPage />} />
       <Route path="photos/:id" element={<PhotoDetailsPage />} />

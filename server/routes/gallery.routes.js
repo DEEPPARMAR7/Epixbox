@@ -47,7 +47,7 @@ router.post('/', async (req, res, next) => {
     if (settings && typeof settings === 'object') {
       await GallerySetting.create({
         gallery_id: gallery.id,
-        preset: settings.preset || 'smugmug_settings',
+        preset: settings.preset || 'epicbox_default',
         basics: settings.basics || {},
         security_sharing: settings.security_sharing || {},
         photo_protection: settings.photo_protection || {},
@@ -95,7 +95,7 @@ router.put('/:id', async (req, res, next) => {
     if (settings && typeof settings === 'object') {
       const existingSettings = await GallerySetting.findOne({ where: { gallery_id: gallery.id } });
       const payload = {
-        preset: settings.preset || 'smugmug_settings',
+        preset: settings.preset || 'epicbox_default',
         basics: settings.basics || {},
         security_sharing: settings.security_sharing || {},
         photo_protection: settings.photo_protection || {},

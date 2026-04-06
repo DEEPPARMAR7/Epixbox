@@ -11,9 +11,13 @@ const CF_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
  */
 function getPublicUrl(key) {
   if (!key) return null;
-  if (CF_DOMAIN) return `https://${CF_DOMAIN}/${key}`;
+  const safeKey = String(key)
+    .split('/')
+    .map((part) => encodeURIComponent(part))
+    .join('/');
+  if (CF_DOMAIN) return `https://${CF_DOMAIN}/${safeKey}`;
   const region = process.env.AWS_REGION || 'us-east-1';
-  return `https://${BUCKET}.s3.${region}.amazonaws.com/${key}`;
+  return `https://${BUCKET}.s3.${region}.amazonaws.com/${safeKey}`;
 }
 
 async function deleteFile(key) {
@@ -33,6 +37,15 @@ async function getSignedDownloadUrl(key, expiresIn = 3600, filename = null, cont
   return getSignedUrl(
     s3Client,
     new GetObjectCommand(commandInput),
+    { expiresIn }
+  );
+}
+
+async function getSignedViewUrl(key, expiresIn = 3600) {
+  if (!key) return null;
+  return getSignedUrl(
+    s3Client,
+    new GetObjectCommand({ Bucket: BUCKET, Key: key }),
     { expiresIn }
   );
 }
@@ -60,4 +73,4 @@ async function putObject(key, buffer, contentType) {
   );
 }
 
-module.exports = { deleteFile, getSignedDownloadUrl, getSignedUploadUrl, getObjectBuffer, putObject, getPublicUrl };
+module.exports = { deleteFile, getSignedDownloadUrl, getSignedViewUrl, getSignedUploadUrl, getObjectBuffer, putObject, getPublicUrl };

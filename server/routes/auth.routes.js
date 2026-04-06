@@ -2,16 +2,42 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const { User } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
+const { sendPasswordResetEmail } = require('../services/email.service');
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'dev_access_secret_change_me';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret_change_me';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
+const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 function generateTokens(userId) {
   const accessToken = jwt.sign({ id: userId }, ACCESS_SECRET, { expiresIn: '15m' });
   const refreshToken = jwt.sign({ id: userId }, REFRESH_SECRET, { expiresIn: '7d' });
   return { accessToken, refreshToken };
+}
+
+function normalizeUsernameSeed(value) {
+  return String(value || 'user')
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 30) || 'user';
+}
+
+async function generateUniqueUsername(seed) {
+  const base = normalizeUsernameSeed(seed);
+
+  for (let i = 0; i < 10; i += 1) {
+    const suffix = Math.floor(Math.random() * 900 + 100).toString();
+    const candidate = `${base.slice(0, 30 - suffix.length)}${suffix}`;
+    const exists = await User.findOne({ where: { username: candidate } });
+    if (!exists) return candidate;
+  }
+
+  return `${base.slice(0, 22)}${Date.now().toString().slice(-8)}`;
 }
 
 // POST /api/auth/register
@@ -93,6 +119,76 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
+// POST /api/auth/google
+router.post('/google', async (req, res, next) => {
+  try {
+    if (!googleClient || !GOOGLE_CLIENT_ID) {
+      return res.status(500).json({ error: 'Google login is not configured on the server' });
+    }
+
+    const { idToken } = req.body || {};
+    if (!idToken) {
+      return res.status(400).json({ error: 'Google ID token is required' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload?.email || !payload?.email_verified) {
+      return res.status(401).json({ error: 'Google account email is not verified' });
+    }
+
+    const normalizedEmail = String(payload.email).trim().toLowerCase();
+    let user = await User.findOne({ where: { email: normalizedEmail } });
+
+    if (!user) {
+      const username = await generateUniqueUsername(payload.name || normalizedEmail.split('@')[0]);
+      const password_hash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
+
+      user = await User.create({
+        email: normalizedEmail,
+        password_hash,
+        username,
+        first_name: payload.given_name || payload.name || 'User',
+        last_name: payload.family_name || '',
+        avatar_url: payload.picture || null,
+        email_verified: true,
+      });
+    } else {
+      const updates = {};
+      if (!user.email_verified) updates.email_verified = true;
+      if (!user.avatar_url && payload.picture) updates.avatar_url = payload.picture;
+      if (Object.keys(updates).length > 0) await user.update(updates);
+    }
+
+    if (!user.is_active) {
+      return res.status(403).json({ error: 'Account is deactivated' });
+    }
+
+    const { accessToken, refreshToken } = generateTokens(user.id);
+    return res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        plan: user.plan,
+        brand_color: user.brand_color,
+        brand_name: user.brand_name,
+        avatar_url: user.avatar_url,
+      },
+      accessToken,
+      refreshToken,
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 // GET /api/auth/me
 router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.user });
@@ -122,15 +218,20 @@ router.post('/logout', (req, res) => {
 router.post('/forgot-password', async (req, res, next) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ where: { email } });
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = await User.findOne({ where: { email: normalizedEmail } });
     if (!user) return res.json({ message: 'If that email exists, a reset link has been sent' });
 
     const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 3600000); // 1 hour
     await user.update({ password_reset_token: token, password_reset_expires: expires });
 
-    // In production, send email here
-    console.log(`Password reset token for ${email}: ${token}`);
+    const baseUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetLink = `${baseUrl.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
+    await sendPasswordResetEmail({ to: normalizedEmail, resetLink });
+
     res.json({ message: 'If that email exists, a reset link has been sent' });
   } catch (err) {
     next(err);
@@ -142,6 +243,7 @@ router.post('/reset-password', async (req, res, next) => {
   try {
     const { token, password } = req.body;
     if (!token || !password) return res.status(400).json({ error: 'Token and password required' });
+    if (String(password).length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
     const user = await User.findOne({ where: { password_reset_token: token } });
     if (!user || !user.password_reset_expires || new Date(user.password_reset_expires) < new Date()) {
