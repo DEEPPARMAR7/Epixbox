@@ -89,12 +89,13 @@ const SignupPage = () => {
       });
 
       googleButtonRef.current.innerHTML = "";
+      const containerWidth = googleButtonRef.current?.offsetWidth || 320;
       window.google.accounts.id.renderButton(googleButtonRef.current, {
         theme: "outline",
         size: "large",
         shape: "pill",
         text: "signup_with",
-        width: 320,
+        width: Math.min(containerWidth, 360),
       });
       setGoogleReady(true);
     };
@@ -242,8 +243,8 @@ const SignupPage = () => {
 
             <div className="space-y-3">
               {googleClientId ? (
-                <div className="flex justify-center">
-                  <div ref={googleButtonRef} />
+                <div className="w-full flex justify-center">
+                  <div ref={googleButtonRef} className="w-full max-w-xs" />
                 </div>
               ) : (
                 <p className="text-center font-body text-xs text-muted-foreground">
