@@ -385,10 +385,10 @@ export default function GalleryOrganizerPage() {
               e.preventDefault()
               handleDropMove(gallery.id, 'inside')
             }}
-            className={`group relative w-full max-w-[360px] cursor-pointer overflow-hidden rounded-lg border bg-[#0b1020] transition hover:border-white/25 ${activeGalleryId === gallery.id ? 'border-emerald-300/50 ring-1 ring-emerald-300/30' : 'border-white/10'}`}
-            style={{ marginLeft: `${depth * 18}px`, opacity: isDragging ? 0.45 : 1 }}
+            className={`group relative w-full cursor-pointer overflow-hidden rounded-xl border bg-[#0b1020] transition hover:-translate-y-0.5 hover:border-white/25 ${activeGalleryId === gallery.id ? 'border-emerald-300/50 ring-1 ring-emerald-300/30' : 'border-white/10'}`}
+            style={{ opacity: isDragging ? 0.45 : 1 }}
           >
-            <div className="relative aspect-[16/9] bg-[#111827]">
+            <div className="relative aspect-[4/5] bg-[#111827]">
               <img
                 src={gallery.cover_url || COVER_IMAGES[index % COVER_IMAGES.length]}
                 alt={gallery.title}
@@ -448,7 +448,10 @@ export default function GalleryOrganizerPage() {
               </div>
             </div>
 
-            <div className="p-2">
+            <div className="p-3">
+              {depth > 0 && (
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-300/80">Subfolder</p>
+              )}
               <h3 className="truncate text-xs font-semibold text-white">{gallery.title}</h3>
               <div className="mt-0.5 flex items-center justify-between gap-2">
                 <p className="text-[10px] text-slate-400">{gallery.photos_count || 0} files</p>
@@ -479,7 +482,11 @@ export default function GalleryOrganizerPage() {
             />
           )}
 
-          {renderFolderTree(gallery.id, depth + 1)}
+          {(treeMap[gallery.id] || []).length > 0 && (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              {renderFolderTree(gallery.id, depth + 1)}
+            </div>
+          )}
         </div>
       )
     })
@@ -665,7 +672,7 @@ export default function GalleryOrganizerPage() {
               <p className="mt-2 text-sm text-slate-400">Try a different filter or search query.</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {renderFolderTree('root', 0)}
             </div>
           )}
