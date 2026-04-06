@@ -57,16 +57,22 @@ export default function DashboardLayout({ children }) {
       }
     }
 
+    const handleScrollClose = () => {
+      setProfileMenuOpen(false)
+    }
+
     if (profileMenuOpen) {
       document.addEventListener('mousedown', handleOutsideClick)
       document.addEventListener('touchstart', handleOutsideClick)
       document.addEventListener('keydown', handleEscape)
+      window.addEventListener('scroll', handleScrollClose, true)
     }
 
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick)
       document.removeEventListener('touchstart', handleOutsideClick)
       document.removeEventListener('keydown', handleEscape)
+      window.removeEventListener('scroll', handleScrollClose, true)
     }
   }, [profileMenuOpen])
 
@@ -204,7 +210,12 @@ export default function DashboardLayout({ children }) {
         </div>
       </header>
 
-      <main className="h-[calc(100vh-64px)] overflow-y-auto bg-[radial-gradient(circle_at_8%_0%,rgba(39,209,190,0.13),transparent_35%),radial-gradient(circle_at_90%_0%,rgba(59,130,246,0.12),transparent_30%),#05070d] p-4 sm:p-6">
+      <main
+        onScroll={() => {
+          if (profileMenuOpen) setProfileMenuOpen(false)
+        }}
+        className="h-[calc(100vh-64px)] overflow-y-auto bg-[radial-gradient(circle_at_8%_0%,rgba(39,209,190,0.13),transparent_35%),radial-gradient(circle_at_90%_0%,rgba(59,130,246,0.12),transparent_30%),#05070d] p-4 sm:p-6"
+      >
         <div className="mx-auto w-full max-w-[1280px]">
           {children}
         </div>
