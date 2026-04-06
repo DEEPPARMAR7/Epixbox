@@ -5,6 +5,8 @@ import { logout as apiLogout } from '../../api/authApi'
 import { getGalleries } from '../../api/galleryApi'
 import clsx from 'clsx'
 import toast from 'react-hot-toast'
+import { MoreVertical, Upload, LayoutDashboard, Images, Compass, Globe, CreditCard, User, LogOut } from 'lucide-react'
+import BottomSheet from '../common/BottomSheet'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
@@ -19,6 +21,7 @@ export default function DashboardLayout({ children }) {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const profileMenuRef = useRef(null)
 
   const resolveUsername = () => {
@@ -80,8 +83,13 @@ export default function DashboardLayout({ children }) {
     setProfileMenuOpen(false)
   }, [location.pathname, location.search])
 
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname, location.search])
+
   const goTo = (path) => {
     setProfileMenuOpen(false)
+    setMobileMenuOpen(false)
     navigate(path)
   }
 
@@ -93,6 +101,7 @@ export default function DashboardLayout({ children }) {
   }
 
   const handleUploadClick = async () => {
+    setMobileMenuOpen(false)
     try {
       const galleries = await getGalleries()
       if (galleries?.length > 0) {
@@ -119,9 +128,11 @@ export default function DashboardLayout({ children }) {
             <button
               type="button"
               onClick={handleUploadClick}
-              className="hidden sm:inline-flex items-center rounded-full bg-emerald-300 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wide text-[#06210f] hover:bg-emerald-200 transition"
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-300 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wide text-[#06210f] transition hover:bg-emerald-200 sm:px-4 sm:text-xs"
             >
-              Upload
+              <Upload size={14} />
+              <span className="sm:hidden">Upload</span>
+              <span className="hidden sm:inline">Upload</span>
             </button>
           </div>
 
@@ -161,6 +172,14 @@ export default function DashboardLayout({ children }) {
             >
               View Site
             </a>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10 md:hidden"
+              aria-label="Open dashboard menu"
+            >
+              <MoreVertical size={18} />
+            </button>
             <div className="relative" ref={profileMenuRef}>
               <button
                 type="button"
@@ -210,6 +229,86 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
       </header>
+
+      <BottomSheet
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        title="Dashboard Menu"
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={handleUploadClick}
+              className="flex items-center gap-3 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-left font-semibold text-emerald-200 transition hover:bg-emerald-300/15"
+            >
+              <Upload size={18} />
+              Upload
+            </button>
+            <button
+              type="button"
+              onClick={() => goTo('/dashboard/pricing')}
+              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left font-semibold text-slate-100 transition hover:bg-white/10"
+            >
+              <CreditCard size={18} />
+              Pricing
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Navigate</p>
+            {navItems.map((item) => {
+              const Icon = item.to === '/dashboard'
+                ? LayoutDashboard
+                : item.to === '/dashboard/galleries'
+                  ? Images
+                  : item.to === '/dashboard/organize'
+                    ? Compass
+                    : item.to === '/dashboard/pricing'
+                      ? CreditCard
+                      : Globe
+              const isActive = item.exact
+                ? location.pathname === item.to
+                : location.pathname.startsWith(item.to)
+
+              return (
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() => goTo(item.to)}
+                  className={clsx(
+                    'flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition',
+                    isActive
+                      ? 'border-emerald-300/30 bg-emerald-300/10 text-emerald-200'
+                      : 'border-white/10 bg-white/5 text-slate-100 hover:bg-white/10'
+                  )}
+                >
+                  <Icon size={18} />
+                  <span className="font-semibold">{item.label}</span>
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="space-y-2 border-t border-white/10 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Quick Links</p>
+            <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left font-semibold text-slate-100 hover:bg-white/10">
+              <User size={18} />
+              Edit Profile
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false)
+                handleLogout()
+              }}
+              className="flex w-full items-center gap-3 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-left font-semibold text-rose-200 hover:bg-rose-400/15"
+            >
+              <LogOut size={18} />
+              Log Out
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
 
       <main
         onScroll={() => {
