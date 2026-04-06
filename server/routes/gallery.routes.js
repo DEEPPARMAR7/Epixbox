@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const slugify = require('slugify');
-const { Gallery, Photo } = require('../models/index');
+const { Gallery, GallerySetting, Photo } = require('../models/index');
 const { deleteFile } = require('../services/s3.service');
 const requireAuth = require('../middleware/auth.middleware');
 const { Op } = require('sequelize');
@@ -12,7 +12,10 @@ router.get('/', async (req, res, next) => {
   try {
     const galleries = await Gallery.findAll({
       where: { user_id: req.user.id },
-      include: [{ model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb'], required: false }],
+      include: [
+        { model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb'], required: false },
+        { model: GallerySetting, as: 'settings', required: false },
+      ],
       order: [['sort_order', 'ASC'], ['created_at', 'DESC']],
     });
     res.json(galleries);
@@ -24,7 +27,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/galleries
 router.post('/', async (req, res, next) => {
   try {
-    const { title, description, visibility, parent_id } = req.body;
+    const { title, description, visibility, parent_id, settings } = req.body;
     if (!title) return res.status(400).json({ error: 'Title is required' });
 
     let slug = slugify(title, { lower: true, strict: true });
@@ -40,7 +43,25 @@ router.post('/', async (req, res, next) => {
       visibility: visibility || 'public',
       parent_id: parent_id || null,
     });
-    res.status(201).json(gallery);
+
+    if (settings && typeof settings === 'object') {
+      await GallerySetting.create({
+        gallery_id: gallery.id,
+        preset: settings.preset || 'smugmug_settings',
+        basics: settings.basics || {},
+        security_sharing: settings.security_sharing || {},
+        photo_protection: settings.photo_protection || {},
+        social: settings.social || {},
+        selling: settings.selling || {},
+        appearance: settings.appearance || {},
+      });
+    }
+
+    const created = await Gallery.findOne({
+      where: { id: gallery.id, user_id: req.user.id },
+      include: [{ model: GallerySetting, as: 'settings', required: false }],
+    });
+    res.status(201).json(created);
   } catch (err) {
     next(err);
   }
@@ -53,6 +74,7 @@ router.get('/:id', async (req, res, next) => {
       where: { id: req.params.id, user_id: req.user.id },
       include: [
         { model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb'], required: false },
+        { model: GallerySetting, as: 'settings', required: false },
       ],
     });
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
@@ -67,9 +89,33 @@ router.put('/:id', async (req, res, next) => {
   try {
     const gallery = await Gallery.findOne({ where: { id: req.params.id, user_id: req.user.id } });
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
-    const { title, description, visibility, parent_id, sort_order } = req.body;
+    const { title, description, visibility, parent_id, sort_order, settings } = req.body;
     await gallery.update({ title, description, visibility, parent_id, sort_order });
-    res.json(gallery);
+
+    if (settings && typeof settings === 'object') {
+      const existingSettings = await GallerySetting.findOne({ where: { gallery_id: gallery.id } });
+      const payload = {
+        preset: settings.preset || 'smugmug_settings',
+        basics: settings.basics || {},
+        security_sharing: settings.security_sharing || {},
+        photo_protection: settings.photo_protection || {},
+        social: settings.social || {},
+        selling: settings.selling || {},
+        appearance: settings.appearance || {},
+      };
+
+      if (existingSettings) {
+        await existingSettings.update(payload);
+      } else {
+        await GallerySetting.create({ gallery_id: gallery.id, ...payload });
+      }
+    }
+
+    const updated = await Gallery.findOne({
+      where: { id: gallery.id, user_id: req.user.id },
+      include: [{ model: GallerySetting, as: 'settings', required: false }],
+    });
+    res.json(updated);
   } catch (err) {
     next(err);
   }

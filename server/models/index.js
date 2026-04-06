@@ -2,6 +2,7 @@ const sequelize = require('../config/database');
 
 const User = require('./User');
 const Gallery = require('./Gallery');
+const GallerySetting = require('./GallerySetting');
 const Photo = require('./Photo');
 const Tag = require('./Tag');
 const PhotoTag = require('./PhotoTag');
@@ -26,12 +27,15 @@ User.hasOne(CustomDomain, { foreignKey: 'user_id' });
 
 // Gallery associations
 Gallery.belongsTo(User, { foreignKey: 'user_id' });
+Gallery.hasOne(GallerySetting, { as: 'settings', foreignKey: 'gallery_id', onDelete: 'CASCADE' });
 Gallery.hasMany(Photo, { foreignKey: 'gallery_id', onDelete: 'CASCADE' });
 Gallery.hasMany(ProofingSession, { foreignKey: 'gallery_id', onDelete: 'CASCADE' });
 Gallery.belongsTo(Gallery, { as: 'parent', foreignKey: 'parent_id', constraints: false });
 Gallery.hasMany(Gallery, { as: 'children', foreignKey: 'parent_id' });
 Gallery.belongsTo(Photo, { as: 'coverPhoto', foreignKey: 'cover_photo_id', constraints: false });
 Gallery.belongsToMany(PriceList, { through: GalleryPriceList, foreignKey: 'gallery_id' });
+
+GallerySetting.belongsTo(Gallery, { foreignKey: 'gallery_id' });
 
 // Photo associations
 Photo.belongsTo(Gallery, { foreignKey: 'gallery_id' });
@@ -81,6 +85,7 @@ module.exports = {
   sequelize,
   User,
   Gallery,
+  GallerySetting,
   Photo,
   Tag,
   PhotoTag,

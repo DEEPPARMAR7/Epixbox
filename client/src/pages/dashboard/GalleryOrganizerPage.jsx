@@ -25,6 +25,61 @@ const VISIBILITY_CONFIG = {
   unlisted: { label: 'Unlisted', color: 'bg-amber-500/20 text-amber-200 ring-1 ring-amber-300/30', dot: 'bg-amber-300' },
 }
 
+const CREATE_TABS = [
+  { id: 'basics', label: 'Basics' },
+  { id: 'security', label: 'Security & Sharing' },
+  { id: 'protection', label: 'Photo Protection' },
+  { id: 'social', label: 'Social' },
+  { id: 'selling', label: 'Selling' },
+  { id: 'appearance', label: 'Appearance' },
+]
+
+const makeInitialForm = () => ({
+  kind: 'gallery',
+  title: '',
+  description: '',
+  visibility: 'private',
+  parent_id: '',
+  preset: 'smugmug_settings',
+  meta_keywords: '',
+  custom_url: '',
+  security: {
+    display_on_site: 'private',
+    access: 'anyone',
+    guest_uploading_key: '',
+    web_searchable: 'site_searching',
+    smugmug_searchable: 'site_searching',
+  },
+  protection: {
+    watermark_mode: 'none',
+    max_display_size: 'all_but_original',
+    right_click_message: true,
+    allow_free_downloads: false,
+  },
+  social: {
+    show_sharing_options: true,
+    allow_comments: true,
+  },
+  selling: {
+    visitor_shopping_cart: true,
+    price_list_id: 'inherit',
+    shop_view: true,
+    proof_delay: 'off',
+    boutique_packaging: 'update_credit_card',
+    personal_delivery: 'setup',
+  },
+  appearance: {
+    gallery_style: 'collage_landscape',
+    gallery_cover_image: true,
+    sort_by: 'date_taken',
+    sort_direction: 'ascending',
+    show_keywords: false,
+    show_filenames: false,
+    slideshow: false,
+    map_features: false,
+  },
+})
+
 export default function GalleryOrganizerPage() {
   const navigate = useNavigate()
   const [galleries, setGalleries] = useState([])
@@ -35,12 +90,27 @@ export default function GalleryOrganizerPage() {
   const [sortBy, setSortBy] = useState('date_desc')
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState({ title: '', description: '', visibility: 'public', parent_id: '' })
+  const [showCreateMenu, setShowCreateMenu] = useState(false)
+  const [activeCreateTab, setActiveCreateTab] = useState('basics')
+  const [form, setForm] = useState(makeInitialForm)
   const [creating, setCreating] = useState(false)
   const [reordering, setReordering] = useState(false)
   const [creatingLink, setCreatingLink] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
+
+  const openCreateDialog = (kind = 'gallery', parentId = '') => {
+    setShowCreateMenu(false)
+    setActiveCreateTab('basics')
+    setForm({ ...makeInitialForm(), kind, parent_id: parentId || '' })
+    setShowCreate(true)
+  }
+
+  const closeCreateDialog = () => {
+    setShowCreate(false)
+    setActiveCreateTab('basics')
+    setForm(makeInitialForm())
+  }
 
   const fetchGalleries = () => {
     setLoading(true)
@@ -63,10 +133,27 @@ export default function GalleryOrganizerPage() {
     if (!form.title.trim()) return toast.error('Title is required')
     setReordering(true)
     try {
-      await createGallery(form)
-      toast.success('Gallery created!')
-      setShowCreate(false)
-      setForm({ title: '', description: '', visibility: 'public', parent_id: '' })
+      await createGallery({
+        title: form.title.trim(),
+        description: form.description,
+        visibility: form.visibility,
+        parent_id: form.parent_id || null,
+        settings: {
+          preset: form.preset,
+          basics: {
+            kind: form.kind,
+            meta_keywords: form.meta_keywords,
+            custom_url: form.custom_url,
+          },
+          security_sharing: form.security,
+          photo_protection: form.protection,
+          social: form.social,
+          selling: form.selling,
+          appearance: form.appearance,
+        },
+      })
+      toast.success(form.kind === 'folder' ? 'Folder created!' : 'Gallery created!')
+      closeCreateDialog()
       fetchGalleries()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to create gallery')
@@ -298,8 +385,7 @@ export default function GalleryOrganizerPage() {
                   onClick={(e) => {
                     e.stopPropagation()
                     setActiveGalleryId(gallery.id)
-                    setForm({ title: '', description: '', visibility: 'public', parent_id: gallery.id })
-                    setShowCreate(true)
+                    openCreateDialog('folder', gallery.id)
                   }}
                   className="rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-gray-900 transition hover:bg-gray-100"
                 >
@@ -382,12 +468,21 @@ export default function GalleryOrganizerPage() {
           </div>
 
           <div className="mt-4 border-t border-white/10 pt-3">
-            <button
-              onClick={() => setShowCreate(true)}
-              className="w-full rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
-            >
-              + Create
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowCreateMenu((v) => !v)}
+                className="w-full rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
+              >
+                + Create
+              </button>
+              {showCreateMenu && (
+                <div className="absolute left-0 top-full z-20 mt-2 w-full rounded-lg border border-white/15 bg-[#0b1220] p-1.5 shadow-xl">
+                  <button onClick={() => openCreateDialog('gallery')} className="block w-full rounded-md px-2 py-2 text-left text-xs font-semibold text-slate-200 hover:bg-white/10">Gallery</button>
+                  <button onClick={() => openCreateDialog('folder', activeGallery?.id || '')} className="block w-full rounded-md px-2 py-2 text-left text-xs font-semibold text-slate-200 hover:bg-white/10">Folder</button>
+                  <button onClick={() => { setShowCreateMenu(false); toast('Web Page creation is coming soon') }} className="block w-full rounded-md px-2 py-2 text-left text-xs font-semibold text-slate-200 hover:bg-white/10">Web Page</button>
+                </div>
+              )}
+            </div>
           </div>
         </aside>
 
@@ -413,7 +508,7 @@ export default function GalleryOrganizerPage() {
               <button className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Media Type</button>
               <button className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Date</button>
               <button
-                onClick={() => setShowCreate(true)}
+                onClick={() => openCreateDialog('folder')}
                 className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
               >
                 + Folder
@@ -465,8 +560,7 @@ export default function GalleryOrganizerPage() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     onClick={() => {
-                      setForm({ title: '', description: '', visibility: 'public', parent_id: activeGallery?.id || '' })
-                      setShowCreate(true)
+                      openCreateDialog('folder', activeGallery?.id || '')
                     }}
                     className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
                   >
@@ -498,7 +592,7 @@ export default function GalleryOrganizerPage() {
               <h3 className="mb-2 text-lg font-bold text-white">No galleries yet</h3>
               <p className="mb-6 text-sm text-slate-400">Create your first gallery to organize your photos.</p>
               <button
-                onClick={() => setShowCreate(true)}
+                onClick={() => openCreateDialog('gallery')}
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-[#06210f] transition hover:bg-emerald-200"
               >
                 + Create Gallery
@@ -517,61 +611,233 @@ export default function GalleryOrganizerPage() {
         </section>
       </div>
 
-      {/* Create Modal */}
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create New Folder">
-        <form onSubmit={handleCreate} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Folder Name *</label>
-            <input
-              value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              placeholder="e.g. Summer Wedding 2024"
-              className={INPUT}
-              autoFocus
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Parent Folder</label>
-            <select
-              value={form.parent_id}
-              onChange={(e) => setForm((f) => ({ ...f, parent_id: e.target.value }))}
-              className={INPUT}
-            >
-              <option value="">Root folder</option>
-              {galleries.map((gallery) => (
-                <option key={gallery.id} value={gallery.id}>{gallery.title}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Description</label>
-            <textarea
-              value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="Optional description..."
-              rows={3}
-              className={INPUT + ' resize-none'}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Visibility</label>
-            <select
-              value={form.visibility}
-              onChange={e => setForm(f => ({ ...f, visibility: e.target.value }))}
-              className={INPUT}
-            >
-              <option value="public">Public — visible on your portfolio</option>
-              <option value="unlisted">Unlisted — only accessible by link</option>
-              <option value="private">Private — only you can see it</option>
-            </select>
-          </div>
-          <div className="flex gap-3 justify-end pt-2">
-            <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button type="submit" loading={creating}>Create Folder</Button>
-          </div>
-        </form>
-      </Modal>
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={closeCreateDialog} />
+          <form onSubmit={handleCreate} className="relative z-10 w-full max-w-5xl overflow-hidden rounded-sm border border-white/30 bg-[#10141d] text-white shadow-[0_40px_100px_rgba(0,0,0,0.65)]">
+            <div className="border-b border-white/15 px-6 py-4 text-center">
+              <h2 className="text-4xl font-black tracking-tight">Create {form.kind === 'folder' ? 'Folder' : 'Gallery'}</h2>
+            </div>
+
+            <div className="grid min-h-[520px] grid-cols-[240px,minmax(0,1fr)]">
+              <aside className="border-r border-white/15 bg-[#161b25] p-0">
+                {CREATE_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveCreateTab(tab.id)}
+                    className={`block w-full border-l-4 px-5 py-4 text-left text-2xl font-semibold transition ${activeCreateTab === tab.id ? 'border-emerald-300 bg-[#232a36] text-white' : 'border-transparent text-slate-300 hover:bg-white/5 hover:text-white'}`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </aside>
+
+              <section className="bg-[#151b25] p-8">
+                {activeCreateTab === 'basics' && (
+                  <div className="space-y-5">
+                    <label className="block text-sm font-semibold text-slate-300">Gallery Preset</label>
+                    <select value={form.preset} onChange={(e) => setForm((f) => ({ ...f, preset: e.target.value }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-lg outline-none focus:border-emerald-300">
+                      <option value="smugmug_settings">SmugMug Settings</option>
+                      <option value="portfolio_clean">Portfolio Clean</option>
+                      <option value="proofing_fast">Proofing Fast</option>
+                    </select>
+
+                    <label className="block text-sm font-semibold text-slate-300">Title</label>
+                    <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-lg outline-none focus:border-emerald-300" required />
+
+                    <label className="block text-sm font-semibold text-slate-300">Description</label>
+                    <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300" />
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-300">Meta Keywords</label>
+                        <input value={form.meta_keywords} onChange={(e) => setForm((f) => ({ ...f, meta_keywords: e.target.value }))} placeholder="keyword1, keyword2" className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-300">Custom URL</label>
+                        <input value={form.custom_url} onChange={(e) => setForm((f) => ({ ...f, custom_url: e.target.value }))} placeholder="my-gallery-url" className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300">Parent Folder</label>
+                      <select value={form.parent_id} onChange={(e) => setForm((f) => ({ ...f, parent_id: e.target.value }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <option value="">Root folder</option>
+                        {galleries.map((gallery) => (
+                          <option key={gallery.id} value={gallery.id}>{gallery.title}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {activeCreateTab === 'security' && (
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300">Display on Site</label>
+                      <select value={form.security.display_on_site} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, display_on_site: e.target.value }, visibility: e.target.value === 'public' ? 'public' : e.target.value === 'unlisted' ? 'unlisted' : 'private' }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <option value="private">Display on Site (Private)</option>
+                        <option value="public">Display on Site (Public)</option>
+                        <option value="unlisted">Display on Site (Unlisted)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300">Access</label>
+                      <select value={form.security.access} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, access: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <option value="anyone">Anyone</option>
+                        <option value="password">Password Required</option>
+                        <option value="invite_only">Invite Only</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300">Guest Uploading Key</label>
+                      <input value={form.security.guest_uploading_key} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, guest_uploading_key: e.target.value } }))} placeholder="Type a key to generate upload URL" className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300" />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-300">Web Searchable</label>
+                        <select value={form.security.web_searchable} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, web_searchable: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                          <option value="site_searching">Site-Searching</option>
+                          <option value="public_search">Public Search</option>
+                          <option value="off">Off</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-300">SmugMug Searchable</label>
+                        <select value={form.security.smugmug_searchable} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, smugmug_searchable: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                          <option value="site_searching">Site-Searching</option>
+                          <option value="public_search">Public Search</option>
+                          <option value="off">Off</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeCreateTab === 'protection' && (
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300">Watermark Photos</label>
+                      <select value={form.protection.watermark_mode} onChange={(e) => setForm((f) => ({ ...f, protection: { ...f.protection, watermark_mode: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <option value="none">No Watermarks</option>
+                        <option value="light">Light Watermark</option>
+                        <option value="strong">Strong Watermark</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300">Maximum Display Size</label>
+                      <select value={form.protection.max_display_size} onChange={(e) => setForm((f) => ({ ...f, protection: { ...f.protection, max_display_size: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <option value="all_but_original">All but Original</option>
+                        <option value="large">Large</option>
+                        <option value="medium">Medium</option>
+                      </select>
+                    </div>
+                    <div className="space-y-3">
+                      <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                        <span>Right-Click Message</span>
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, protection: { ...f.protection, right_click_message: !f.protection.right_click_message } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.protection.right_click_message ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.protection.right_click_message ? 'ON' : 'OFF'}</button>
+                      </label>
+                      <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                        <span>Allow Free Downloads</span>
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, protection: { ...f.protection, allow_free_downloads: !f.protection.allow_free_downloads } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.protection.allow_free_downloads ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.protection.allow_free_downloads ? 'ON' : 'OFF'}</button>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {activeCreateTab === 'social' && (
+                  <div className="space-y-4">
+                    <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                      <span>Show Sharing Options</span>
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, social: { ...f.social, show_sharing_options: !f.social.show_sharing_options } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.social.show_sharing_options ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.social.show_sharing_options ? 'ON' : 'OFF'}</button>
+                    </label>
+                    <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                      <span>Allow Comments</span>
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, social: { ...f.social, allow_comments: !f.social.allow_comments } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.social.allow_comments ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.social.allow_comments ? 'ON' : 'OFF'}</button>
+                    </label>
+                  </div>
+                )}
+
+                {activeCreateTab === 'selling' && (
+                  <div className="space-y-5">
+                    <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                      <span>Visitor Shopping Cart</span>
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, selling: { ...f.selling, visitor_shopping_cart: !f.selling.visitor_shopping_cart } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.selling.visitor_shopping_cart ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.selling.visitor_shopping_cart ? 'ON' : 'OFF'}</button>
+                    </label>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300">Price List</label>
+                      <select value={form.selling.price_list_id} onChange={(e) => setForm((f) => ({ ...f, selling: { ...f.selling, price_list_id: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <option value="inherit">Inherit from site</option>
+                        <option value="none">No price list</option>
+                      </select>
+                    </div>
+                    <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                      <span>Shop View</span>
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, selling: { ...f.selling, shop_view: !f.selling.shop_view } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.selling.shop_view ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.selling.shop_view ? 'ON' : 'OFF'}</button>
+                    </label>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300">Proof Delay</label>
+                      <select value={form.selling.proof_delay} onChange={(e) => setForm((f) => ({ ...f, selling: { ...f.selling, proof_delay: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <option value="off">Off</option>
+                        <option value="15m">15 Minutes</option>
+                        <option value="1h">1 Hour</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {activeCreateTab === 'appearance' && (
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-300">Gallery Style</label>
+                      <select value={form.appearance.gallery_style} onChange={(e) => setForm((f) => ({ ...f, appearance: { ...f.appearance, gallery_style: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <option value="collage_landscape">Collage Landscape</option>
+                        <option value="collage_portrait">Collage Portrait</option>
+                        <option value="grid">Grid</option>
+                      </select>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-300">Sort By</label>
+                        <select value={form.appearance.sort_by} onChange={(e) => setForm((f) => ({ ...f, appearance: { ...f.appearance, sort_by: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                          <option value="date_taken">Date Taken</option>
+                          <option value="date_uploaded">Date Uploaded</option>
+                          <option value="filename">Filename</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-300">Sort Direction</label>
+                        <select value={form.appearance.sort_direction} onChange={(e) => setForm((f) => ({ ...f, appearance: { ...f.appearance, sort_direction: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                          <option value="ascending">Ascending</option>
+                          <option value="descending">Descending</option>
+                        </select>
+                      </div>
+                    </div>
+                    {[
+                      ['gallery_cover_image', 'Gallery Cover Image'],
+                      ['show_keywords', 'Show Keywords'],
+                      ['show_filenames', 'Show Filenames'],
+                      ['slideshow', 'Slideshow'],
+                      ['map_features', 'Enable Map Features'],
+                    ].map(([key, label]) => (
+                      <label key={key} className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                        <span>{label}</span>
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, appearance: { ...f.appearance, [key]: !f.appearance[key] } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.appearance[key] ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.appearance[key] ? 'ON' : 'OFF'}</button>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+
+            <div className="grid grid-cols-2 border-t border-white/15">
+              <button type="button" onClick={closeCreateDialog} className="px-6 py-4 text-center text-xl font-bold text-white transition hover:bg-white/5">CANCEL</button>
+              <button type="submit" disabled={creating || !form.title.trim()} className="bg-[#d5fce8] px-6 py-4 text-center text-xl font-bold tracking-[0.12em] text-[#0d2c1e] transition hover:bg-[#b5f1d2] disabled:cursor-not-allowed disabled:opacity-60">{creating ? 'CREATING...' : 'CREATE'}</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Delete Confirm Modal */}
       <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Gallery" size="sm">
