@@ -94,6 +94,7 @@ export default function GalleryOrganizerPage() {
   const [activeCreateTab, setActiveCreateTab] = useState('basics')
   const [editingGalleryId, setEditingGalleryId] = useState('')
   const [form, setForm] = useState(makeInitialForm)
+  const [selectedGalleryIds, setSelectedGalleryIds] = useState([])
   const [creating, setCreating] = useState(false)
   const [reordering, setReordering] = useState(false)
   const [creatingLink, setCreatingLink] = useState(false)
@@ -156,6 +157,7 @@ export default function GalleryOrganizerPage() {
           if (prev && items.some((g) => g.id === prev)) return prev
           return items[0]?.id || ''
         })
+        setSelectedGalleryIds((prev) => prev.filter((id) => items.some((g) => g.id === id)))
       })
       .catch(() => toast.error('Failed to load galleries'))
       .finally(() => setLoading(false))
@@ -348,6 +350,30 @@ export default function GalleryOrganizerPage() {
     acc[parentKey].push(gallery)
     return acc
   }, {})
+  const selectedCount = selectedGalleryIds.length
+
+  const handleSelectAll = () => {
+    const ids = filteredGalleries.map((g) => g.id)
+    setSelectedGalleryIds((prev) => (prev.length === ids.length ? [] : ids))
+  }
+
+  const renderSidebarTree = (parentId = 'root', depth = 0) => {
+    const nodes = treeMap[parentId] || []
+    return nodes.map((gallery) => (
+      <div key={`tree-${gallery.id}`}>
+        <button
+          type="button"
+          onClick={() => setActiveGalleryId(gallery.id)}
+          className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition ${activeGalleryId === gallery.id ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
+          style={{ paddingLeft: `${8 + depth * 14}px` }}
+        >
+          <span className="text-xs">▸</span>
+          <span className="truncate">{gallery.title}</span>
+        </button>
+        {renderSidebarTree(gallery.id, depth + 1)}
+      </div>
+    ))
+  }
 
   const renderFolderTree = (parentId = 'root', depth = 0) => {
     const nodes = treeMap[parentId] || []
@@ -494,163 +520,93 @@ export default function GalleryOrganizerPage() {
 
   return (
     <DashboardLayout>
-      <div className="grid gap-4 lg:grid-cols-[220px,minmax(0,1fr)]">
-        <aside className="rounded-xl border border-white/10 bg-[#0a1020]/80 p-3">
-          <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">AI Media</p>
-          <div className="space-y-0.5">
-            <button
-              onClick={() => setVisibilityFilter('all')}
-              className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition ${visibilityFilter === 'all' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
-            >
-              <span>All Galleries</span>
-              <span className="text-xs text-slate-500">{galleries.length}</span>
-            </button>
-            <button
-              onClick={() => setVisibilityFilter('public')}
-              className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition ${visibilityFilter === 'public' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
-            >
-              <span>Public</span>
-              <span className="text-xs text-slate-500">{publicCount}</span>
-            </button>
-            <button
-              onClick={() => setVisibilityFilter('unlisted')}
-              className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition ${visibilityFilter === 'unlisted' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
-            >
-              <span>By Date</span>
-              <span className="text-xs text-slate-500">{unlistedCount}</span>
-            </button>
-            <button
-              onClick={() => setVisibilityFilter('private')}
-              className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-sm transition ${visibilityFilter === 'private' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5 hover:text-white'}`}
-            >
-              <span>Trash</span>
-              <span className="text-xs text-slate-500">{privateCount}</span>
-            </button>
+      <section className="rounded-xl border border-white/10 bg-[#0a0f1a]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-white">Organize</h1>
+            <p className="text-sm text-slate-400">Site Homepage</p>
           </div>
-
-          <div className="mt-4 border-t border-white/10 pt-3">
-            <div className="relative">
-              <button
-                onClick={() => setShowCreateMenu((v) => !v)}
-                className="w-full rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
-              >
-                + Create
-              </button>
-              {showCreateMenu && (
-                <div className="absolute left-0 top-full z-20 mt-2 w-full rounded-lg border border-white/15 bg-[#0b1220] p-1.5 shadow-xl">
-                  <button onClick={() => openCreateDialog('gallery')} className="block w-full rounded-md px-2 py-2 text-left text-xs font-semibold text-slate-200 hover:bg-white/10">Gallery</button>
-                  <button onClick={() => openCreateDialog('folder', activeGallery?.id || '')} className="block w-full rounded-md px-2 py-2 text-left text-xs font-semibold text-slate-200 hover:bg-white/10">Folder</button>
-                  <button onClick={() => { setShowCreateMenu(false); toast('Web Page creation is coming soon') }} className="block w-full rounded-md px-2 py-2 text-left text-xs font-semibold text-slate-200 hover:bg-white/10">Web Page</button>
-                </div>
-              )}
-            </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={createReviewLink} disabled={!activeGallery || creatingLink} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-50">{creatingLink ? 'CREATING...' : 'SHARE'}</button>
+            <button onClick={() => navigate('/dashboard/settings')} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10">VIEW ON SITE</button>
+            <button onClick={() => openEditDialog(activeGallery)} disabled={!activeGallery} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-50">SETTINGS</button>
           </div>
-        </aside>
+        </div>
 
-        <section className="min-w-0">
-          <div className="mb-4 rounded-xl border border-white/10 bg-[#0a1020]/80 p-4">
-            <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <h1 className="text-4xl font-black tracking-tight text-white">All Media</h1>
-                <p className="mt-1 text-sm text-slate-400">{filteredGalleries.length} items · {totalPhotos} photos</p>
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 px-4 py-3">
+          <div className="relative">
+            <button onClick={() => setShowCreateMenu((v) => !v)} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-bold text-white hover:bg-white/10">+ CREATE</button>
+            {showCreateMenu && (
+              <div className="absolute left-0 top-full z-20 mt-2 w-56 rounded-sm border border-white/15 bg-[#0b1220] p-1.5 shadow-xl">
+                <button onClick={() => openCreateDialog('gallery')} className="block w-full rounded-md px-2 py-2 text-left text-xs font-semibold text-slate-200 hover:bg-white/10">Gallery</button>
+                <button onClick={() => openCreateDialog('folder', activeGallery?.id || '')} className="block w-full rounded-md px-2 py-2 text-left text-xs font-semibold text-slate-200 hover:bg-white/10">Folder</button>
+                <button onClick={() => { setShowCreateMenu(false); toast('Web Page creation is coming soon') }} className="block w-full rounded-md px-2 py-2 text-left text-xs font-semibold text-slate-200 hover:bg-white/10">Web Page</button>
               </div>
+            )}
+          </div>
+          <button onClick={handleSelectAll} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-bold text-white hover:bg-white/10">SELECT ALL</button>
+          <button onClick={fetchGalleries} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-bold text-white hover:bg-white/10">REFRESH</button>
+          <button onClick={openUploadForFolder} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-bold text-white hover:bg-white/10">UPLOAD</button>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="ml-auto rounded-sm border border-white/20 bg-black/40 px-3 py-2 text-xs font-semibold text-slate-200"
+          >
+            <option value="date_desc">Sort: Newest</option>
+            <option value="date_asc">Sort: Oldest</option>
+            <option value="title_asc">Sort: Title A-Z</option>
+            <option value="title_desc">Sort: Title Z-A</option>
+            <option value="photos_desc">Sort: Most Photos</option>
+          </select>
+          <span className="text-sm font-semibold text-slate-300">{filteredGalleries.length} items</span>
+        </div>
 
-              <div className="relative w-full lg:w-[280px]">
+        <div className="grid min-h-[520px] grid-cols-1 lg:grid-cols-[280px,minmax(0,1fr)]">
+          <aside className="border-b border-white/10 p-3 lg:border-b-0 lg:border-r">
+            <div className="mb-3 rounded-md border border-white/10 bg-black/20 p-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Folders</p>
+              <p className="mt-1 text-xs text-slate-400">{galleries.length} total · {totalPhotos} files</p>
+            </div>
+
+            <div className="max-h-[420px] overflow-auto pr-1">
+              {renderSidebarTree('root', 0)}
+            </div>
+
+            <div className="mt-3 border-t border-white/10 pt-3">
+              <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
+                <span>Selected</span>
+                <span>{selectedCount}</span>
+              </div>
+              <div className="space-y-1 text-xs">
+                <button onClick={() => setVisibilityFilter('all')} className={`w-full rounded px-2 py-1.5 text-left ${visibilityFilter === 'all' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5'}`}>All</button>
+                <button onClick={() => setVisibilityFilter('public')} className={`w-full rounded px-2 py-1.5 text-left ${visibilityFilter === 'public' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5'}`}>Public ({publicCount})</button>
+                <button onClick={() => setVisibilityFilter('unlisted')} className={`w-full rounded px-2 py-1.5 text-left ${visibilityFilter === 'unlisted' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5'}`}>Unlisted ({unlistedCount})</button>
+                <button onClick={() => setVisibilityFilter('private')} className={`w-full rounded px-2 py-1.5 text-left ${visibilityFilter === 'private' ? 'bg-emerald-300/10 text-emerald-200' : 'text-slate-300 hover:bg-white/5'}`}>Private ({privateCount})</button>
+              </div>
+            </div>
+          </aside>
+
+          <section className="p-4">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <div className="relative w-full max-w-sm">
                 <input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search all media"
-                  className="w-full rounded-full border border-white/15 bg-black/30 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+                  placeholder="Search folders"
+                  className="w-full rounded-sm border border-white/15 bg-black/30 px-4 py-2 text-sm text-white placeholder:text-slate-500"
                 />
               </div>
-            </div>
-
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <button className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Media Type</button>
-              <button className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Date</button>
-              <button
-                onClick={() => openCreateDialog('folder')}
-                className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
-              >
-                + Folder
-              </button>
-              <button
-                onClick={fetchGalleries}
-                className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
-              >
-                Refresh
-              </button>
+              {activeGallery && (
+                <div className="rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-200">
+                  Active: {activeGallery.title}
+                </div>
+              )}
               {reordering && (
                 <span className="rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-200">
                   Reordering...
                 </span>
               )}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="ml-auto rounded-md border border-white/15 bg-black/30 px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
-              >
-                <option value="date_desc">Sort: Newest</option>
-                <option value="date_asc">Sort: Oldest</option>
-                <option value="title_asc">Sort: Title A-Z</option>
-                <option value="title_desc">Sort: Title Z-A</option>
-                <option value="photos_desc">Sort: Most Photos</option>
-              </select>
             </div>
-
-            <div className="grid gap-3 md:grid-cols-[1.5fr,1fr]">
-              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Selected Folder</p>
-                <div className="mt-2 flex items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-lg font-bold text-white">{activeGallery?.title || 'None selected'}</h2>
-                    <p className="text-sm text-slate-400">
-                      {activeGallery ? `${activeGallery.photos_count || 0} files inside this folder` : 'Click a folder card below to manage it'}
-                    </p>
-                  </div>
-                  {activeGallery && (
-                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${VISIBILITY_CONFIG[activeGallery.visibility]?.color || VISIBILITY_CONFIG.public.color}`}>
-                      {VISIBILITY_CONFIG[activeGallery.visibility]?.label || 'Public'}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Folder Actions</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => {
-                      openCreateDialog('folder', activeGallery?.id || '')
-                    }}
-                    className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
-                  >
-                    Create Subfolder
-                  </button>
-                  <button
-                    onClick={openUploadForFolder}
-                    className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
-                  >
-                    Upload Files
-                  </button>
-                  <button
-                    onClick={() => openEditDialog(activeGallery)}
-                    disabled={!activeGallery}
-                    className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10 disabled:opacity-50"
-                  >
-                    Edit Settings
-                  </button>
-                  <button
-                    onClick={createReviewLink}
-                    disabled={!activeGallery || creatingLink}
-                    className="rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-300/20 disabled:opacity-50"
-                  >
-                    {creatingLink ? 'Creating Link...' : 'Share Review Link'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {loading ? (
             <div className="flex justify-center py-20"><Spinner /></div>
@@ -676,8 +632,9 @@ export default function GalleryOrganizerPage() {
               {renderFolderTree('root', 0)}
             </div>
           )}
-        </section>
-      </div>
+          </section>
+        </div>
+      </section>
 
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
