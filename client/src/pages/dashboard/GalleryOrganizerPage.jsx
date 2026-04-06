@@ -92,6 +92,7 @@ export default function GalleryOrganizerPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [showCreateMenu, setShowCreateMenu] = useState(false)
   const [activeCreateTab, setActiveCreateTab] = useState('basics')
+  const [editingGalleryId, setEditingGalleryId] = useState('')
   const [form, setForm] = useState(makeInitialForm)
   const [creating, setCreating] = useState(false)
   const [reordering, setReordering] = useState(false)
@@ -99,15 +100,49 @@ export default function GalleryOrganizerPage() {
   const [deleteId, setDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
+  const mapGalleryToForm = (gallery) => {
+    const defaults = makeInitialForm()
+    const settings = gallery?.settings || {}
+    const basics = settings.basics || {}
+
+    return {
+      ...defaults,
+      kind: basics.kind || 'gallery',
+      title: gallery?.title || '',
+      description: gallery?.description || '',
+      visibility: gallery?.visibility || defaults.visibility,
+      parent_id: gallery?.parent_id || '',
+      preset: settings.preset || defaults.preset,
+      meta_keywords: basics.meta_keywords || '',
+      custom_url: basics.custom_url || '',
+      security: { ...defaults.security, ...(settings.security_sharing || {}) },
+      protection: { ...defaults.protection, ...(settings.photo_protection || {}) },
+      social: { ...defaults.social, ...(settings.social || {}) },
+      selling: { ...defaults.selling, ...(settings.selling || {}) },
+      appearance: { ...defaults.appearance, ...(settings.appearance || {}) },
+    }
+  }
+
   const openCreateDialog = (kind = 'gallery', parentId = '') => {
     setShowCreateMenu(false)
+    setEditingGalleryId('')
     setActiveCreateTab('basics')
     setForm({ ...makeInitialForm(), kind, parent_id: parentId || '' })
     setShowCreate(true)
   }
 
+  const openEditDialog = (gallery) => {
+    if (!gallery) return toast.error('Select a folder first')
+    setShowCreateMenu(false)
+    setEditingGalleryId(gallery.id)
+    setActiveCreateTab('basics')
+    setForm(mapGalleryToForm(gallery))
+    setShowCreate(true)
+  }
+
   const closeCreateDialog = () => {
     setShowCreate(false)
+    setEditingGalleryId('')
     setActiveCreateTab('basics')
     setForm(makeInitialForm())
   }
@@ -133,7 +168,7 @@ export default function GalleryOrganizerPage() {
     if (!form.title.trim()) return toast.error('Title is required')
     setReordering(true)
     try {
-      await createGallery({
+      const payload = {
         title: form.title.trim(),
         description: form.description,
         visibility: form.visibility,
@@ -151,12 +186,20 @@ export default function GalleryOrganizerPage() {
           selling: form.selling,
           appearance: form.appearance,
         },
-      })
-      toast.success(form.kind === 'folder' ? 'Folder created!' : 'Gallery created!')
+      }
+
+      if (editingGalleryId) {
+        await updateGallery(editingGalleryId, payload)
+        toast.success('Gallery settings updated!')
+      } else {
+        await createGallery(payload)
+        toast.success(form.kind === 'folder' ? 'Folder created!' : 'Gallery created!')
+      }
+
       closeCreateDialog()
       fetchGalleries()
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to create gallery')
+      toast.error(err.response?.data?.error || (editingGalleryId ? 'Failed to update gallery settings' : 'Failed to create gallery'))
     } finally {
       setCreating(false)
     }
@@ -385,6 +428,17 @@ export default function GalleryOrganizerPage() {
                   onClick={(e) => {
                     e.stopPropagation()
                     setActiveGalleryId(gallery.id)
+                    openEditDialog(gallery)
+                  }}
+                  className="rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-gray-900 transition hover:bg-gray-100"
+                >
+                  Settings
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveGalleryId(gallery.id)
                     openCreateDialog('folder', gallery.id)
                   }}
                   className="rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-gray-900 transition hover:bg-gray-100"
@@ -573,6 +627,13 @@ export default function GalleryOrganizerPage() {
                     Upload Files
                   </button>
                   <button
+                    onClick={() => openEditDialog(activeGallery)}
+                    disabled={!activeGallery}
+                    className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10 disabled:opacity-50"
+                  >
+                    Edit Settings
+                  </button>
+                  <button
                     onClick={createReviewLink}
                     disabled={!activeGallery || creatingLink}
                     className="rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-300/20 disabled:opacity-50"
@@ -616,7 +677,7 @@ export default function GalleryOrganizerPage() {
           <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={closeCreateDialog} />
           <form onSubmit={handleCreate} className="relative z-10 w-full max-w-5xl overflow-hidden rounded-sm border border-white/30 bg-[#10141d] text-white shadow-[0_40px_100px_rgba(0,0,0,0.65)]">
             <div className="border-b border-white/15 px-6 py-4 text-center">
-              <h2 className="text-4xl font-black tracking-tight">Create {form.kind === 'folder' ? 'Folder' : 'Gallery'}</h2>
+              <h2 className="text-4xl font-black tracking-tight">{editingGalleryId ? 'Edit Gallery Settings' : `Create ${form.kind === 'folder' ? 'Folder' : 'Gallery'}`}</h2>
             </div>
 
             <div className="grid min-h-[520px] grid-cols-[240px,minmax(0,1fr)]">
@@ -833,7 +894,7 @@ export default function GalleryOrganizerPage() {
 
             <div className="grid grid-cols-2 border-t border-white/15">
               <button type="button" onClick={closeCreateDialog} className="px-6 py-4 text-center text-xl font-bold text-white transition hover:bg-white/5">CANCEL</button>
-              <button type="submit" disabled={creating || !form.title.trim()} className="bg-[#d5fce8] px-6 py-4 text-center text-xl font-bold tracking-[0.12em] text-[#0d2c1e] transition hover:bg-[#b5f1d2] disabled:cursor-not-allowed disabled:opacity-60">{creating ? 'CREATING...' : 'CREATE'}</button>
+              <button type="submit" disabled={creating || !form.title.trim()} className="bg-[#d5fce8] px-6 py-4 text-center text-xl font-bold tracking-[0.12em] text-[#0d2c1e] transition hover:bg-[#b5f1d2] disabled:cursor-not-allowed disabled:opacity-60">{creating ? (editingGalleryId ? 'SAVING...' : 'CREATING...') : (editingGalleryId ? 'SAVE' : 'CREATE')}</button>
             </div>
           </form>
         </div>
