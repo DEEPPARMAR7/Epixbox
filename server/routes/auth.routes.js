@@ -185,6 +185,16 @@ router.post('/google', async (req, res, next) => {
       refreshToken,
     });
   } catch (err) {
+    const message = String(err?.message || '');
+    if (
+      message.includes('Wrong recipient') ||
+      message.includes('audience') ||
+      message.includes('Token used too late') ||
+      message.includes('Invalid token signature') ||
+      message.includes('No pem found')
+    ) {
+      return res.status(401).json({ error: 'Google token is invalid or client ID does not match this origin' });
+    }
     return next(err);
   }
 });
