@@ -385,10 +385,10 @@ export default function GalleryOrganizerPage() {
               e.preventDefault()
               handleDropMove(gallery.id, 'inside')
             }}
-            className={`group relative cursor-pointer overflow-hidden rounded-lg border bg-[#0b1020] transition hover:border-white/25 ${activeGalleryId === gallery.id ? 'border-emerald-300/50 ring-1 ring-emerald-300/30' : 'border-white/10'}`}
+            className={`group relative w-full max-w-[360px] cursor-pointer overflow-hidden rounded-lg border bg-[#0b1020] transition hover:border-white/25 ${activeGalleryId === gallery.id ? 'border-emerald-300/50 ring-1 ring-emerald-300/30' : 'border-white/10'}`}
             style={{ marginLeft: `${depth * 18}px`, opacity: isDragging ? 0.45 : 1 }}
           >
-            <div className="relative aspect-[4/3] bg-[#111827]">
+            <div className="relative aspect-[16/9] bg-[#111827]">
               <img
                 src={gallery.cover_url || COVER_IMAGES[index % COVER_IMAGES.length]}
                 alt={gallery.title}
@@ -419,7 +419,7 @@ export default function GalleryOrganizerPage() {
                     e.stopPropagation()
                     navigate(`/dashboard/galleries/${gallery.id}/upload`)
                   }}
-                  className="rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-gray-900 transition hover:bg-gray-100"
+                  className="rounded-md bg-white px-2 py-1 text-[9px] font-semibold text-gray-900 transition hover:bg-gray-100"
                 >
                   Upload Files
                 </button>
@@ -430,7 +430,7 @@ export default function GalleryOrganizerPage() {
                     setActiveGalleryId(gallery.id)
                     openEditDialog(gallery)
                   }}
-                  className="rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-gray-900 transition hover:bg-gray-100"
+                  className="rounded-md bg-white px-2 py-1 text-[9px] font-semibold text-gray-900 transition hover:bg-gray-100"
                 >
                   Settings
                 </button>
@@ -441,14 +441,14 @@ export default function GalleryOrganizerPage() {
                     setActiveGalleryId(gallery.id)
                     openCreateDialog('folder', gallery.id)
                   }}
-                  className="rounded-md bg-white px-2 py-1 text-[10px] font-semibold text-gray-900 transition hover:bg-gray-100"
+                  className="rounded-md bg-white px-2 py-1 text-[9px] font-semibold text-gray-900 transition hover:bg-gray-100"
                 >
                   New Folder
                 </button>
               </div>
             </div>
 
-            <div className="p-2.5">
+            <div className="p-2">
               <h3 className="truncate text-xs font-semibold text-white">{gallery.title}</h3>
               <div className="mt-0.5 flex items-center justify-between gap-2">
                 <p className="text-[10px] text-slate-400">{gallery.photos_count || 0} files</p>
