@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { Share2, Eye, Settings } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
 import Spinner from '../../components/common/Spinner'
+import BottomSheet from '../../components/common/BottomSheet'
+import SkeletonLoader from '../../components/common/SkeletonLoader'
+import EmptyState from '../../components/common/EmptyState'
 import { getGalleries, createGallery, deleteGallery, updateGallery } from '../../api/galleryApi'
 import { getPhotos, bulkMove } from '../../api/photoApi'
 import { createSession } from '../../api/proofingApi'
@@ -93,6 +97,7 @@ export default function GalleryOrganizerPage() {
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [showCreateMenu, setShowCreateMenu] = useState(false)
+  const [showMobileActions, setShowMobileActions] = useState(false)
   const [activeCreateTab, setActiveCreateTab] = useState('basics')
   const [editingGalleryId, setEditingGalleryId] = useState('')
   const [form, setForm] = useState(makeInitialForm)
@@ -589,43 +594,43 @@ export default function GalleryOrganizerPage() {
               e.preventDefault()
               handleDropMove(gallery.id, 'inside')
             }}
-            className={`group relative w-full cursor-pointer overflow-hidden rounded-xl border bg-[#0b1020] transition hover:-translate-y-0.5 hover:border-white/25 ${activeGalleryId === gallery.id ? 'border-emerald-300/50 ring-1 ring-emerald-300/30' : 'border-white/10'}`}
+            className={`group relative w-full cursor-pointer overflow-hidden rounded-2xl border bg-card card-hover shadow-lg transition-all duration-300 ${activeGalleryId === gallery.id ? 'border-emerald-400/50 ring-2 ring-emerald-300/40 shadow-emerald-500/20' : 'border-border hover:border-white/30 hover:shadow-xl'}`}
             style={{ opacity: isDragging ? 0.45 : 1 }}
           >
             <div className="relative aspect-[4/5] bg-[#111827]">
               <img
                 src={gallery.cover_url || COVER_IMAGES[index % COVER_IMAGES.length]}
                 alt={gallery.title}
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
                 onError={(e) => { e.target.src = COVER_IMAGES[index % COVER_IMAGES.length] }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-              <span className={`absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${vis.color}`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${vis.dot}`} />
+              <span className={`absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${vis.color}`}>
+                <span className={`h-2 w-2 rounded-full ${vis.dot}`} />
                 {vis.label}
               </span>
 
-              <div className="absolute right-1.5 top-1.5 rounded-full border border-white/15 bg-black/40 px-2 py-0.5 text-[10px] font-semibold text-white">
+              <div className="absolute right-3 top-3 rounded-lg border border-white/20 bg-black/50 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">
                 {childCount} {childCount === 1 ? 'folder' : 'folders'}
               </div>
 
               {sortBy === 'manual' && draggedGalleryId && draggedGalleryId !== gallery.id && (
-                <div className="absolute inset-x-0 bottom-0 bg-black/40 px-2 py-1 text-center text-[10px] font-semibold text-white/80">
+                <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-2 text-center text-xs font-semibold text-white/90 backdrop-blur-sm">
                   Drop here to move inside
                 </div>
               )}
 
-              <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/55 opacity-0 transition duration-200 group-hover:opacity-100">
+              <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition duration-300 group-hover:opacity-100">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation()
                     navigate(`/dashboard/galleries/${gallery.id}/upload`)
                   }}
-                  className="rounded-md bg-white px-2 py-1 text-[9px] font-semibold text-gray-900 transition hover:bg-gray-100"
+                  className="rounded-lg bg-emerald-400 px-4 py-2 text-xs font-bold text-gray-900 transition-all duration-200 hover:bg-emerald-300 hover:scale-105"
                 >
-                  Upload Files
+                  Upload
                 </button>
                 <button
                   type="button"
@@ -634,7 +639,7 @@ export default function GalleryOrganizerPage() {
                     setActiveGalleryId(gallery.id)
                     openEditDialog(gallery)
                   }}
-                  className="rounded-md bg-white px-2 py-1 text-[9px] font-semibold text-gray-900 transition hover:bg-gray-100"
+                  className="rounded-lg bg-blue-400 px-4 py-2 text-xs font-bold text-gray-900 transition-all duration-200 hover:bg-blue-300 hover:scale-105"
                 >
                   Settings
                 </button>
@@ -714,7 +719,7 @@ export default function GalleryOrganizerPage() {
             <section className="p-4">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h1 className="text-5xl font-black tracking-tight text-white">All Media</h1>
+                  <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">All Media</h1>
                   <p className="mt-1 text-sm font-semibold text-slate-400">{sortedMedia.length.toLocaleString()} items</p>
                 </div>
                 <div className="w-full max-w-sm">
@@ -749,7 +754,7 @@ export default function GalleryOrganizerPage() {
               </div>
 
               {mediaLoading ? (
-                <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
                   {Array.from({ length: 12 }).map((_, i) => (
                     <div key={`lib-skeleton-${i}`} className="overflow-hidden rounded-sm border border-white/10 bg-[#0d1422]">
                       <div className="aspect-square animate-pulse bg-white/10" />
@@ -762,8 +767,8 @@ export default function GalleryOrganizerPage() {
                 <div className="space-y-6">
                   {Object.entries(mediaGroups).map(([label, items]) => (
                     <div key={label}>
-                      <h3 className="mb-3 text-4xl font-black tracking-tight text-white">{label}</h3>
-                      <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                      <h3 className="mb-3 text-2xl font-black tracking-tight text-white sm:text-4xl">{label}</h3>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
                         {items.map((item) => {
                           const isVideo = (item.mime_type || '').startsWith('video/')
                           const thumb = item.display_url || item.thumb_url || item.medium_url || item.large_url || item.original_url
@@ -799,11 +804,62 @@ export default function GalleryOrganizerPage() {
             <h1 className="text-3xl font-black tracking-tight text-white">Organize</h1>
             <p className="text-sm text-slate-400">Site Homepage</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button onClick={createReviewLink} disabled={!activeGallery || creatingLink} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-50">{creatingLink ? 'CREATING...' : 'SHARE'}</button>
-            <button onClick={() => navigate('/dashboard/settings')} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10">VIEW ON SITE</button>
-            <button onClick={() => openEditDialog(activeGallery)} disabled={!activeGallery} className="rounded-sm border border-white/25 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-50">SETTINGS</button>
+          <div className="hidden flex-wrap items-center gap-2 sm:flex">
+            <button onClick={createReviewLink} disabled={!activeGallery || creatingLink} className="rounded-lg border border-white/25 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-white/10 transition-all disabled:opacity-50 inline-flex items-center gap-2"><Share2 size={16} />{creatingLink ? 'CREATING...' : 'SHARE'}</button>
+            <button onClick={() => navigate('/dashboard/settings')} className="rounded-lg border border-white/25 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-white/10 transition-all inline-flex items-center gap-2"><Eye size={16} />VIEW ON SITE</button>
+            <button onClick={() => openEditDialog(activeGallery)} disabled={!activeGallery} className="rounded-lg border border-white/25 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-white/10 transition-all disabled:opacity-50 inline-flex items-center gap-2"><Settings size={16} />SETTINGS</button>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowMobileActions(true)}
+            className="sm:hidden rounded-lg border border-white/25 px-4 py-2.5 text-lg font-bold leading-none text-white hover:bg-white/10 transition-all"
+            aria-label="More actions"
+          >
+            ⋮
+          </button>
+          <BottomSheet
+            isOpen={showMobileActions}
+            onClose={() => setShowMobileActions(false)}
+            title="Gallery Actions"
+          >
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMobileActions(false)
+                  createReviewLink()
+                }}
+                disabled={!activeGallery || creatingLink}
+                className="w-full flex items-center gap-3 rounded-lg bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 px-4 py-3 text-left font-semibold text-emerald-200 hover:from-emerald-500/30 hover:to-emerald-600/30 transition-all disabled:opacity-50"
+              >
+                <Share2 size={20} />
+                {creatingLink ? 'Creating Link...' : 'Share Review Link'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMobileActions(false)
+                  navigate('/dashboard/settings')
+                }}
+                className="w-full flex items-center gap-3 rounded-lg bg-gradient-to-r from-blue-500/20 to-blue-600/20 px-4 py-3 text-left font-semibold text-blue-200 hover:from-blue-500/30 hover:to-blue-600/30 transition-all"
+              >
+                <Eye size={20} />
+                View on Site
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMobileActions(false)
+                  openEditDialog(activeGallery)
+                }}
+                disabled={!activeGallery}
+                className="w-full flex items-center gap-3 rounded-lg bg-gradient-to-r from-purple-500/20 to-purple-600/20 px-4 py-3 text-left font-semibold text-purple-200 hover:from-purple-500/30 hover:to-purple-600/30 transition-all disabled:opacity-50"
+              >
+                <Settings size={20} />
+                Gallery Settings
+              </button>
+            </div>
+          </BottomSheet>
         </div>
 
         {lastReviewLink && (
@@ -926,13 +982,23 @@ export default function GalleryOrganizerPage() {
               </div>
 
               {mediaLoading ? (
-                <div className="py-8"><Spinner /></div>
-              ) : sortedMedia.length === 0 ? (
-                <div className="rounded-md border border-dashed border-white/15 bg-black/20 p-6 text-center text-sm text-slate-400">
-                  {activeGallery ? 'No photos or videos in this folder yet.' : 'Select a folder to view media.'}
+                <div className="space-y-6">
+                  <div>
+                    <div className="mb-3 h-8 w-32 animate-pulse rounded-lg bg-border/50" />
+                    <SkeletonLoader type="grid" count={12} />
+                  </div>
                 </div>
+              ) : sortedMedia.length === 0 ? (
+                <EmptyState
+                  title="No media found"
+                  description={activeGallery ? 'Upload photos or videos to get started' : 'Select a folder to view media'}
+                  action={activeGallery ? {
+                    label: 'Upload Media',
+                    onClick: openUploadForFolder,
+                  } : undefined}
+                />
               ) : (
-                <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
                   {sortedMedia.map((item) => {
                     const isVideo = (item.mime_type || '').startsWith('video/')
                     const thumb = item.display_url || item.thumb_url || item.medium_url || item.large_url || item.original_url
@@ -941,19 +1007,19 @@ export default function GalleryOrganizerPage() {
                         key={item.id}
                         type="button"
                         onClick={() => navigate(`/dashboard/photos/${item.id}`)}
-                        className="group relative overflow-hidden rounded-md border border-white/10 bg-[#0d1422] text-left hover:border-white/25"
+                        className="group relative overflow-hidden rounded-xl border border-border bg-card text-left card-hover shadow-md transition-all duration-300 hover:shadow-lg hover:border-white/30"
                         title={item.filename_original || item.title || 'Media file'}
                       >
                         <div className="relative aspect-square bg-black/35">
                           {thumb ? (
-                            <img src={thumb} alt={item.title || item.filename_original || 'Media'} className="h-full w-full object-cover transition group-hover:scale-105" />
+                            <img src={thumb} alt={item.title || item.filename_original || 'Media'} className="h-full w-full object-cover transition duration-300 group-hover:scale-110" />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-xl text-slate-400">{isVideo ? '🎬' : '🖼️'}</div>
+                            <div className="flex h-full w-full items-center justify-center text-2xl text-slate-400">{isVideo ? '🎬' : '🖼️'}</div>
                           )}
-                          <span className={`absolute left-1 top-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${isVideo ? 'bg-amber-400/80 text-black' : 'bg-emerald-300/80 text-black'}`}>{isVideo ? 'VIDEO' : 'PHOTO'}</span>
+                          <span className={`absolute left-2 top-2 rounded-lg px-2.5 py-1 text-xs font-bold ${isVideo ? 'bg-amber-400/90 text-black' : 'bg-emerald-400/90 text-black'}`}>{isVideo ? 'VIDEO' : 'PHOTO'}</span>
                         </div>
-                        <div className="p-2">
-                          <p className="truncate text-[11px] font-semibold text-white">{item.title || item.filename_original || 'Untitled'}</p>
+                        <div className="p-3">
+                          <p className="truncate text-sm font-semibold text-foreground">{item.title || item.filename_original || 'Untitled'}</p>
                         </div>
                       </button>
                     )
@@ -963,24 +1029,24 @@ export default function GalleryOrganizerPage() {
             </div>
 
           {loading ? (
-            <div className="flex justify-center py-20"><Spinner /></div>
+            <div className="space-y-3">
+              <SkeletonLoader type="card" count={4} />
+            </div>
           ) : galleries.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 py-24 text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-300/10 text-3xl">🖼️</div>
-              <h3 className="mb-2 text-lg font-bold text-white">No galleries yet</h3>
-              <p className="mb-6 text-sm text-slate-400">Create your first gallery to organize your photos.</p>
-              <button
-                onClick={() => openCreateDialog('gallery')}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-6 py-3 text-sm font-extrabold uppercase tracking-wide text-[#06210f] transition hover:bg-emerald-200"
-              >
-                + Create Gallery
-              </button>
-            </div>
+            <EmptyState
+              icon={() => <span className="text-5xl">🖼️</span>}
+              title="No galleries yet"
+              description="Create your first gallery to organize your photos and share with clients."
+              action={{
+                label: '+ Create Gallery',
+                onClick: () => openCreateDialog('gallery'),
+              }}
+            />
           ) : filteredGalleries.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 py-16 text-center">
-              <p className="text-base font-semibold text-white">No folders in this view</p>
-              <p className="mt-2 text-sm text-slate-400">Try a different filter or search query.</p>
-            </div>
+            <EmptyState
+              title="No folders found"
+              description="Try adjusting your search or filter."
+            />
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {renderFolderTree('root', 0)}

@@ -121,38 +121,38 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="flex items-center justify-center px-6 py-16 md:py-24">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-10">
-            <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground mb-2">
+      <div className="flex items-center justify-center px-6 py-16 md:py-24 page-transition">
+        <div className="w-full max-w-md animate-scale-in">
+          <div className="text-center mb-12">
+            <h1 className="font-heading font-bold text-4xl md:text-5xl text-foreground mb-3">
               Welcome back
             </h1>
-            <p className="font-body text-muted-foreground">
+            <p className="font-body text-lg text-muted-foreground">
               Log in to your EpixBox account
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={onSubmit}>
+          <form className="space-y-6" onSubmit={onSubmit}>
             <div>
-              <label className="font-heading text-xs uppercase tracking-wider text-foreground block mb-2">
+              <label className="font-heading text-sm font-semibold uppercase tracking-wider text-foreground block mb-2.5">
                 Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-card border-2 border-border px-4 py-3 font-body text-sm text-foreground focus:border-foreground focus:outline-none transition-colors"
+                className="w-full bg-card border-2 border-border px-4 py-3.5 font-body text-base text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all duration-200 rounded-lg smooth-transition"
                 placeholder="you@example.com"
                 required
               />
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="font-heading text-xs uppercase tracking-wider text-foreground">
+              <div className="flex justify-between items-center mb-2.5">
+                <label className="font-heading text-sm font-semibold uppercase tracking-wider text-foreground">
                   Password
                 </label>
-                <Link to="/forgot-password" className="font-body text-xs text-muted-foreground hover:text-foreground underline">
+                <Link to="/forgot-password" className="font-body text-sm text-muted-foreground hover:text-accent underline underline-offset-2 transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -161,39 +161,39 @@ const LoginPage = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-card border-2 border-border px-4 py-3 font-body text-sm text-foreground focus:border-foreground focus:outline-none transition-colors pr-12"
+                  className="w-full bg-card border-2 border-border px-4 py-3.5 font-body text-base text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all duration-200 rounded-lg smooth-transition pr-13"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors smooth-transition"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" className="btn-cta w-full justify-center" disabled={submitting}>
-              {submitting ? "Logging in..." : "Log In"} <ArrowRight size={18} />
+            <button type="submit" className="btn-cta w-full justify-center py-4 text-base font-semibold btn-transition" disabled={submitting}>
+              {submitting ? "Logging in..." : "Log In"} <ArrowRight size={20} />
             </button>
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-4 my-8">
+          <div className="flex items-center gap-4 my-10">
             <div className="flex-1 border-t border-border" />
-            <span className="font-body text-xs text-muted-foreground uppercase">or continue with</span>
+            <span className="font-body text-xs text-muted-foreground uppercase font-semibold">or continue with</span>
             <div className="flex-1 border-t border-border" />
           </div>
 
           {/* Social */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             {googleClientId ? (
-              <div className="w-full flex justify-center">
+              <div className="w-full flex justify-center animate-fade-in">
                 <div ref={googleButtonRef} className="w-full max-w-xs" />
               </div>
             ) : (
-              <p className="text-center font-body text-xs text-muted-foreground">
+              <p className="text-center font-body text-sm text-muted-foreground">
                 Google login is not configured yet. Add VITE_GOOGLE_CLIENT_ID in your env.
               </p>
             )}
