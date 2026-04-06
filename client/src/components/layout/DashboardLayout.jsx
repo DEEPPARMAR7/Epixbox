@@ -51,14 +51,28 @@ export default function DashboardLayout({ children }) {
       }
     }
 
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setProfileMenuOpen(false)
+      }
+    }
+
     if (profileMenuOpen) {
       document.addEventListener('mousedown', handleOutsideClick)
+      document.addEventListener('touchstart', handleOutsideClick)
+      document.addEventListener('keydown', handleEscape)
     }
 
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick)
+      document.removeEventListener('touchstart', handleOutsideClick)
+      document.removeEventListener('keydown', handleEscape)
     }
   }, [profileMenuOpen])
+
+  useEffect(() => {
+    setProfileMenuOpen(false)
+  }, [location.pathname, location.search])
 
   const goTo = (path) => {
     setProfileMenuOpen(false)
