@@ -9,8 +9,19 @@ const { sendPasswordResetEmail } = require('../services/email.service');
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'dev_access_secret_change_me';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret_change_me';
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
-const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+const GOOGLE_CLIENT_IDS = Array.from(
+  new Set(
+    [
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.VITE_GOOGLE_CLIENT_ID,
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    ]
+      .filter(Boolean)
+      .map((v) => String(v).trim())
+      .filter(Boolean)
+  )
+);
+const googleClient = GOOGLE_CLIENT_IDS.length ? new OAuth2Client() : null;
 
 function generateTokens(userId) {
   const accessToken = jwt.sign({ id: userId }, ACCESS_SECRET, { expiresIn: '15m' });
@@ -122,7 +133,7 @@ router.post('/login', async (req, res, next) => {
 // POST /api/auth/google
 router.post('/google', async (req, res, next) => {
   try {
-    if (!googleClient || !GOOGLE_CLIENT_ID) {
+    if (!googleClient || GOOGLE_CLIENT_IDS.length === 0) {
       return res.status(500).json({ error: 'Google login is not configured on the server' });
     }
 
@@ -133,7 +144,7 @@ router.post('/google', async (req, res, next) => {
 
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: GOOGLE_CLIENT_ID,
+      audience: GOOGLE_CLIENT_IDS,
     });
     const payload = ticket.getPayload();
 
