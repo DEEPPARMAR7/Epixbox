@@ -7,6 +7,7 @@ const proofingAccess = require('../middleware/proofingAccess.middleware');
 const { sendProofingInvite } = require('../services/email.service');
 const { getPublicUrl, getObjectBuffer } = require('../services/s3.service');
 const { setPrivateNoStore } = require('../middleware/cache.middleware');
+const { pushUserNotification } = require('../services/realtime.service');
 
 function wantsWatermark(session, photo) {
   return session.download_mode === 'watermarked' && String(photo.mime_type || '').startsWith('image/');
@@ -465,6 +466,15 @@ router.post('/session/:token/comment', proofingAccess, async (req, res, next) =>
       author_name,
       body,
     });
+
+    pushUserNotification(session.user_id, {
+      type: 'proofing.comment_added',
+      title: 'New Proofing Comment',
+      message: `${author_name} added a comment`,
+      sessionId: session.id,
+      photoId,
+    });
+
     res.status(201).json(comment);
   } catch (err) { next(err); }
 });

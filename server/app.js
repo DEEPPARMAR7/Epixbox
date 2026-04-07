@@ -8,6 +8,7 @@ const requestLogger = require('./middleware/requestLogger.middleware');
 const logger = require('./config/logger');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./docs/swagger');
+const { Sentry, sentryEnabled } = require('./config/sentry');
 
 const app = express();
 
@@ -46,6 +47,16 @@ app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+if (sentryEnabled) {
+  app.use((req, res, next) => {
+    Sentry.setContext('request', {
+      method: req.method,
+      path: req.originalUrl,
+    });
+    next();
+  });
+}
 
 // Input sanitization (XSS/basic payload hardening)
 app.use(sanitizeInput);

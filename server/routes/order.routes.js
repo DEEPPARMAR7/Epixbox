@@ -3,6 +3,7 @@ const stripe = require('../config/stripe');
 const { Order, OrderItem, Product, Photo } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
 const { sendOrderConfirmation } = require('../services/email.service');
+const { pushUserNotification } = require('../services/realtime.service');
 
 // POST /api/orders — create order + Stripe PaymentIntent
 router.post('/', async (req, res, next) => {
@@ -70,6 +71,12 @@ router.post('/webhook', async (req, res, next) => {
     const order = await Order.findOne({ where: { stripe_payment_intent_id: pi.id } });
     if (order) {
       await order.update({ status: 'paid', stripe_charge_id: pi.latest_charge });
+      pushUserNotification(order.photographer_id, {
+        type: 'order.paid',
+        title: 'Order Paid',
+        message: `Order ${order.id.slice(0, 8)} has been paid`,
+        orderId: order.id,
+      });
       try { await sendOrderConfirmation({ to: order.buyer_email, order }); } catch {}
     }
   }
@@ -106,6 +113,12 @@ router.patch('/mine/:id/status', requireAuth, async (req, res, next) => {
     const order = await Order.findOne({ where: { id: req.params.id, photographer_id: req.user.id } });
     if (!order) return res.status(404).json({ error: 'Order not found' });
     await order.update({ status: req.body.status });
+    pushUserNotification(req.user.id, {
+      type: 'order.status_changed',
+      title: 'Order Status Updated',
+      message: `Order ${order.id.slice(0, 8)} status changed to ${order.status}`,
+      orderId: order.id,
+    });
     res.json(order);
   } catch (err) { next(err); }
 });
