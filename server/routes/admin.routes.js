@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const requireAuth = require('../middleware/auth.middleware');
 const { requireRole } = require('../middleware/rbac.middleware');
 const { User, Gallery, Photo, Order } = require('../models/index');
+const { getRateAnalytics } = require('../services/rateAnalytics.service');
 
 router.use(requireAuth, requireRole('admin'));
 
@@ -36,6 +37,10 @@ router.get('/analytics', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+router.get('/rate-analytics', (req, res) => {
+  res.json(getRateAnalytics());
 });
 
 module.exports = router;

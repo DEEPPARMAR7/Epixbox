@@ -94,6 +94,16 @@ const options = {
           },
         },
       },
+      '/api/admin/rate-analytics': {
+        get: {
+          summary: 'Get API rate analytics dashboard metrics',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            200: { description: 'Rate analytics payload' },
+            403: { description: 'Insufficient permissions' },
+          },
+        },
+      },
     },
   },
   apis: ['./routes/*.js'],
