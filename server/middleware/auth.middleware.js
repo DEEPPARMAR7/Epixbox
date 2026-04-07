@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models/index');
+const { resolveUserRole } = require('../utils/roles');
 
 module.exports = async function requireAuth(req, res, next) {
   try {
@@ -16,6 +17,7 @@ module.exports = async function requireAuth(req, res, next) {
       return res.status(401).json({ error: 'User not found or inactive' });
     }
     req.user = user;
+    req.userRole = resolveUserRole(user);
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired token' });

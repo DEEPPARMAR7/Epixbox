@@ -6,6 +6,8 @@ const { OAuth2Client } = require('google-auth-library');
 const { User } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
 const { sendPasswordResetEmail } = require('../services/email.service');
+const { authLimiter } = require('../middleware/rateLimit.middleware');
+const { audit } = require('../middleware/audit.middleware');
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'dev_access_secret_change_me';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret_change_me';
@@ -52,7 +54,7 @@ async function generateUniqueUsername(seed) {
 }
 
 // POST /api/auth/register
-router.post('/register', async (req, res, next) => {
+router.post('/register', authLimiter, audit('auth.register'), async (req, res, next) => {
   try {
     const { email, password, username, first_name, last_name } = req.body;
     if (!email || !password || !username) {
@@ -96,7 +98,7 @@ router.post('/register', async (req, res, next) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req, res, next) => {
+router.post('/login', authLimiter, audit('auth.login'), async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
@@ -131,7 +133,7 @@ router.post('/login', async (req, res, next) => {
 });
 
 // POST /api/auth/google
-router.post('/google', async (req, res, next) => {
+router.post('/google', authLimiter, audit('auth.google_login'), async (req, res, next) => {
   try {
     if (!googleClient || GOOGLE_CLIENT_IDS.length === 0) {
       return res.status(500).json({ error: 'Google login is not configured on the server' });
@@ -216,7 +218,7 @@ router.get('/me', requireAuth, (req, res) => {
 });
 
 // POST /api/auth/refresh
-router.post('/refresh', async (req, res, next) => {
+router.post('/refresh', authLimiter, audit('auth.refresh'), async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) return res.status(401).json({ error: 'Refresh token required' });
@@ -236,7 +238,7 @@ router.post('/logout', (req, res) => {
 });
 
 // POST /api/auth/forgot-password
-router.post('/forgot-password', async (req, res, next) => {
+router.post('/forgot-password', authLimiter, audit('auth.forgot_password'), async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required' });
@@ -260,7 +262,7 @@ router.post('/forgot-password', async (req, res, next) => {
 });
 
 // POST /api/auth/reset-password
-router.post('/reset-password', async (req, res, next) => {
+router.post('/reset-password', authLimiter, audit('auth.reset_password'), async (req, res, next) => {
   try {
     const { token, password } = req.body;
     if (!token || !password) return res.status(400).json({ error: 'Token and password required' });

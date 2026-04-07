@@ -2,7 +2,10 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
+const { apiLimiter } = require('./middleware/rateLimit.middleware');
+const sanitizeInput = require('./middleware/sanitize.middleware');
+const requestLogger = require('./middleware/requestLogger.middleware');
+const logger = require('./config/logger');
 
 const app = express();
 
@@ -42,19 +45,17 @@ app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Input sanitization (XSS/basic payload hardening)
+app.use(sanitizeInput);
+
 // Logging
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
+  app.use(requestLogger);
 }
 
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use('/api', limiter);
+app.use('/api', apiLimiter);
 
 // Initialize DB models (sync)
 require('./models/index');
@@ -64,6 +65,14 @@ app.use('/api', require('./routes/index'));
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+process.on('unhandledRejection', (reason) => {
+  logger.error({ type: 'unhandledRejection', reason: String(reason) });
+});
+
+process.on('uncaughtException', (err) => {
+  logger.error({ type: 'uncaughtException', message: err.message, stack: err.stack });
+});
 
 // Global error handler
 app.use(require('./middleware/errorHandler.middleware'));

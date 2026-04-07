@@ -60,4 +60,25 @@ async function sendPasswordResetEmail({ to, resetLink }) {
   });
 }
 
-module.exports = { sendProofingInvite, sendOrderConfirmation, sendPasswordResetEmail };
+async function sendUploadCompleteEmail({ to, galleryTitle, uploadedCount }) {
+  if (!to) return;
+
+  await transporter.sendMail({
+    from: `"EpicBox" <${process.env.EMAIL_FROM || 'noreply@epicbox.app'}>`,
+    to,
+    subject: `Upload complete: ${uploadedCount} file${uploadedCount === 1 ? '' : 's'} processed`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #0f172a;">
+        <h2 style="margin-bottom: 8px;">Upload complete</h2>
+        <p style="margin: 0 0 16px; color: #334155;">
+          Your upload for <strong>${galleryTitle || 'your gallery'}</strong> is complete.
+        </p>
+        <p style="margin: 0 0 10px; color: #334155;">
+          Processed files: <strong>${uploadedCount}</strong>
+        </p>
+      </div>
+    `,
+  });
+}
+
+module.exports = { sendProofingInvite, sendOrderConfirmation, sendPasswordResetEmail, sendUploadCompleteEmail };

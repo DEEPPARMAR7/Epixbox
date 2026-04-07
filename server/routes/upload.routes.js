@@ -6,6 +6,9 @@ const { processUploadedPhoto } = require('../services/imageProcess.service');
 const { extractExif } = require('../services/exif.service');
 const { getObjectBuffer, getSignedUploadUrl, getPublicUrl } = require('../services/s3.service');
 const requireAuth = require('../middleware/auth.middleware');
+const { uploadLimiter } = require('../middleware/rateLimit.middleware');
+const { audit } = require('../middleware/audit.middleware');
+const { sendUploadCompleteEmail } = require('../services/email.service');
 
 function withUrls(photo) {
   const p = photo.toJSON ? photo.toJSON() : { ...photo };
@@ -16,9 +19,10 @@ function withUrls(photo) {
 }
 
 router.use(requireAuth);
+router.use(uploadLimiter);
 
 // POST /api/upload/photos
-router.post('/photos', (req, res, next) => {
+router.post('/photos', audit('upload.photos'), (req, res, next) => {
   uploadPhotos(req, res, async (err) => {
     if (err) return next(err);
     try {
@@ -80,6 +84,14 @@ router.post('/photos', (req, res, next) => {
         createdPhotos.push(photo);
       }
 
+      if (String(process.env.ENABLE_UPLOAD_EMAIL_NOTIFICATIONS || 'false').toLowerCase() === 'true') {
+        sendUploadCompleteEmail({
+          to: req.user?.email,
+          galleryTitle: gallery?.title,
+          uploadedCount: createdPhotos.length,
+        }).catch(() => {});
+      }
+
       res.status(201).json(createdPhotos.map(withUrls));
     } catch (err) {
       next(err);
@@ -88,7 +100,7 @@ router.post('/photos', (req, res, next) => {
 });
 
 // GET /api/upload/presign — get presigned S3 upload URL
-router.get('/presign', async (req, res, next) => {
+router.get('/presign', audit('upload.presign'), async (req, res, next) => {
   try {
     const { filename, contentType, galleryId } = req.query;
     if (!filename || !contentType) {
