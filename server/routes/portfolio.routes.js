@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { User, Gallery, Photo, Tag } = require('../models/index');
 const { getPublicUrl } = require('../services/s3.service');
 const { Op } = require('sequelize');
+const { setPublicCache } = require('../middleware/cache.middleware');
 
 // Attach public URLs to a photo plain object
 function withPhotoUrls(photo) {
@@ -21,7 +22,7 @@ function withGalleryUrls(gallery) {
 }
 
 // GET /api/portfolio/:username
-router.get('/:username', async (req, res, next) => {
+router.get('/:username', setPublicCache, async (req, res, next) => {
   try {
     const user = await User.findOne({
       where: { username: req.params.username.toLowerCase(), is_active: true },
@@ -35,7 +36,7 @@ router.get('/:username', async (req, res, next) => {
 });
 
 // GET /api/portfolio/:username/galleries
-router.get('/:username/galleries', async (req, res, next) => {
+router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
   try {
     const user = await User.findOne({ where: { username: req.params.username.toLowerCase() } });
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
@@ -52,7 +53,7 @@ router.get('/:username/galleries', async (req, res, next) => {
 });
 
 // GET /api/portfolio/:username/galleries/:slug
-router.get('/:username/galleries/:slug', async (req, res, next) => {
+router.get('/:username/galleries/:slug', setPublicCache, async (req, res, next) => {
   try {
     const user = await User.findOne({ where: { username: req.params.username.toLowerCase() } });
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
@@ -74,7 +75,7 @@ router.get('/:username/galleries/:slug', async (req, res, next) => {
 });
 
 // GET /api/portfolio/:username/photos/:id
-router.get('/:username/photos/:id', async (req, res, next) => {
+router.get('/:username/photos/:id', setPublicCache, async (req, res, next) => {
   try {
     const user = await User.findOne({ where: { username: req.params.username.toLowerCase() } });
     if (!user) return res.status(404).json({ error: 'Photographer not found' });

@@ -6,6 +6,8 @@ const { apiLimiter } = require('./middleware/rateLimit.middleware');
 const sanitizeInput = require('./middleware/sanitize.middleware');
 const requestLogger = require('./middleware/requestLogger.middleware');
 const logger = require('./config/logger');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./docs/swagger');
 
 const app = express();
 
@@ -62,6 +64,9 @@ require('./models/index');
 
 // Routes
 app.use('/api', require('./routes/index'));
+
+// API docs
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));

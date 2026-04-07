@@ -6,6 +6,7 @@ const requireAuth = require('../middleware/auth.middleware');
 const proofingAccess = require('../middleware/proofingAccess.middleware');
 const { sendProofingInvite } = require('../services/email.service');
 const { getPublicUrl, getObjectBuffer } = require('../services/s3.service');
+const { setPrivateNoStore } = require('../middleware/cache.middleware');
 
 function wantsWatermark(session, photo) {
   return session.download_mode === 'watermarked' && String(photo.mime_type || '').startsWith('image/');
@@ -261,7 +262,7 @@ router.post('/:id/send-invite', requireAuth, async (req, res, next) => {
 // ── Client routes (token-based) ───────────────────────────────────────────────
 
 // GET /api/proofing/session/:token
-router.get('/session/:token', proofingAccess, async (req, res, next) => {
+router.get('/session/:token', setPrivateNoStore, proofingAccess, async (req, res, next) => {
   try {
     const session = req.proofingSession;
     const origin = getRequestOrigin(req);

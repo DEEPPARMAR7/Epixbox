@@ -9,6 +9,7 @@ const requireAuth = require('../middleware/auth.middleware');
 const { uploadLimiter } = require('../middleware/rateLimit.middleware');
 const { audit } = require('../middleware/audit.middleware');
 const { sendUploadCompleteEmail } = require('../services/email.service');
+const { pushUserNotification } = require('../services/realtime.service');
 
 function withUrls(photo) {
   const p = photo.toJSON ? photo.toJSON() : { ...photo };
@@ -91,6 +92,13 @@ router.post('/photos', audit('upload.photos'), (req, res, next) => {
           uploadedCount: createdPhotos.length,
         }).catch(() => {});
       }
+
+      pushUserNotification(req.user.id, {
+        type: 'upload.completed',
+        title: 'Upload Completed',
+        message: `${createdPhotos.length} file${createdPhotos.length === 1 ? '' : 's'} processed in ${gallery?.title || 'gallery'}`,
+        galleryId: gallery_id,
+      });
 
       res.status(201).json(createdPhotos.map(withUrls));
     } catch (err) {
