@@ -27,7 +27,7 @@ function run(url, title) {
 (async () => {
   try {
     await run(`${baseUrl}/health`, 'Health Endpoint');
-    await run(`${baseUrl}/api/portfolio/demo`, 'Portfolio Endpoint (sample username)');
+    await run(`${baseUrl}/api/v1/docs`, 'Versioned API Docs Endpoint');
   } catch (err) {
     console.error('Load test failed:', err.message);
     process.exit(1);

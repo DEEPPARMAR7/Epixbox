@@ -9,6 +9,7 @@ const logger = require('./config/logger');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./docs/swagger');
 const { Sentry, sentryEnabled } = require('./config/sentry');
+const apiRouter = require('./routes/index');
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use(cors({
 
 // Raw body for Stripe webhook
 app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/v1/orders/webhook', express.raw({ type: 'application/json' }));
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
@@ -69,15 +71,21 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Rate limiting
 app.use('/api', apiLimiter);
+app.use('/api/v1', apiLimiter);
 
 // Initialize DB models (sync)
 require('./models/index');
 
 // Routes
-app.use('/api', require('./routes/index'));
+app.use('/api/v1', apiRouter);
+app.use('/api', (req, res, next) => {
+  res.setHeader('X-API-Deprecation', 'Use /api/v1 endpoints');
+  next();
+}, apiRouter);
 
 // API docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));

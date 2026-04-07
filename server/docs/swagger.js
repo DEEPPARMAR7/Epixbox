@@ -10,7 +10,10 @@ const options = {
     },
     servers: [
       {
-        url: process.env.API_BASE_URL || 'http://localhost:4000',
+        url: process.env.API_BASE_URL || 'http://localhost:4000/api/v1',
+      },
+      {
+        url: 'http://localhost:4000/api/v1',
       },
     ],
     components: {
@@ -33,7 +36,7 @@ const options = {
           },
         },
       },
-      '/api/auth/login': {
+      '/auth/login': {
         post: {
           summary: 'Login with email and password',
           requestBody: {
@@ -57,7 +60,7 @@ const options = {
           },
         },
       },
-      '/api/upload/photos': {
+      '/upload/photos': {
         post: {
           summary: 'Upload photos to a gallery',
           security: [{ bearerAuth: [] }],
@@ -84,7 +87,7 @@ const options = {
           },
         },
       },
-      '/api/admin/analytics': {
+      '/admin/analytics': {
         get: {
           summary: 'Get admin analytics overview',
           security: [{ bearerAuth: [] }],
@@ -94,7 +97,7 @@ const options = {
           },
         },
       },
-      '/api/admin/rate-analytics': {
+      '/admin/rate-analytics': {
         get: {
           summary: 'Get API rate analytics dashboard metrics',
           security: [{ bearerAuth: [] }],
