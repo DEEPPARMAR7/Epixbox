@@ -44,6 +44,11 @@ router.get('/rate-analytics', (req, res) => {
 });
 
 router.get('/sentry-test', (req, res, next) => {
+  const enabled = String(process.env.ENABLE_SENTRY_TEST_ROUTE || 'false').toLowerCase() === 'true';
+  if (!enabled) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
   const err = new Error('Sentry test error triggered by admin route');
   err.status = 500;
   next(err);
