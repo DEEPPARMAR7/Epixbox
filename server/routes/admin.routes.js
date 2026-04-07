@@ -43,4 +43,10 @@ router.get('/rate-analytics', (req, res) => {
   res.json(getRateAnalytics());
 });
 
+router.get('/sentry-test', (req, res, next) => {
+  const err = new Error('Sentry test error triggered by admin route');
+  err.status = 500;
+  next(err);
+});
+
 module.exports = router;
