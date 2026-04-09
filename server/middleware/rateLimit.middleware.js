@@ -15,6 +15,12 @@ const apiLimiter = rateLimit({
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: Number(process.env.RATE_LIMIT_AUTH_MAX || 20),
+  keyGenerator: (req) => {
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    return email ? `${ip}:${email}` : String(ip);
+  },
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
   handler: defaultHandler,

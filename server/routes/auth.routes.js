@@ -107,6 +107,11 @@ router.post('/login', authLimiter, audit('auth.login'), async (req, res, next) =
     const user = await User.findOne({ where: { email: normalizedEmail } });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
+    // Accounts created with social login may not have a local password set.
+    if (!user.password_hash) {
+      return res.status(400).json({ error: 'This account uses social login. Please continue with Google or reset your password.' });
+    }
+
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
     if (!user.is_active) return res.status(403).json({ error: 'Account is deactivated' });

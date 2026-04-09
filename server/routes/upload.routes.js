@@ -31,7 +31,9 @@ router.post('/photos', audit('upload.photos'), (req, res, next) => {
       if (!gallery_id) return res.status(400).json({ error: 'gallery_id is required' });
 
       const gallery = await Gallery.findOne({ where: { id: gallery_id, user_id: req.user.id } });
-      if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
+      if (!gallery) {
+        return res.status(404).json({ error: 'Gallery not found for this account. Create a gallery in this account first.' });
+      }
 
       const createdPhotos = [];
 
