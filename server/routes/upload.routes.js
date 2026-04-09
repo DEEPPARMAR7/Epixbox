@@ -32,7 +32,24 @@ router.post('/photos', audit('upload.photos'), (req, res, next) => {
 
       const gallery = await Gallery.findOne({ where: { id: gallery_id, user_id: req.user.id } });
       if (!gallery) {
-        return res.status(404).json({ error: 'Gallery not found for this account. Create a gallery in this account first.' });
+        const firstGallery = await Gallery.findOne({
+          where: { user_id: req.user.id },
+          attributes: ['id'],
+          order: [['created_at', 'DESC']],
+        });
+
+        if (firstGallery) {
+          return res.status(409).json({
+            error: 'Selected gallery does not belong to this account.',
+            code: 'GALLERY_ACCOUNT_MISMATCH',
+            firstGalleryId: firstGallery.id,
+          });
+        }
+
+        return res.status(404).json({
+          error: 'No gallery found for this account. Create a gallery first.',
+          code: 'NO_GALLERY_FOR_ACCOUNT',
+        });
       }
 
       const createdPhotos = [];

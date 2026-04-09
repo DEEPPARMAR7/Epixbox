@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
 import DashboardLayout from '../../components/layout/DashboardLayout'
@@ -40,6 +40,7 @@ function FileItem({ file, progress, status }) {
 }
 
 export default function UploadManagerPage() {
+  const navigate = useNavigate()
   const { id: galleryId } = useParams()
   const [queue, setQueue] = useState([]) // { file, id, progress, status }
   const [uploading, setUploading] = useState(false)
@@ -92,6 +93,20 @@ export default function UploadManagerPage() {
       setQueue(q => q.map(item =>
         pending.find(p => p.id === item.id) ? { ...item, status: 'error' } : item
       ))
+
+      const payload = err?.response?.data || {}
+      if (payload.code === 'GALLERY_ACCOUNT_MISMATCH' && payload.firstGalleryId) {
+        toast('You switched accounts. Redirecting to your gallery upload screen...')
+        navigate(`/dashboard/galleries/${payload.firstGalleryId}/upload`, { replace: true })
+        return
+      }
+
+      if (payload.code === 'NO_GALLERY_FOR_ACCOUNT') {
+        toast.error('Create a gallery in this account first, then upload files.')
+        navigate('/dashboard/galleries', { replace: true })
+        return
+      }
+
       toast.error(err.response?.data?.error || 'Upload failed')
     } finally {
       setUploading(false)
