@@ -34,7 +34,7 @@ router.put('/password', async (req, res, next) => {
     if (!newPassword || newPassword.length < 8) {
       return res.status(400).json({ error: 'New password must be at least 8 characters' });
     }
-    const password_hash = await bcrypt.hash(newPassword, 12);
+    const password_hash = await bcrypt.hash(newPassword, 10);
     await user.update({ password_hash });
     res.json({ message: 'Password updated successfully' });
   } catch (err) { next(err); }

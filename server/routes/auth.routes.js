@@ -69,7 +69,7 @@ router.post('/register', authLimiter, audit('auth.register'), async (req, res, n
     const existingUsername = await User.findOne({ where: { username: username.toLowerCase() } });
     if (existingUsername) return res.status(409).json({ error: 'Username already taken' });
 
-    const password_hash = await bcrypt.hash(password, 12);
+    const password_hash = await bcrypt.hash(password, 10);
     const user = await User.create({
       email: normalizedEmail,
       password_hash,
@@ -159,7 +159,7 @@ router.post('/google', authLimiter, audit('auth.google_login'), async (req, res,
 
     if (!user) {
       const username = await generateUniqueUsername(payload.name || normalizedEmail.split('@')[0]);
-      const password_hash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
+      const password_hash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
 
       user = await User.create({
         email: normalizedEmail,
@@ -273,7 +273,7 @@ router.post('/reset-password', authLimiter, audit('auth.reset_password'), async 
       return res.status(400).json({ error: 'Invalid or expired reset token' });
     }
 
-    const password_hash = await bcrypt.hash(password, 12);
+    const password_hash = await bcrypt.hash(password, 10);
     await user.update({ password_hash, password_reset_token: null, password_reset_expires: null });
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
