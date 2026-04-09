@@ -13,6 +13,21 @@ const apiRouter = require('./routes/index');
 
 const app = express();
 
+function parseOrigins(value) {
+  return String(value || '')
+    .split(/[\s,]+/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+const configuredOrigins = Array.from(
+  new Set([
+    ...parseOrigins(process.env.CLIENT_URL),
+    ...parseOrigins(process.env.FRONTEND_URL),
+    ...parseOrigins(process.env.CORS_ORIGINS),
+  ])
+);
+
 // Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -22,14 +37,14 @@ app.use(helmet({
 // CORS
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow localhost and LAN/private network origins during development.
+    // Allow configured production origins and localhost/LAN origins during development.
     const allowedOrigins = [
-      process.env.CLIENT_URL || 'http://localhost:5173',
+      ...(configuredOrigins.length ? configuredOrigins : ['http://localhost:5173']),
       /^http:\/\/localhost:\d+$/,
       /^http:\/\/127\.0\.0\.1:\d+$/,
       /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
       /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
-      /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:\d+$/
+      /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:\d+$/,
     ];
     if (!origin || allowedOrigins.some(allowed => 
       typeof allowed === 'string' ? allowed === origin : allowed.test(origin)

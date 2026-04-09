@@ -11,19 +11,29 @@ const { audit } = require('../middleware/audit.middleware');
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'dev_access_secret_change_me';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret_change_me';
-const GOOGLE_CLIENT_IDS = Array.from(
-  new Set(
-    [
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.VITE_GOOGLE_CLIENT_ID,
-      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-    ]
-      .filter(Boolean)
-      .map((v) => String(v).trim())
-      .filter(Boolean)
-  )
-);
+
+function collectGoogleClientIds() {
+  const raw = [
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_OAUTH_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_IDS,
+    process.env.VITE_GOOGLE_CLIENT_ID,
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+  ]
+    .filter(Boolean)
+    .flatMap((value) => String(value).split(/[\s,]+/g))
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  return Array.from(new Set(raw));
+}
+
+const GOOGLE_CLIENT_IDS = collectGoogleClientIds();
 const googleClient = GOOGLE_CLIENT_IDS.length ? new OAuth2Client() : null;
+
+if (!GOOGLE_CLIENT_IDS.length) {
+  console.warn('[auth] Google login disabled: no GOOGLE_CLIENT_ID/GOOGLE_CLIENT_IDS configured');
+}
 
 function generateTokens(userId) {
   const accessToken = jwt.sign({ id: userId }, ACCESS_SECRET, { expiresIn: '15m' });
@@ -203,13 +213,17 @@ router.post('/google', authLimiter, audit('auth.google_login'), async (req, res,
       refreshToken,
     });
   } catch (err) {
-    const message = String(err?.message || '');
+    const message = String(err?.message || '').toLowerCase();
     if (
-      message.includes('Wrong recipient') ||
+      message.includes('wrong recipient') ||
       message.includes('audience') ||
-      message.includes('Token used too late') ||
-      message.includes('Invalid token signature') ||
-      message.includes('No pem found')
+      message.includes('token used too late') ||
+      message.includes('invalid token signature') ||
+      message.includes('no pem found') ||
+      message.includes('jwt') ||
+      message.includes('id token') ||
+      message.includes('malformed') ||
+      message.includes('expired')
     ) {
       return res.status(401).json({ error: 'Google token is invalid or client ID does not match this origin' });
     }
