@@ -159,6 +159,10 @@ router.post('/google', authLimiter, audit('auth.google_login'), async (req, res,
       return res.status(400).json({ error: 'Google ID token is required' });
     }
 
+    if (typeof idToken !== 'string' || idToken.split('.').length !== 3) {
+      return res.status(401).json({ error: 'Google token is malformed' });
+    }
+
     const ticket = await googleClient.verifyIdToken({
       idToken,
       audience: GOOGLE_CLIENT_IDS,
@@ -223,7 +227,8 @@ router.post('/google', authLimiter, audit('auth.google_login'), async (req, res,
       message.includes('jwt') ||
       message.includes('id token') ||
       message.includes('malformed') ||
-      message.includes('expired')
+      message.includes('expired') ||
+      message.includes('wrong number of segments')
     ) {
       return res.status(401).json({ error: 'Google token is invalid or client ID does not match this origin' });
     }
