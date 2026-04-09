@@ -16,6 +16,7 @@ const User = sequelize.define('User', {
   brand_color: { type: DataTypes.STRING(7), defaultValue: '#6366f1' },
   stripe_account_id: { type: DataTypes.STRING },
   stripe_customer_id: { type: DataTypes.STRING },
+  role: { type: DataTypes.ENUM('admin', 'photographer', 'client'), defaultValue: 'photographer' },
   plan: { type: DataTypes.ENUM('free', 'pro', 'business'), defaultValue: 'free' },
   is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
   email_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
