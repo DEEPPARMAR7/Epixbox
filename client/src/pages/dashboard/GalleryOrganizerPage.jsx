@@ -1219,55 +1219,56 @@ export default function GalleryOrganizerPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={closeCreateDialog} />
-          <form onSubmit={handleCreate} className="relative z-10 w-full max-w-4xl overflow-hidden rounded-sm border border-white/25 bg-[#0f1622] text-white shadow-[0_30px_80px_rgba(0,0,0,0.55)]">
-            <div className="border-b border-white/15 px-6 py-4 text-center">
-              <h2 className="text-3xl font-black tracking-tight">{editingGalleryId ? 'Edit Gallery Settings' : `Create ${form.kind === 'folder' ? 'Folder' : 'Gallery'}`}</h2>
+          <form onSubmit={handleCreate} className="relative z-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-600/50 bg-slate-950 text-white shadow-[0_36px_120px_rgba(2,6,23,0.78)]">
+            <div className="border-b border-slate-700/70 px-6 py-5 text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Workspace Setup</p>
+              <h2 className="mt-1 text-3xl font-black tracking-tight">{editingGalleryId ? 'Edit Gallery Settings' : `Create ${form.kind === 'folder' ? 'Folder' : 'Gallery'}`}</h2>
             </div>
 
-            <div className="grid min-h-[440px] grid-cols-[200px,minmax(0,1fr)]">
-              <aside className="border-r border-white/15 bg-[#131b28] p-0">
+            <div className="grid min-h-[480px] grid-cols-[230px,minmax(0,1fr)]">
+              <aside className="border-r border-slate-700/70 bg-slate-900/70 p-2">
                 {CREATE_TABS.map((tab) => (
                   <button
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveCreateTab(tab.id)}
-                    className={`block w-full border-l-4 px-4 py-3 text-left text-base font-semibold transition ${activeCreateTab === tab.id ? 'border-cyan-300 bg-[#1f2a3a] text-white' : 'border-transparent text-slate-300 hover:bg-white/5 hover:text-white'}`}
+                    className={`block w-full rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${activeCreateTab === tab.id ? 'border-blue-500/40 bg-blue-500/15 text-blue-200 shadow-sm' : 'border-transparent text-slate-300 hover:border-slate-700/60 hover:bg-slate-800/70 hover:text-white'}`}
                   >
                     {tab.label}
                   </button>
                 ))}
               </aside>
 
-              <section className="bg-[#101826] p-6">
+              <section className="bg-slate-900/30 p-7">
                 {activeCreateTab === 'basics' && (
                   <div className="space-y-5">
                     <label className="block text-sm font-semibold text-slate-300">Gallery Preset</label>
-                    <select value={form.preset} onChange={(e) => setForm((f) => ({ ...f, preset: e.target.value }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-lg outline-none focus:border-emerald-300">
+                    <select value={form.preset} onChange={(e) => setForm((f) => ({ ...f, preset: e.target.value }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                       <option value="epicbox_default">EpicBox Default</option>
                       <option value="portfolio_clean">Portfolio Clean</option>
                       <option value="proofing_fast">Proofing Fast</option>
                     </select>
 
                     <label className="block text-sm font-semibold text-slate-300">Title</label>
-                    <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-lg outline-none focus:border-emerald-300" required />
+                    <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" required />
 
                     <label className="block text-sm font-semibold text-slate-300">Description</label>
-                    <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300" />
+                    <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className="block text-sm font-semibold text-slate-300">Meta Keywords</label>
-                        <input value={form.meta_keywords} onChange={(e) => setForm((f) => ({ ...f, meta_keywords: e.target.value }))} placeholder="keyword1, keyword2" className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300" />
+                        <input value={form.meta_keywords} onChange={(e) => setForm((f) => ({ ...f, meta_keywords: e.target.value }))} placeholder="keyword1, keyword2" className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-slate-300">Custom URL</label>
-                        <input value={form.custom_url} onChange={(e) => setForm((f) => ({ ...f, custom_url: e.target.value }))} placeholder="my-gallery-url" className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300" />
+                        <input value={form.custom_url} onChange={(e) => setForm((f) => ({ ...f, custom_url: e.target.value }))} placeholder="my-gallery-url" className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Parent Folder</label>
-                      <select value={form.parent_id} onChange={(e) => setForm((f) => ({ ...f, parent_id: e.target.value }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                      <select value={form.parent_id} onChange={(e) => setForm((f) => ({ ...f, parent_id: e.target.value }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                         <option value="">Root folder</option>
                         {galleries.map((gallery) => (
                           <option key={gallery.id} value={gallery.id}>{gallery.title}</option>
@@ -1436,9 +1437,9 @@ export default function GalleryOrganizerPage() {
               </section>
             </div>
 
-            <div className="grid grid-cols-2 border-t border-white/15">
-              <button type="button" onClick={closeCreateDialog} className="px-6 py-4 text-center text-xl font-bold text-white transition hover:bg-white/5">CANCEL</button>
-              <button type="submit" disabled={creating || !form.title.trim()} className="bg-[#d5fce8] px-6 py-4 text-center text-xl font-bold tracking-[0.12em] text-[#0d2c1e] transition hover:bg-[#b5f1d2] disabled:cursor-not-allowed disabled:opacity-60">{creating ? (editingGalleryId ? 'SAVING...' : 'CREATING...') : (editingGalleryId ? 'SAVE' : 'CREATE')}</button>
+            <div className="grid grid-cols-2 border-t border-slate-700/70">
+              <button type="button" onClick={closeCreateDialog} className="px-6 py-4 text-center text-lg font-bold text-slate-200 transition hover:bg-slate-800/80">Cancel</button>
+              <button type="submit" disabled={creating || !form.title.trim()} className="bg-blue-600 px-6 py-4 text-center text-lg font-bold tracking-[0.08em] text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">{creating ? (editingGalleryId ? 'SAVING...' : 'CREATING...') : (editingGalleryId ? 'SAVE' : 'CREATE')}</button>
             </div>
           </form>
         </div>
