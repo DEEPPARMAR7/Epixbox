@@ -1033,15 +1033,41 @@ export default function GalleryOrganizerPage() {
               <SkeletonLoader type="card" count={4} />
             </div>
           ) : galleries.length === 0 ? (
-            <EmptyState
-              icon={() => <span className="text-5xl">🖼️</span>}
-              title="No galleries yet"
-              description="Create your first gallery to organize your photos and share with clients."
-              action={{
-                label: '+ Create Gallery',
-                onClick: () => openCreateDialog('gallery'),
-              }}
-            />
+            <div className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-8 shadow-xl shadow-black/20">
+              <div className="mx-auto max-w-2xl text-center">
+                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-2xl">
+                  🗂️
+                </div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Organize Workspace</p>
+                <h2 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Create your first gallery</h2>
+                <p className="mx-auto mt-3 max-w-xl text-sm text-slate-300">
+                  Start by creating a gallery to keep sessions organized, upload photos, and share collections professionally with clients.
+                </p>
+
+                <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => openCreateDialog('gallery')}
+                    className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
+                  >
+                    Create Gallery
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsLibraryMode(true)}
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-600 bg-slate-800/70 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:bg-slate-700"
+                  >
+                    View Library
+                  </button>
+                </div>
+
+                <div className="mt-6 grid gap-2 text-left text-xs text-slate-400 sm:grid-cols-3">
+                  <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-3">1. Create a gallery</div>
+                  <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-3">2. Upload media</div>
+                  <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-3">3. Share with clients</div>
+                </div>
+              </div>
+            </div>
           ) : filteredGalleries.length === 0 ? (
             <EmptyState
               title="No folders found"
