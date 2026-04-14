@@ -86,20 +86,6 @@ export default function PaymentsPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Checkout Payment Options</p>
-          <h2 className="mt-2 text-lg font-bold text-white">SmugMug-style multi-method checkout</h2>
-          <p className="mt-1 text-sm text-slate-400">Your buyers can use Stripe-hosted methods at checkout.</p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-4">
-            {["Card", "Apple Pay", "Google Pay", "Link"].map((method) => (
-              <div key={method} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-center text-xs font-semibold text-slate-200">
-                {method}
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-xs text-slate-500">Methods shown to buyers depend on country, device/browser, and Stripe dashboard activation.</p>
-        </div>
-
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
           <table className="w-full text-sm">
             <thead className="bg-white/5 text-left">
