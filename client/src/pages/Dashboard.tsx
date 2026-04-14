@@ -9,6 +9,8 @@ import ClientProofingAdminPage from "./dashboard/ClientProofingAdminPage.jsx";
 import PricingEditorPage from "./dashboard/PricingEditorPage.jsx";
 import AccountSettingsPage from "./dashboard/AccountSettingsPage.jsx";
 import EditProfilePage from "./dashboard/EditProfilePage.jsx";
+import AdminPanelPage from "./dashboard/AdminPanelPage.jsx";
+import PaymentsPage from "./dashboard/PaymentsPage.jsx";
 
 const DashboardPage = () => {
   return (
@@ -21,8 +23,10 @@ const DashboardPage = () => {
       <Route path="photos/:id" element={<PhotoDetailsPage />} />
       <Route path="proofing" element={<ClientProofingAdminPage />} />
       <Route path="pricing" element={<PricingEditorPage />} />
+      <Route path="payments" element={<PaymentsPage />} />
       <Route path="settings" element={<AccountSettingsPage />} />
       <Route path="profile" element={<EditProfilePage />} />
+      <Route path="admin" element={<AdminPanelPage />} />
 
       {/* Legacy aliases to keep old links working */}
       <Route path="photos" element={<Navigate to="/dashboard/galleries" replace />} />
