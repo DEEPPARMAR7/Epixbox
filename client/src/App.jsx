@@ -15,6 +15,8 @@ import PhotoDetailsPage from './pages/dashboard/PhotoDetailsPage'
 import ClientProofingAdminPage from './pages/dashboard/ClientProofingAdminPage'
 import PricingEditorPage from './pages/dashboard/PricingEditorPage'
 import AccountSettingsPage from './pages/dashboard/AccountSettingsPage'
+import AdminPanelPage from './pages/dashboard/AdminPanelPage'
+import PaymentsPage from './pages/dashboard/PaymentsPage'
 
 // Portfolio pages
 import PortfolioHomePage from './pages/portfolio/PortfolioHomePage'
@@ -67,7 +69,9 @@ export default function App() {
       <Route path="/dashboard/photos/:id" element={<ProtectedRoute><PhotoDetailsPage /></ProtectedRoute>} />
       <Route path="/dashboard/proofing" element={<ProtectedRoute><ClientProofingAdminPage /></ProtectedRoute>} />
       <Route path="/dashboard/pricing" element={<ProtectedRoute><PricingEditorPage /></ProtectedRoute>} />
+      <Route path="/dashboard/payments" element={<ProtectedRoute><PaymentsPage /></ProtectedRoute>} />
       <Route path="/dashboard/settings" element={<ProtectedRoute><AccountSettingsPage /></ProtectedRoute>} />
+      <Route path="/dashboard/admin" element={<ProtectedRoute><AdminPanelPage /></ProtectedRoute>} />
 
       {/* Public Portfolio */}
       <Route path="/p/:username" element={<PortfolioHomePage />} />

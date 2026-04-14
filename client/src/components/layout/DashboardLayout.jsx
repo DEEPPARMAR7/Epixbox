@@ -12,6 +12,7 @@ const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
   { to: '/dashboard/galleries', label: 'Library', icon: '🖼️' },
   { to: '/dashboard/organize', label: 'Organize', icon: '🧭' },
+  { to: '/dashboard/payments', label: 'Payments', icon: '💳' },
   { to: '/dashboard/settings', label: 'My Site', icon: '🌐' },
   { to: '/dashboard/pricing', label: 'Selling Tools', icon: '💰' },
 ]
@@ -204,6 +205,8 @@ export default function DashboardLayout({ children }) {
                       <span>Quickstart Guide</span>
                       <span className="rounded-full bg-blue-600/30 px-2 py-0.5 text-[10px] font-semibold text-blue-300">NEW</span>
                     </button>
+                    <button onClick={() => goTo('/dashboard/admin')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Admin Panel</button>
+                    <button onClick={() => goTo('/dashboard/payments')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Payments</button>
                     <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Edit My Profile</button>
                     <button onClick={() => goTo('/dashboard/settings?category=site&tab=branding')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Edit Site Profile</button>
                     <button onClick={() => goTo('/dashboard/settings?category=site&tab=general')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Site Settings</button>
@@ -264,6 +267,8 @@ export default function DashboardLayout({ children }) {
                   ? Images
                   : item.to === '/dashboard/organize'
                     ? Compass
+                    : item.to === '/dashboard/payments'
+                      ? CreditCard
                     : item.to === '/dashboard/pricing'
                       ? CreditCard
                       : Globe
