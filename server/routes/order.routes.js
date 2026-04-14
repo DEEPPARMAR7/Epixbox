@@ -55,6 +55,7 @@ router.post('/', async (req, res, next) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total_cents,
       currency: 'usd',
+      automatic_payment_methods: { enabled: true },
       metadata: { buyer_email: persistedBuyerEmail, photographer_id: String(resolvedPhotographerId) },
     });
 
