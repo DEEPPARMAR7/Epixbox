@@ -7,8 +7,24 @@ const { requireRole } = require('../middleware/rbac.middleware');
 const { User, Gallery, Photo, Order, sequelize } = require('../models/index');
 const { getRateAnalytics } = require('../services/rateAnalytics.service');
 const { deleteFile } = require('../services/s3.service');
+const { getOwnerEmails } = require('../utils/roles');
 
-router.use(requireAuth, requireRole('admin'));
+function requireOwner(req, res, next) {
+  const ownerEmails = getOwnerEmails();
+  const currentEmail = String(req.user?.email || '').toLowerCase();
+
+  if (ownerEmails.length === 0) {
+    return res.status(403).json({ error: 'Owner access is not configured. Set OWNER_EMAILS in backend environment.' });
+  }
+
+  if (!ownerEmails.includes(currentEmail)) {
+    return res.status(403).json({ error: 'Only owner can access admin panel' });
+  }
+
+  return next();
+}
+
+router.use(requireAuth, requireRole('admin'), requireOwner);
 
 router.get('/analytics', async (req, res, next) => {
   try {

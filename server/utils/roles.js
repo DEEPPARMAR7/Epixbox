@@ -13,8 +13,21 @@ function getAdminEmails() {
     .filter(Boolean);
 }
 
+function getOwnerEmails() {
+  const ownerEmails = String(process.env.OWNER_EMAILS || process.env.OWNER_EMAIL || '')
+    .split(',')
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean);
+  return ownerEmails;
+}
+
 function resolveUserRole(user) {
   if (!user) return 'client';
+
+  const ownerEmails = getOwnerEmails();
+  if (ownerEmails.includes(String(user.email || '').toLowerCase())) {
+    return 'admin';
+  }
 
   const adminEmails = getAdminEmails();
   if (adminEmails.includes(String(user.email || '').toLowerCase())) {
@@ -26,5 +39,6 @@ function resolveUserRole(user) {
 
 module.exports = {
   normalizeRole,
+  getOwnerEmails,
   resolveUserRole,
 };

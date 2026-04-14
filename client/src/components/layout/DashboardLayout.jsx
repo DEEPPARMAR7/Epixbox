@@ -24,6 +24,8 @@ export default function DashboardLayout({ children }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const profileMenuRef = useRef(null)
+  const ownerEmails = String(import.meta.env.VITE_OWNER_EMAILS || '').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean)
+  const isOwner = ownerEmails.includes(String(user?.email || '').toLowerCase())
 
   const resolveUsername = () => {
     const currentUsername = user?.username
@@ -205,7 +207,7 @@ export default function DashboardLayout({ children }) {
                       <span>Quickstart Guide</span>
                       <span className="rounded-full bg-blue-600/30 px-2 py-0.5 text-[10px] font-semibold text-blue-300">NEW</span>
                     </button>
-                    <button onClick={() => goTo('/dashboard/admin')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Admin Panel</button>
+                    {isOwner && <button onClick={() => goTo('/dashboard/admin')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Admin Panel</button>}
                     <button onClick={() => goTo('/dashboard/payments')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Payments</button>
                     <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Edit My Profile</button>
                     <button onClick={() => goTo('/dashboard/settings?category=site&tab=branding')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Edit Site Profile</button>
