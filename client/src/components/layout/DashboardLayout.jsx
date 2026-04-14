@@ -299,6 +299,12 @@ export default function DashboardLayout({ children }) {
 
           <div className="space-y-2 border-t border-white/10 pt-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Quick Links</p>
+            {isOwner && (
+              <button onClick={() => goTo('/dashboard/admin')} className="flex w-full items-center gap-3 rounded-2xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-left font-semibold text-amber-100 hover:bg-amber-300/15">
+                <LayoutDashboard size={18} />
+                Admin Panel
+              </button>
+            )}
             <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left font-semibold text-slate-100 hover:bg-white/10">
               <User size={18} />
               Edit Profile

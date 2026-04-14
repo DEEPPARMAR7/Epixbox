@@ -14,6 +14,7 @@ import { useCart } from '../../hooks/useCart'
 import { createOrder } from '../../api/orderApi'
 import { formatCurrency } from '../../utils/formatters'
 import { useEffect } from 'react'
+import toast from 'react-hot-toast'
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
 
@@ -128,7 +129,10 @@ export default function CheckoutPage() {
         setClientSecret(cs)
         setOrderId(oid)
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err)
+        toast.error(err?.response?.data?.error || 'Unable to start checkout. Please try again.')
+      })
       .finally(() => setLoading(false))
   }, [items, navigate])
 
@@ -169,7 +173,7 @@ export default function CheckoutPage() {
                     </p>
                   </div>
                   <span className="font-medium text-gray-900">
-                    {formatCurrency(item.priceCents * item.quantity)}
+                    {formatCurrency(item.price_cents * item.quantity)}
                   </span>
                 </div>
               ))}

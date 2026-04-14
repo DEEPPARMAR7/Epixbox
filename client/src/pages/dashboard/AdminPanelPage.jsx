@@ -152,7 +152,7 @@ export default function AdminPanelPage() {
       <DashboardLayout>
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6">
           <h1 className="text-xl font-bold text-white">Admin access required</h1>
-          <p className="mt-2 text-sm text-red-200">Your account does not have admin privileges.</p>
+          <p className="mt-2 text-sm text-red-200">Only owner account can access this panel. Ensure your login email is listed in OWNER_EMAILS (backend) and VITE_OWNER_EMAILS (frontend).</p>
         </div>
       </DashboardLayout>
     )

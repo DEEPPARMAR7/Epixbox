@@ -1,6 +1,58 @@
 const router = require('express').Router();
-const { PriceList, Product } = require('../models/index');
+const { PriceList, Product, Photo, Gallery } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
+
+// GET /api/pricing/photo/:photoId (public)
+router.get('/photo/:photoId', async (req, res, next) => {
+  try {
+    const photo = await Photo.findByPk(req.params.photoId, {
+      attributes: ['id', 'user_id'],
+      include: [{ model: Gallery, attributes: ['id', 'visibility'] }],
+    });
+
+    if (!photo) return res.status(404).json({ error: 'Photo not found' });
+    if (photo.Gallery && photo.Gallery.visibility === 'private') {
+      return res.status(403).json({ error: 'Pricing is not available for this photo' });
+    }
+
+    let priceList = await PriceList.findOne({
+      where: { user_id: photo.user_id, is_default: true },
+      order: [['created_at', 'ASC']],
+    });
+
+    if (!priceList) {
+      priceList = await PriceList.findOne({
+        where: { user_id: photo.user_id },
+        order: [['created_at', 'ASC']],
+      });
+    }
+
+    if (!priceList) return res.json([]);
+
+    const products = await Product.findAll({
+      where: { price_list_id: priceList.id, is_active: true },
+      order: [['sort_order', 'ASC']],
+    });
+
+    const response = products.map((p) => {
+      const width = Number(p.width_in || 0);
+      const height = Number(p.height_in || 0);
+      const size = width > 0 && height > 0 ? `${width}x${height}` : p.name;
+
+      return {
+        id: p.id,
+        category: p.category,
+        name: p.name,
+        size,
+        paper_type: p.paper_type,
+        price_cents: p.price_cents,
+        photographer_id: photo.user_id,
+      };
+    });
+
+    res.json(response);
+  } catch (err) { next(err); }
+});
 
 router.use(requireAuth);
 
