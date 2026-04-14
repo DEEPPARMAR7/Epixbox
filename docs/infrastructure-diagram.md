@@ -32,7 +32,7 @@ graph TD
   end
 ```
 
-## Notes
+# Notes
 
 - Versioned API base path: `/api/v1`
 - Swagger docs: `/api/docs` and `/api/v1/docs`

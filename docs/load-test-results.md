@@ -2,7 +2,7 @@
 
 Load tests were executed with `autocannon` against production endpoints.
 
-## Raw Results
+# Raw Results
 
 | Scenario | Connections | Duration | Avg Req/s | Avg Latency (ms) | P99 (ms) | Errors | Timeouts |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -10,7 +10,7 @@ Load tests were executed with `autocannon` against production endpoints.
 | Health endpoint | 50 | 20s | 55.40 | 874.77 | 1930 | 0 | 0 |
 | Docs endpoint | 20 | 20s | 51.45 | 379.67 | 949 | 0 | 0 |
 
-## Throughput Graph
+# Throughput Graph
 
 ```mermaid
 xychart-beta
@@ -20,7 +20,7 @@ xychart-beta
   bar [42.65, 55.40, 51.45]
 ```
 
-## Latency Graph
+# Latency Graph
 
 ```mermaid
 xychart-beta
@@ -30,7 +30,7 @@ xychart-beta
   bar [466.83, 874.77, 379.67]
 ```
 
-## Interpretation
+# Interpretation
 
 - The service remained stable under all tested loads with zero request errors.
 - Throughput increases at higher concurrency, with expected latency growth.
