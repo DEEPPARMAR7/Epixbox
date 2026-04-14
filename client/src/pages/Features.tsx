@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { ArrowRight, Cloud, Image, ShoppingBag, Globe, Shield, Palette, Users, BarChart3, Download, Layers, Zap, Lock, Smartphone, Search, Mail } from "lucide-react";
+import { ArrowRight, Cloud, Image, ShoppingBag, Globe, Shield, Palette, Users, BarChart3, Download, Layers, Zap, Lock, Smartphone, Search, Mail, Star, Crown, Sparkles } from "lucide-react";
 import featuresHero from "../assets/features-hero.jpg";
 
 const featureCategories = [
@@ -42,6 +42,30 @@ const additionalFeatures = [
   { icon: Search, title: "SEO Built-in", desc: "Optimized for search engines so clients can find you." },
   { icon: Mail, title: "Contact Forms", desc: "Built-in contact and booking forms for your site." },
   { icon: Smartphone, title: "Mobile App", desc: "Upload and manage photos on the go with our mobile app." },
+];
+
+const subscriberOptions = [
+  {
+    icon: Star,
+    name: "Basic Subscriber",
+    price: "$9/mo",
+    description: "For beginners who want clean hosting, galleries, and portfolio presence.",
+    highlights: ["Unlimited photo storage", "Custom website", "Privacy controls"],
+  },
+  {
+    icon: Sparkles,
+    name: "Power Subscriber",
+    price: "$19/mo",
+    description: "For growing photographers who need client proofing and polished delivery.",
+    highlights: ["Everything in Basic", "Client proofing", "Marketing tools"],
+  },
+  {
+    icon: Crown,
+    name: "Pro Subscriber",
+    price: "$27/mo",
+    description: "For professionals selling prints/downloads with business analytics.",
+    highlights: ["Everything in Power", "Print and digital sales", "Advanced analytics"],
+  },
 ];
 
 const FeaturesPage = () => {
@@ -122,6 +146,53 @@ const FeaturesPage = () => {
           <div className="text-center mt-12">
             <Link to="/signup" className="btn-cta">
               Start Your Free Trial <ArrowRight size={18} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Subscribers */}
+      <section className="section-padding bg-card">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-10 text-center">
+            <p className="font-heading text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">
+              Subscriber Options
+            </p>
+            <h2 className="heading-lg text-foreground mb-3">Choose a plan like SmugMug-style memberships</h2>
+            <p className="body-lg max-w-2xl mx-auto">
+              Start with a lightweight subscriber plan and upgrade as your photography business grows.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {subscriberOptions.map((option, idx) => (
+              <div
+                key={option.name}
+                className={`border-2 p-6 ${idx === 2 ? "border-foreground bg-foreground text-primary-foreground" : "border-border bg-background"}`}
+              >
+                <div className={`w-12 h-12 flex items-center justify-center mb-4 ${idx === 2 ? "bg-accent text-accent-foreground" : "bg-accent"}`}>
+                  <option.icon size={22} />
+                </div>
+                <h3 className="font-heading font-bold text-sm uppercase tracking-wider mb-2">{option.name}</h3>
+                <p className={`font-heading text-3xl font-bold mb-3 ${idx === 2 ? "text-primary-foreground" : "text-foreground"}`}>{option.price}</p>
+                <p className={`font-body text-sm mb-5 ${idx === 2 ? "text-primary-foreground/75" : "text-muted-foreground"}`}>{option.description}</p>
+                <ul className="space-y-2 mb-6">
+                  {option.highlights.map((item) => (
+                    <li key={item} className={`font-body text-sm ${idx === 2 ? "text-primary-foreground/90" : "text-foreground"}`}>
+                      • {item}
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/pricing" className={idx === 2 ? "btn-cta" : "btn-outline-cta"}>
+                  View Plan
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link to="/signup" className="btn-cta">
+              Start Subscriber Trial <ArrowRight size={18} />
             </Link>
           </div>
         </div>
