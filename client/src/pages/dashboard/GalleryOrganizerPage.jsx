@@ -1282,7 +1282,7 @@ export default function GalleryOrganizerPage() {
                   <div className="space-y-5">
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Display on Site</label>
-                      <select value={form.security.display_on_site} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, display_on_site: e.target.value }, visibility: e.target.value === 'public' ? 'public' : e.target.value === 'unlisted' ? 'unlisted' : 'private' }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                      <select value={form.security.display_on_site} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, display_on_site: e.target.value }, visibility: e.target.value === 'public' ? 'public' : e.target.value === 'unlisted' ? 'unlisted' : 'private' }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                         <option value="private">Display on Site (Private)</option>
                         <option value="public">Display on Site (Public)</option>
                         <option value="unlisted">Display on Site (Unlisted)</option>
@@ -1290,7 +1290,7 @@ export default function GalleryOrganizerPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Access</label>
-                      <select value={form.security.access} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, access: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                      <select value={form.security.access} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, access: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                         <option value="anyone">Anyone</option>
                         <option value="password">Password Required</option>
                         <option value="invite_only">Invite Only</option>
@@ -1298,12 +1298,12 @@ export default function GalleryOrganizerPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Guest Uploading Key</label>
-                      <input value={form.security.guest_uploading_key} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, guest_uploading_key: e.target.value } }))} placeholder="Type a key to generate upload URL" className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300" />
+                      <input value={form.security.guest_uploading_key} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, guest_uploading_key: e.target.value } }))} placeholder="Type a key to generate upload URL" className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className="block text-sm font-semibold text-slate-300">Web Searchable</label>
-                        <select value={form.security.web_searchable} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, web_searchable: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <select value={form.security.web_searchable} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, web_searchable: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                           <option value="site_searching">Site-Searching</option>
                           <option value="public_search">Public Search</option>
                           <option value="off">Off</option>
@@ -1311,7 +1311,7 @@ export default function GalleryOrganizerPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-slate-300">Platform Searchable</label>
-                        <select value={form.security.smugmug_searchable} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, smugmug_searchable: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <select value={form.security.smugmug_searchable} onChange={(e) => setForm((f) => ({ ...f, security: { ...f.security, smugmug_searchable: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                           <option value="site_searching">Site-Searching</option>
                           <option value="public_search">Public Search</option>
                           <option value="off">Off</option>
@@ -1325,7 +1325,7 @@ export default function GalleryOrganizerPage() {
                   <div className="space-y-5">
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Watermark Photos</label>
-                      <select value={form.protection.watermark_mode} onChange={(e) => setForm((f) => ({ ...f, protection: { ...f.protection, watermark_mode: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                      <select value={form.protection.watermark_mode} onChange={(e) => setForm((f) => ({ ...f, protection: { ...f.protection, watermark_mode: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                         <option value="none">No Watermarks</option>
                         <option value="light">Light Watermark</option>
                         <option value="strong">Strong Watermark</option>
@@ -1333,20 +1333,20 @@ export default function GalleryOrganizerPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Maximum Display Size</label>
-                      <select value={form.protection.max_display_size} onChange={(e) => setForm((f) => ({ ...f, protection: { ...f.protection, max_display_size: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                      <select value={form.protection.max_display_size} onChange={(e) => setForm((f) => ({ ...f, protection: { ...f.protection, max_display_size: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                         <option value="all_but_original">All but Original</option>
                         <option value="large">Large</option>
                         <option value="medium">Medium</option>
                       </select>
                     </div>
                     <div className="space-y-3">
-                      <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                      <label className="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-3 text-base font-semibold text-slate-200">
                         <span>Right-Click Message</span>
-                        <button type="button" onClick={() => setForm((f) => ({ ...f, protection: { ...f.protection, right_click_message: !f.protection.right_click_message } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.protection.right_click_message ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.protection.right_click_message ? 'ON' : 'OFF'}</button>
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, protection: { ...f.protection, right_click_message: !f.protection.right_click_message } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.protection.right_click_message ? 'bg-blue-500/25 text-blue-200 ring-1 ring-blue-500/30' : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700'}`}>{form.protection.right_click_message ? 'ON' : 'OFF'}</button>
                       </label>
-                      <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                      <label className="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-3 text-base font-semibold text-slate-200">
                         <span>Allow Free Downloads</span>
-                        <button type="button" onClick={() => setForm((f) => ({ ...f, protection: { ...f.protection, allow_free_downloads: !f.protection.allow_free_downloads } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.protection.allow_free_downloads ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.protection.allow_free_downloads ? 'ON' : 'OFF'}</button>
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, protection: { ...f.protection, allow_free_downloads: !f.protection.allow_free_downloads } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.protection.allow_free_downloads ? 'bg-blue-500/25 text-blue-200 ring-1 ring-blue-500/30' : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700'}`}>{form.protection.allow_free_downloads ? 'ON' : 'OFF'}</button>
                       </label>
                     </div>
                   </div>
@@ -1354,37 +1354,37 @@ export default function GalleryOrganizerPage() {
 
                 {activeCreateTab === 'social' && (
                   <div className="space-y-4">
-                    <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                    <label className="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-3 text-base font-semibold text-slate-200">
                       <span>Show Sharing Options</span>
-                      <button type="button" onClick={() => setForm((f) => ({ ...f, social: { ...f.social, show_sharing_options: !f.social.show_sharing_options } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.social.show_sharing_options ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.social.show_sharing_options ? 'ON' : 'OFF'}</button>
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, social: { ...f.social, show_sharing_options: !f.social.show_sharing_options } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.social.show_sharing_options ? 'bg-blue-500/25 text-blue-200 ring-1 ring-blue-500/30' : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700'}`}>{form.social.show_sharing_options ? 'ON' : 'OFF'}</button>
                     </label>
-                    <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                    <label className="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-3 text-base font-semibold text-slate-200">
                       <span>Allow Comments</span>
-                      <button type="button" onClick={() => setForm((f) => ({ ...f, social: { ...f.social, allow_comments: !f.social.allow_comments } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.social.allow_comments ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.social.allow_comments ? 'ON' : 'OFF'}</button>
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, social: { ...f.social, allow_comments: !f.social.allow_comments } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.social.allow_comments ? 'bg-blue-500/25 text-blue-200 ring-1 ring-blue-500/30' : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700'}`}>{form.social.allow_comments ? 'ON' : 'OFF'}</button>
                     </label>
                   </div>
                 )}
 
                 {activeCreateTab === 'selling' && (
                   <div className="space-y-5">
-                    <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                    <label className="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-3 text-base font-semibold text-slate-200">
                       <span>Visitor Shopping Cart</span>
-                      <button type="button" onClick={() => setForm((f) => ({ ...f, selling: { ...f.selling, visitor_shopping_cart: !f.selling.visitor_shopping_cart } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.selling.visitor_shopping_cart ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.selling.visitor_shopping_cart ? 'ON' : 'OFF'}</button>
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, selling: { ...f.selling, visitor_shopping_cart: !f.selling.visitor_shopping_cart } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.selling.visitor_shopping_cart ? 'bg-blue-500/25 text-blue-200 ring-1 ring-blue-500/30' : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700'}`}>{form.selling.visitor_shopping_cart ? 'ON' : 'OFF'}</button>
                     </label>
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Price List</label>
-                      <select value={form.selling.price_list_id} onChange={(e) => setForm((f) => ({ ...f, selling: { ...f.selling, price_list_id: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                      <select value={form.selling.price_list_id} onChange={(e) => setForm((f) => ({ ...f, selling: { ...f.selling, price_list_id: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                         <option value="inherit">Inherit from site</option>
                         <option value="none">No price list</option>
                       </select>
                     </div>
-                    <label className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                    <label className="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-3 text-base font-semibold text-slate-200">
                       <span>Shop View</span>
-                      <button type="button" onClick={() => setForm((f) => ({ ...f, selling: { ...f.selling, shop_view: !f.selling.shop_view } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.selling.shop_view ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.selling.shop_view ? 'ON' : 'OFF'}</button>
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, selling: { ...f.selling, shop_view: !f.selling.shop_view } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.selling.shop_view ? 'bg-blue-500/25 text-blue-200 ring-1 ring-blue-500/30' : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700'}`}>{form.selling.shop_view ? 'ON' : 'OFF'}</button>
                     </label>
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Proof Delay</label>
-                      <select value={form.selling.proof_delay} onChange={(e) => setForm((f) => ({ ...f, selling: { ...f.selling, proof_delay: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                      <select value={form.selling.proof_delay} onChange={(e) => setForm((f) => ({ ...f, selling: { ...f.selling, proof_delay: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                         <option value="off">Off</option>
                         <option value="15m">15 Minutes</option>
                         <option value="1h">1 Hour</option>
@@ -1397,7 +1397,7 @@ export default function GalleryOrganizerPage() {
                   <div className="space-y-5">
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Gallery Style</label>
-                      <select value={form.appearance.gallery_style} onChange={(e) => setForm((f) => ({ ...f, appearance: { ...f.appearance, gallery_style: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                      <select value={form.appearance.gallery_style} onChange={(e) => setForm((f) => ({ ...f, appearance: { ...f.appearance, gallery_style: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                         <option value="collage_landscape">Collage Landscape</option>
                         <option value="collage_portrait">Collage Portrait</option>
                         <option value="grid">Grid</option>
@@ -1406,7 +1406,7 @@ export default function GalleryOrganizerPage() {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className="block text-sm font-semibold text-slate-300">Sort By</label>
-                        <select value={form.appearance.sort_by} onChange={(e) => setForm((f) => ({ ...f, appearance: { ...f.appearance, sort_by: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <select value={form.appearance.sort_by} onChange={(e) => setForm((f) => ({ ...f, appearance: { ...f.appearance, sort_by: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                           <option value="date_taken">Date Taken</option>
                           <option value="date_uploaded">Date Uploaded</option>
                           <option value="filename">Filename</option>
@@ -1414,7 +1414,7 @@ export default function GalleryOrganizerPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-slate-300">Sort Direction</label>
-                        <select value={form.appearance.sort_direction} onChange={(e) => setForm((f) => ({ ...f, appearance: { ...f.appearance, sort_direction: e.target.value } }))} className="w-full border-b border-white/25 bg-transparent px-1 py-2 text-base outline-none focus:border-emerald-300">
+                        <select value={form.appearance.sort_direction} onChange={(e) => setForm((f) => ({ ...f, appearance: { ...f.appearance, sort_direction: e.target.value } }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                           <option value="ascending">Ascending</option>
                           <option value="descending">Descending</option>
                         </select>
@@ -1427,9 +1427,9 @@ export default function GalleryOrganizerPage() {
                       ['slideshow', 'Slideshow'],
                       ['map_features', 'Enable Map Features'],
                     ].map(([key, label]) => (
-                      <label key={key} className="flex items-center justify-between border-b border-white/20 py-2 text-base font-semibold text-slate-200">
+                      <label key={key} className="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-3 text-base font-semibold text-slate-200">
                         <span>{label}</span>
-                        <button type="button" onClick={() => setForm((f) => ({ ...f, appearance: { ...f.appearance, [key]: !f.appearance[key] } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.appearance[key] ? 'bg-emerald-300/20 text-emerald-200' : 'bg-white/10 text-slate-300'}`}>{form.appearance[key] ? 'ON' : 'OFF'}</button>
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, appearance: { ...f.appearance, [key]: !f.appearance[key] } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.appearance[key] ? 'bg-blue-500/25 text-blue-200 ring-1 ring-blue-500/30' : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700'}`}>{form.appearance[key] ? 'ON' : 'OFF'}</button>
                       </label>
                     ))}
                   </div>
