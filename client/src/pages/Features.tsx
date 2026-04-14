@@ -47,23 +47,23 @@ const additionalFeatures = [
 const subscriberOptions = [
   {
     icon: Star,
-    name: "Basic Subscriber",
-    price: "$9/mo",
-    description: "For beginners who want clean hosting, galleries, and portfolio presence.",
-    highlights: ["Unlimited photo storage", "Custom website", "Privacy controls"],
+    name: "Basic",
+    price: "$13/mo",
+    description: "For hobbyists who want unlimited photo storage and a personal site.",
+    highlights: ["Unlimited photo uploads", "Custom photo site", "Privacy controls"],
   },
   {
     icon: Sparkles,
-    name: "Power Subscriber",
-    price: "$19/mo",
-    description: "For growing photographers who need client proofing and polished delivery.",
+    name: "Power",
+    price: "$27/mo",
+    description: "For enthusiasts who want to showcase, share, and delight clients.",
     highlights: ["Everything in Basic", "Client proofing", "Marketing tools"],
   },
   {
     icon: Crown,
-    name: "Pro Subscriber",
-    price: "$27/mo",
-    description: "For professionals selling prints/downloads with business analytics.",
+    name: "Pro",
+    price: "$36/mo",
+    description: "For professionals who want to sell, grow, and run their business.",
     highlights: ["Everything in Power", "Print and digital sales", "Advanced analytics"],
   },
 ];
@@ -160,7 +160,7 @@ const FeaturesPage = () => {
             </p>
             <h2 className="heading-lg text-foreground mb-3">Choose a plan like SmugMug-style memberships</h2>
             <p className="body-lg max-w-2xl mx-auto">
-              Start with a lightweight subscriber plan and upgrade as your photography business grows.
+              Start with a 14-day free trial, then upgrade as your photography business grows.
             </p>
           </div>
 
