@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
-const { GiftCard } = require('../../models');
-const { requireAuth } = require('../../middleware/auth');
+const { GiftCard } = require('../models');
+const requireAuth = require('../middleware/auth.middleware');
 
 const router = express.Router();
 

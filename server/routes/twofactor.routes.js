@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { User } = require('../models');
 const { generateSecret, verifyToken, generateBackupCodes, verifyBackupCode, removeUsedBackupCode } = require('../services/twofa.service');
-const { requireAuth } = require('../middleware/auth.middleware');
+const requireAuth = require('../middleware/auth.middleware');
 const crypto = require('crypto');
 const logger = require('../config/logger');
 

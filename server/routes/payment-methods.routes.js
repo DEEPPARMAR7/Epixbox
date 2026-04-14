@@ -1,6 +1,6 @@
 const express = require('express');
-const { SavedPaymentMethod } = require('../../models');
-const { requireAuth } = require('../../middleware/auth');
+const { SavedPaymentMethod } = require('../models');
+const requireAuth = require('../middleware/auth.middleware');
 
 const router = express.Router();
 

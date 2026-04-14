@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { WatermarkTemplate } = require('../models');
 const { applyWatermark } = require('../services/watermark.service');
-const { requireAuth } = require('../middleware/auth.middleware');
+const requireAuth = require('../middleware/auth.middleware');
 const { Photo } = require('../models');
 const logger = require('../config/logger');
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
-const { Product, ProductVariant, Inventory, PriceList } = require('../../models');
-const { requireAuth } = require('../../middleware/auth');
+const { Product, ProductVariant, Inventory, PriceList } = require('../models');
+const requireAuth = require('../middleware/auth.middleware');
 
 const router = express.Router();
 

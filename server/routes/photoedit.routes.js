@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const { Photo } = require('../models');
 const sharp = require('sharp');
-const { getObjectBuffer, putObject } = require('./s3.service');
-const { requireAuth } = require('../middleware/auth.middleware');
+const { getObjectBuffer, putObject } = require('../services/s3.service');
+const requireAuth = require('../middleware/auth.middleware');
 const logger = require('../config/logger');
 
 router.use(requireAuth);

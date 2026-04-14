@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { Theme } = require('../models');
-const { requireAuth } = require('../middleware/auth.middleware');
+const requireAuth = require('../middleware/auth.middleware');
 const logger = require('../config/logger');
 
 // Pre-built themes data

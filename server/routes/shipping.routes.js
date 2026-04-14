@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { ShippingZone, ShippingRate } = require('../../models');
-const { requireAuth } = require('../../middleware/auth');
+const { ShippingZone, ShippingRate } = require('../models');
+const requireAuth = require('../middleware/auth.middleware');
 
 const router = express.Router();
 

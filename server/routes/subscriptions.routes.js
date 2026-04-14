@@ -1,6 +1,6 @@
 const express = require('express');
-const { SubscriptionPlan, Subscription } = require('../../models');
-const { requireAuth } = require('../../middleware/auth');
+const { SubscriptionPlan, Subscription } = require('../models');
+const requireAuth = require('../middleware/auth.middleware');
 
 const router = express.Router();
 

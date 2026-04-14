@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { Photo, Gallery, Tag } = require('../models');
 const { Op } = require('sequelize');
-const { requireAuth } = require('../middleware/auth.middleware');
+const requireAuth = require('../middleware/auth.middleware');
 const logger = require('../config/logger');
 
 router.use(requireAuth);

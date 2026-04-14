@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { Gallery, GalleryPassword, GalleryExpiry } = require('../../models');
-const { requireAuth } = require('../../middleware/auth');
+const { Gallery, GalleryPassword, GalleryExpiry } = require('../models');
+const requireAuth = require('../middleware/auth.middleware');
 
 const router = express.Router();
 

@@ -1,4 +1,15 @@
 const sequelize = require('../config/database');
+const { DataTypes } = require('sequelize');
+
+const loadModel = (modelModule) => {
+  // Support both export styles:
+  // 1) ready model instance (current project pattern)
+  // 2) factory function: (sequelize, DataTypes) => model
+  if (typeof modelModule === 'function' && typeof modelModule.hasMany !== 'function') {
+    return modelModule(sequelize, DataTypes);
+  }
+  return modelModule;
+};
 
 const User = require('./User');
 const Gallery = require('./Gallery');
@@ -20,25 +31,25 @@ const WatermarkTemplate = require('./WatermarkTemplate');
 const Theme = require('./Theme');
 
 // Phase 4: Products & Inventory
-const ProductVariant = require('./ProductVariant');
-const Inventory = require('./Inventory');
+const ProductVariant = loadModel(require('./ProductVariant'));
+const Inventory = loadModel(require('./Inventory'));
 
 // Phase 5: Shipping
-const ShippingZone = require('./ShippingZone');
-const ShippingRate = require('./ShippingRate');
+const ShippingZone = loadModel(require('./ShippingZone'));
+const ShippingRate = loadModel(require('./ShippingRate'));
 
 // Phase 7: Advanced Portfolio
-const SubdomainMapping = require('./SubdomainMapping');
-const GalleryPassword = require('./GalleryPassword');
-const GalleryExpiry = require('./GalleryExpiry');
+const SubdomainMapping = loadModel(require('./SubdomainMapping'));
+const GalleryPassword = loadModel(require('./GalleryPassword'));
+const GalleryExpiry = loadModel(require('./GalleryExpiry'));
 
 // Phase 8: Advanced E-Commerce
-const ApiKey = require('./ApiKey');
-const GiftCard = require('./GiftCard');
-const SubscriptionPlan = require('./SubscriptionPlan');
-const Subscription = require('./Subscription');
-const SavedPaymentMethod = require('./SavedPaymentMethod');
-const Refund = require('./Refund');
+const ApiKey = loadModel(require('./ApiKey'));
+const GiftCard = loadModel(require('./GiftCard'));
+const SubscriptionPlan = loadModel(require('./SubscriptionPlan'));
+const Subscription = loadModel(require('./Subscription'));
+const SavedPaymentMethod = loadModel(require('./SavedPaymentMethod'));
+const Refund = loadModel(require('./Refund'));
 
 // User associations
 User.hasMany(Gallery, { foreignKey: 'user_id', onDelete: 'CASCADE' });
@@ -100,30 +111,30 @@ OrderItem.belongsTo(Product, { foreignKey: 'product_id' });
 CustomDomain.belongsTo(User, { foreignKey: 'user_id' });
 
 // Phase 4: Product Variants & Inventory
-ProductVariant.associate({ Product, Inventory });
-Inventory.associate({ ProductVariant });
+if (typeof ProductVariant.associate === 'function') ProductVariant.associate({ Product, Inventory });
+if (typeof Inventory.associate === 'function') Inventory.associate({ ProductVariant });
 Product.hasMany(ProductVariant, { foreignKey: 'product_id', onDelete: 'CASCADE' });
 
 // Phase 5: Shipping
-ShippingZone.associate({ User, ShippingRate });
-ShippingRate.associate({ ShippingZone });
+if (typeof ShippingZone.associate === 'function') ShippingZone.associate({ User, ShippingRate });
+if (typeof ShippingRate.associate === 'function') ShippingRate.associate({ ShippingZone });
 User.hasMany(ShippingZone, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 
 // Phase 7: Portfolio Features
-SubdomainMapping.associate({ User });
-GalleryPassword.associate({ Gallery });
-GalleryExpiry.associate({ Gallery });
+if (typeof SubdomainMapping.associate === 'function') SubdomainMapping.associate({ User });
+if (typeof GalleryPassword.associate === 'function') GalleryPassword.associate({ Gallery });
+if (typeof GalleryExpiry.associate === 'function') GalleryExpiry.associate({ Gallery });
 User.hasMany(SubdomainMapping, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 Gallery.hasOne(GalleryPassword, { foreignKey: 'gallery_id', onDelete: 'CASCADE' });
 Gallery.hasOne(GalleryExpiry, { foreignKey: 'gallery_id', onDelete: 'CASCADE' });
 
 // Phase 8: Advanced E-Commerce
-ApiKey.associate({ User });
-GiftCard.associate({ User });
-SubscriptionPlan.associate({ User, Subscription });
-Subscription.associate({ SubscriptionPlan });
-SavedPaymentMethod.associate({ User });
-Refund.associate({ Order, User });
+if (typeof ApiKey.associate === 'function') ApiKey.associate({ User });
+if (typeof GiftCard.associate === 'function') GiftCard.associate({ User });
+if (typeof SubscriptionPlan.associate === 'function') SubscriptionPlan.associate({ User, Subscription });
+if (typeof Subscription.associate === 'function') Subscription.associate({ SubscriptionPlan });
+if (typeof SavedPaymentMethod.associate === 'function') SavedPaymentMethod.associate({ User });
+if (typeof Refund.associate === 'function') Refund.associate({ Order, User });
 User.hasMany(ApiKey, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 User.hasMany(GiftCard, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 User.hasMany(SubscriptionPlan, { foreignKey: 'user_id', onDelete: 'CASCADE' });

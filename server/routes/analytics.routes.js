@@ -1,8 +1,8 @@
 const express = require('express');
 const { Op } = require('sequelize');
-const { Order, OrderItem, Photo, Gallery, User } = require('../../models');
-const { requireAuth } = require('../../middleware/auth');
-const sequelize = require('../../config/database');
+const { Order, OrderItem, Photo, Gallery, User } = require('../models');
+const requireAuth = require('../middleware/auth.middleware');
+const sequelize = require('../config/database');
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
-const { ApiKey } = require('../../models');
-const { requireAuth } = require('../../middleware/auth');
+const { ApiKey } = require('../models');
+const requireAuth = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
