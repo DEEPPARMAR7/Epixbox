@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Moon, Sun } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import BrandLogo from "./BrandLogo";
 import { useAuth } from "../hooks/use-auth";
 
@@ -16,6 +17,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const links = isAuthenticated
     ? navLinks.filter((l) => l.href !== "/login")
@@ -47,6 +49,20 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
+
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2 rounded-md hover:bg-muted transition-colors"
+            aria-label="Toggle dark mode"
+          >
+            {theme === 'dark' ? (
+              <Sun size={20} className="text-foreground" />
+            ) : (
+              <Moon size={20} className="text-foreground" />
+            )}
+          </button>
+
           {isAuthenticated ? (
             <button onClick={onLogout} className="btn-outline-cta text-xs py-3 px-6">
               logout

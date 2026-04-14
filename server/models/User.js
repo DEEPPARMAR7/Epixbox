@@ -21,6 +21,9 @@ const User = sequelize.define('User', {
   email_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
   password_reset_token: { type: DataTypes.STRING },
   password_reset_expires: { type: DataTypes.DATE },
+  two_factor_enabled: { type: DataTypes.BOOLEAN, defaultValue: false },
+  two_fa_secret: { type: DataTypes.STRING }, // Encrypted TOTP secret
+  two_fa_backup_codes: { type: DataTypes.JSON }, // Array of backup codes (hashed)
 }, {
   tableName: 'users',
   underscored: true,

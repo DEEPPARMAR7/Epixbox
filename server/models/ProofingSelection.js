@@ -6,6 +6,7 @@ const ProofingSelection = sequelize.define('ProofingSelection', {
   session_id: { type: DataTypes.UUID, allowNull: false },
   photo_id: { type: DataTypes.UUID, allowNull: false },
   star_rating: { type: DataTypes.SMALLINT, defaultValue: 0, validate: { min: 0, max: 5 } },
+  rating_reason: { type: DataTypes.TEXT }, // Why the rating was given
   is_selected: { type: DataTypes.BOOLEAN, defaultValue: false },
 }, {
   tableName: 'proofing_selections',

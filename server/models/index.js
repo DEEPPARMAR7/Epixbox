@@ -16,6 +16,8 @@ const GalleryPriceList = require('./GalleryPriceList');
 const Order = require('./Order');
 const OrderItem = require('./OrderItem');
 const CustomDomain = require('./CustomDomain');
+const WatermarkTemplate = require('./WatermarkTemplate');
+const Theme = require('./Theme');
 
 // User associations
 User.hasMany(Gallery, { foreignKey: 'user_id', onDelete: 'CASCADE' });
@@ -24,6 +26,7 @@ User.hasMany(ProofingSession, { foreignKey: 'user_id' });
 User.hasMany(PriceList, { foreignKey: 'user_id' });
 User.hasMany(Order, { as: 'orders', foreignKey: 'photographer_id' });
 User.hasOne(CustomDomain, { foreignKey: 'user_id' });
+User.hasMany(WatermarkTemplate, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 
 // Gallery associations
 Gallery.belongsTo(User, { foreignKey: 'user_id' });
@@ -99,4 +102,6 @@ module.exports = {
   Order,
   OrderItem,
   CustomDomain,
+  WatermarkTemplate,
+  Theme,
 };

@@ -28,6 +28,8 @@ const Photo = sequelize.define('Photo', {
   exif_taken_at: { type: DataTypes.DATE },
   exif_gps_lat: { type: DataTypes.DECIMAL(9, 6) },
   exif_gps_lng: { type: DataTypes.DECIMAL(9, 6) },
+  original_s3_key: { type: DataTypes.STRING(500) }, // Stores original if edited
+  edit_history: { type: DataTypes.JSON }, // Array of edits: {type: 'crop'|'rotate'|'adjust', params, applied_at}
 }, {
   tableName: 'photos',
   underscored: true,
