@@ -19,4 +19,24 @@ router.use('/watermarks', require('./watermark.routes'));
 router.use('/auth/2fa', require('./twofactor.routes'));
 router.use('/themes', require('./themes.routes'));
 
+// Phase 4: Products & Inventory
+router.use('/products', require('./products.routes'));
+router.use('/inventory', require('./inventory.routes'));
+
+// Phase 5: Shipping
+router.use('/shipping', require('./shipping.routes'));
+
+// Phase 6: Analytics
+router.use('/analytics', require('./analytics.routes'));
+
+// Phase 7: Gallery Access Control
+router.use('/galleries', require('./gallery-access.routes'));
+
+// Phase 8: Advanced E-Commerce
+router.use('/api-keys', require('./api-keys.routes'));
+router.use('/gift-cards', require('./gift-cards.routes'));
+router.use('/subscriptions', require('./subscriptions.routes'));
+router.use('/payment-methods', require('./payment-methods.routes'));
+router.use('/refunds', require('./refunds.routes'));
+
 module.exports = router;

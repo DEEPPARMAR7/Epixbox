@@ -19,6 +19,27 @@ const CustomDomain = require('./CustomDomain');
 const WatermarkTemplate = require('./WatermarkTemplate');
 const Theme = require('./Theme');
 
+// Phase 4: Products & Inventory
+const ProductVariant = require('./ProductVariant');
+const Inventory = require('./Inventory');
+
+// Phase 5: Shipping
+const ShippingZone = require('./ShippingZone');
+const ShippingRate = require('./ShippingRate');
+
+// Phase 7: Advanced Portfolio
+const SubdomainMapping = require('./SubdomainMapping');
+const GalleryPassword = require('./GalleryPassword');
+const GalleryExpiry = require('./GalleryExpiry');
+
+// Phase 8: Advanced E-Commerce
+const ApiKey = require('./ApiKey');
+const GiftCard = require('./GiftCard');
+const SubscriptionPlan = require('./SubscriptionPlan');
+const Subscription = require('./Subscription');
+const SavedPaymentMethod = require('./SavedPaymentMethod');
+const Refund = require('./Refund');
+
 // User associations
 User.hasMany(Gallery, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 User.hasMany(Photo, { foreignKey: 'user_id' });
@@ -78,6 +99,37 @@ OrderItem.belongsTo(Product, { foreignKey: 'product_id' });
 // CustomDomain associations
 CustomDomain.belongsTo(User, { foreignKey: 'user_id' });
 
+// Phase 4: Product Variants & Inventory
+ProductVariant.associate({ Product, Inventory });
+Inventory.associate({ ProductVariant });
+Product.hasMany(ProductVariant, { foreignKey: 'product_id', onDelete: 'CASCADE' });
+
+// Phase 5: Shipping
+ShippingZone.associate({ User, ShippingRate });
+ShippingRate.associate({ ShippingZone });
+User.hasMany(ShippingZone, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+
+// Phase 7: Portfolio Features
+SubdomainMapping.associate({ User });
+GalleryPassword.associate({ Gallery });
+GalleryExpiry.associate({ Gallery });
+User.hasMany(SubdomainMapping, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+Gallery.hasOne(GalleryPassword, { foreignKey: 'gallery_id', onDelete: 'CASCADE' });
+Gallery.hasOne(GalleryExpiry, { foreignKey: 'gallery_id', onDelete: 'CASCADE' });
+
+// Phase 8: Advanced E-Commerce
+ApiKey.associate({ User });
+GiftCard.associate({ User });
+SubscriptionPlan.associate({ User, Subscription });
+Subscription.associate({ SubscriptionPlan });
+SavedPaymentMethod.associate({ User });
+Refund.associate({ Order, User });
+User.hasMany(ApiKey, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+User.hasMany(GiftCard, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+User.hasMany(SubscriptionPlan, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+User.hasMany(SavedPaymentMethod, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+Order.hasMany(Refund, { foreignKey: 'order_id', onDelete: 'CASCADE' });
+
 // Sync database
 sequelize
   .sync({ alter: process.env.NODE_ENV === 'development' })
@@ -104,4 +156,21 @@ module.exports = {
   CustomDomain,
   WatermarkTemplate,
   Theme,
+  // Phase 4
+  ProductVariant,
+  Inventory,
+  // Phase 5
+  ShippingZone,
+  ShippingRate,
+  // Phase 7
+  SubdomainMapping,
+  GalleryPassword,
+  GalleryExpiry,
+  // Phase 8
+  ApiKey,
+  GiftCard,
+  SubscriptionPlan,
+  Subscription,
+  SavedPaymentMethod,
+  Refund,
 };
