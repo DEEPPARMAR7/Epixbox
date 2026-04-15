@@ -29,8 +29,38 @@ export default function SubscriptionPlansPage() {
   const [migrationAudit, setMigrationAudit] = useState(null)
   const [migrating, setMigrating] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [sortBy, setSortBy] = useState('name')
+  const [sortDir, setSortDir] = useState('asc')
 
   const activePlans = useMemo(() => plans.filter((p) => p.is_active), [plans])
+  const sortedPlans = useMemo(() => {
+    const list = [...plans]
+    list.sort((a, b) => {
+      let left = a?.[sortBy]
+      let right = b?.[sortBy]
+      if (sortBy === 'price_cents' || sortBy === 'trial_days') {
+        left = Number(left || 0)
+        right = Number(right || 0)
+      } else {
+        left = String(left || '').toLowerCase()
+        right = String(right || '').toLowerCase()
+      }
+
+      if (left < right) return sortDir === 'asc' ? -1 : 1
+      if (left > right) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+    return list
+  }, [plans, sortBy, sortDir])
+
+  const onSort = (key) => {
+    if (sortBy === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+      return
+    }
+    setSortBy(key)
+    setSortDir('asc')
+  }
 
   const load = async () => {
     try {
@@ -249,15 +279,15 @@ export default function SubscriptionPlansPage() {
           <table className="w-full text-sm">
             <thead className="bg-white/5 text-left">
               <tr>
-                <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Plan</th>
-                <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Price</th>
-                <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Trial</th>
-                <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Status</th>
+                <th onClick={() => onSort('name')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Plan</th>
+                <th onClick={() => onSort('price_cents')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Price</th>
+                <th onClick={() => onSort('trial_days')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Trial</th>
+                <th onClick={() => onSort('is_active')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Status</th>
                 <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10">
-              {plans.map((plan) => (
+              {sortedPlans.map((plan) => (
                 <tr key={plan.id}>
                   <td className="px-4 py-3 text-slate-200">
                     <p className="font-semibold">{plan.name}</p>

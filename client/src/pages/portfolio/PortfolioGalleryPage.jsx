@@ -107,6 +107,7 @@ export default function PortfolioGalleryPage() {
   const [loading, setLoading] = useState(true)
   const [lightboxIdx, setLightboxIdx] = useState(null)
   const [scrolled, setScrolled] = useState(false)
+  const [layoutMode, setLayoutMode] = useState('masonry')
 
   useEffect(() => {
     Promise.all([getPhotographerProfile(username), getPublicGallery(username, slug)])
@@ -176,6 +177,22 @@ export default function PortfolioGalleryPage() {
         <div className="mt-6 flex justify-center">
           <ShareBar url={window.location.href} title={`${gallery?.title} — ${displayName}`} />
         </div>
+        <div className="mt-6 inline-flex rounded-full border border-white/15 bg-white/5 p-1">
+          <button
+            type="button"
+            onClick={() => setLayoutMode('masonry')}
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${layoutMode === 'masonry' ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
+          >
+            Masonry
+          </button>
+          <button
+            type="button"
+            onClick={() => setLayoutMode('grid')}
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${layoutMode === 'grid' ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
+          >
+            Grid
+          </button>
+        </div>
       </div>
 
       {/* Masonry grid */}
@@ -185,7 +202,7 @@ export default function PortfolioGalleryPage() {
             <div className="text-6xl mb-4">📷</div>
             <p>No photos in this gallery yet.</p>
           </div>
-        ) : (
+        ) : layoutMode === 'masonry' ? (
           <Masonry
             breakpointCols={BREAKPOINTS}
             className="flex -ml-2 w-auto"
@@ -227,6 +244,24 @@ export default function PortfolioGalleryPage() {
               </div>
             ))}
           </Masonry>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {photos.map((photo, idx) => (
+              <div
+                key={photo.id}
+                className="group relative aspect-square cursor-pointer overflow-hidden rounded-sm bg-zinc-900"
+                onClick={() => setLightboxIdx(idx)}
+              >
+                <img
+                  src={photo.thumb_url || SAMPLE_PHOTOS[idx % SAMPLE_PHOTOS.length]}
+                  alt={photo.title || ''}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition duration-300" />
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

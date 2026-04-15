@@ -15,6 +15,7 @@ export default function SubscribePage() {
   const [submitting, setSubmitting] = useState(false)
   const [data, setData] = useState({ photographer: null, plans: [] })
   const [email, setEmail] = useState('')
+  const [selectedPlanId, setSelectedPlanId] = useState(null)
 
   useEffect(() => {
     getPublicSubscriptionPlans(username)
@@ -31,7 +32,7 @@ export default function SubscribePage() {
 
     setSubmitting(true)
     try {
-      const successUrl = `${window.location.origin}/subscribe/${username}/manage`
+      const successUrl = `${window.location.origin}/subscribe/${username}/success`
       const cancelUrl = window.location.href
       const { url } = await createSubscriptionCheckoutSession({
         planId,
@@ -50,55 +51,84 @@ export default function SubscribePage() {
   if (loading) {
     return (
       <PublicLayout>
-        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+        <div className="min-h-[60vh] flex justify-center items-center"><Spinner size="lg" /></div>
       </PublicLayout>
     )
   }
 
+  const selectedPlan = (data?.plans || []).find((p) => p.id === selectedPlanId) || null
+
   return (
     <PublicLayout>
-      <div className="mx-auto max-w-5xl px-4 py-12">
-        <h1 className="text-3xl font-black text-gray-900">Subscribe to {data?.photographer?.brand_name || data?.photographer?.username}</h1>
-        <p className="mt-2 text-sm text-gray-600">Choose a recurring plan and manage it anytime from customer portal.</p>
-
-        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-4">
-          <label className="mb-1 block text-sm font-medium text-gray-700">Your email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm"
-          />
+      <div className="mx-auto max-w-6xl px-4 py-12">
+        <div className="rounded-3xl border border-white/10 bg-slate-950 p-6 shadow-2xl">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Subscriptions</p>
+          <h1 className="mt-2 text-3xl font-black text-white">Subscribe to {data?.photographer?.brand_name || data?.photographer?.username}</h1>
+          <p className="mt-2 text-sm text-slate-400">Step 1: choose plan. Step 2: add email. Step 3: pay securely with Stripe.</p>
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(data?.plans || []).map((plan) => (
-            <div key={plan.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-bold text-gray-900">{plan.name}</h2>
-              <p className="mt-2 text-2xl font-black text-gray-900">{formatCurrency(plan.price_cents)} <span className="text-sm font-medium text-gray-500">/{plan.billing_period}</span></p>
-              <p className="mt-2 text-sm text-gray-600">{plan.description || 'Recurring subscription plan'}</p>
-              {!!plan.trial_days && <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-600">{plan.trial_days} day free trial</p>}
-              <button
-                type="button"
-                onClick={() => onSubscribe(plan.id)}
-                disabled={submitting}
-                className="mt-5 w-full rounded-xl bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
-              >
-                {submitting ? 'Redirecting...' : 'Subscribe'}
-              </button>
-            </div>
+            <button
+              type="button"
+              key={plan.id}
+              onClick={() => setSelectedPlanId(plan.id)}
+              className={`rounded-2xl border p-5 text-left transition ${selectedPlanId === plan.id ? 'border-emerald-300/60 bg-emerald-300/10' : 'border-white/10 bg-slate-900/70 hover:bg-slate-900'}`}
+            >
+              <h2 className="text-lg font-bold text-white">{plan.name}</h2>
+              <p className="mt-2 text-2xl font-black text-white">{formatCurrency(plan.price_cents)} <span className="text-sm font-medium text-slate-400">/{plan.billing_period}</span></p>
+              <p className="mt-2 text-sm text-slate-400">{plan.description || 'Recurring subscription plan'}</p>
+              {!!plan.trial_days && <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-300">{plan.trial_days} day free trial</p>}
+              {selectedPlanId === plan.id && <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-200">Selected</p>}
+            </button>
           ))}
         </div>
 
+        <div className="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+          <h2 className="text-lg font-bold text-white">Complete Checkout</h2>
+          {selectedPlan ? (
+            <p className="mt-2 text-sm text-slate-300">Selected plan: <span className="font-semibold text-white">{selectedPlan.name}</span> ({formatCurrency(selectedPlan.price_cents)}/{selectedPlan.billing_period})</p>
+          ) : (
+            <p className="mt-2 text-sm text-amber-300">Select a plan above to continue.</p>
+          )}
+
+          {!!selectedPlan?.trial_days && (
+            <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-emerald-300">
+              Trial countdown starts after checkout: {selectedPlan.trial_days} day{selectedPlan.trial_days > 1 ? 's' : ''}
+            </p>
+          )}
+
+          <div className="mt-4">
+            <label className="mb-1 block text-sm font-medium text-slate-300">Your email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => selectedPlan && onSubscribe(selectedPlan.id)}
+            disabled={submitting || !selectedPlan}
+            className="mt-4 w-full rounded-xl bg-indigo-600 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+          >
+            {submitting ? 'Redirecting to payment...' : 'Continue to Secure Payment'}
+          </button>
+
+          <p className="mt-2 text-xs text-slate-500">Payments are processed by Stripe. You can upgrade, downgrade, or cancel later.</p>
+        </div>
+
         {(data?.plans || []).length === 0 && (
-          <div className="mt-8 rounded-2xl border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-600">
+          <div className="mt-8 rounded-2xl border border-white/10 bg-slate-900/70 p-6 text-center text-sm text-slate-400">
             No active plans available right now.
           </div>
         )}
 
         <div className="mt-8 text-center text-sm">
-          <Link to={`/subscribe/${username}/manage`} className="text-indigo-600 hover:underline">Already subscribed? Manage your plan</Link>
+          <Link to={`/subscribe/${username}/manage`} className="text-indigo-300 hover:text-indigo-200">Already subscribed? Manage your plan</Link>
         </div>
       </div>
     </PublicLayout>

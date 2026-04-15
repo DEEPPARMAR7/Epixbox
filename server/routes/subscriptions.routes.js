@@ -4,6 +4,7 @@ const stripe = require('../config/stripe');
 const requireAuth = require('../middleware/auth.middleware');
 const { SubscriptionPlan, Subscription, User, Gallery } = require('../models/index');
 const { getTierLimits } = require('../utils/subscriptionTiers');
+const { sendSubscriptionWelcomeEmail, sendTrialEndingReminderEmail } = require('../services/email.service');
 
 const router = express.Router();
 
@@ -422,6 +423,7 @@ router.post('/checkout-session', async (req, res, next) => {
 
     const plan = await SubscriptionPlan.findOne({ where: { id: planId, is_active: true } });
     if (!plan) return res.status(404).json({ error: 'Plan not found' });
+    const photographer = await User.findByPk(plan.user_id, { attributes: ['username'] });
 
     const customer = await findOrCreateStripeCustomer({
       email: String(customerEmail).trim().toLowerCase(),
@@ -439,12 +441,14 @@ router.post('/checkout-session', async (req, res, next) => {
         metadata: {
           plan_id: String(plan.id),
           photographer_user_id: String(plan.user_id),
+          username: String(photographer?.username || ''),
           customer_email: String(customerEmail).trim().toLowerCase(),
         },
       },
       metadata: {
         plan_id: String(plan.id),
         photographer_user_id: String(plan.user_id),
+        username: String(photographer?.username || ''),
         customer_email: String(customerEmail).trim().toLowerCase(),
       },
     });
@@ -538,6 +542,7 @@ router.post('/webhook', async (req, res) => {
         const customerEmail = (stripeSub.metadata?.customer_email || session.metadata?.customer_email || session.customer_details?.email || '').toLowerCase();
 
         if (planId && photographerUserId && customerEmail) {
+          const plan = await SubscriptionPlan.findByPk(planId, { attributes: ['name', 'trial_days'] });
           await Subscription.upsert({
             plan_id: planId,
             photographer_user_id: photographerUserId,
@@ -553,6 +558,15 @@ router.post('/webhook', async (req, res) => {
             canceled_at: asDate(stripeSub.canceled_at),
             latest_invoice_id: stripeSub.latest_invoice || null,
           });
+
+          const manageBase = process.env.CLIENT_URL || process.env.FRONTEND_URL || '';
+          const manageUrl = manageBase ? `${manageBase}/subscribe/${session.metadata?.username || ''}/manage` : '#';
+          sendSubscriptionWelcomeEmail({
+            to: customerEmail,
+            planName: plan?.name || 'EpicBox Plan',
+            trialDays: Number(plan?.trial_days || 0),
+            manageUrl,
+          }).catch(() => {});
         }
       }
     }
@@ -597,6 +611,26 @@ router.post('/webhook', async (req, res) => {
             latest_invoice_id: invoice.id,
           });
         }
+      }
+    }
+
+    if (event.type === 'customer.subscription.trial_will_end') {
+      const stripeSub = event.data.object;
+      const local = await Subscription.findOne({
+        where: { stripe_subscription_id: stripeSub.id },
+        include: [{ model: SubscriptionPlan, attributes: ['name'] }],
+      });
+
+      if (local) {
+        const manageBase = process.env.CLIENT_URL || process.env.FRONTEND_URL || '';
+        const username = (await User.findByPk(local.photographer_user_id, { attributes: ['username'] }))?.username || '';
+        const manageUrl = manageBase ? `${manageBase}/subscribe/${username}/manage` : '#';
+
+        sendTrialEndingReminderEmail({
+          to: local.customer_email,
+          planName: local.SubscriptionPlan?.name || 'EpicBox Plan',
+          manageUrl,
+        }).catch(() => {});
       }
     }
 

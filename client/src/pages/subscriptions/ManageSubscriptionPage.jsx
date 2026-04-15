@@ -53,11 +53,13 @@ export default function ManageSubscriptionPage() {
   return (
     <PublicLayout>
       <div className="mx-auto max-w-4xl px-4 py-12">
-        <h1 className="text-3xl font-black text-gray-900">Manage Subscription</h1>
-        <p className="mt-2 text-sm text-gray-600">Look up your active plans, view trial countdown, and manage upgrade/downgrade/cancel from Stripe portal.</p>
+        <div className="rounded-3xl border border-white/10 bg-slate-950 p-6 shadow-2xl">
+          <h1 className="text-3xl font-black text-white">Manage Subscription</h1>
+          <p className="mt-2 text-sm text-slate-400">Look up active plans, watch trial countdown, and manage billing from Stripe portal.</p>
+        </div>
 
-        <form onSubmit={onLookup} className="mt-6 rounded-2xl border border-gray-200 bg-white p-4">
-          <label className="mb-1 block text-sm font-medium text-gray-700">Subscriber email</label>
+        <form onSubmit={onLookup} className="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+          <label className="mb-1 block text-sm font-medium text-slate-300">Subscriber email</label>
           <div className="flex gap-2">
             <input
               type="email"
@@ -65,7 +67,7 @@ export default function ManageSubscriptionPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm"
+              className="flex-1 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-slate-500"
             />
             <button
               type="submit"
@@ -77,23 +79,23 @@ export default function ManageSubscriptionPage() {
           </div>
         </form>
 
-        <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-4 text-sm text-slate-300">
           Active subscriptions: <span className="font-bold">{activeCount}</span>
         </div>
 
         <div className="mt-6 space-y-3">
           {subscriptions.map((sub) => (
-            <div key={sub.id} className="rounded-2xl border border-gray-200 bg-white p-4">
+            <div key={sub.id} className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-base font-bold text-gray-900">{sub.SubscriptionPlan?.name || 'Plan'}</p>
-                  <p className="text-sm text-gray-600">{formatCurrency(sub.SubscriptionPlan?.price_cents || 0)} / {sub.SubscriptionPlan?.billing_period || 'monthly'}</p>
+                  <p className="text-base font-bold text-white">{sub.SubscriptionPlan?.name || 'Plan'}</p>
+                  <p className="text-sm text-slate-400">{formatCurrency(sub.SubscriptionPlan?.price_cents || 0)} / {sub.SubscriptionPlan?.billing_period || 'monthly'}</p>
                 </div>
-                <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold uppercase text-gray-700">{sub.status}</span>
+                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase text-slate-200">{sub.status}</span>
               </div>
 
               {sub.trial_days_remaining > 0 && (
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-600">
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-300">
                   Trial ends in {sub.trial_days_remaining} day{sub.trial_days_remaining > 1 ? 's' : ''}
                 </p>
               )}
@@ -112,7 +114,7 @@ export default function ManageSubscriptionPage() {
           ))}
 
           {!loading && subscriptions.length === 0 && (
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-600">
+            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 text-center text-sm text-slate-400">
               Enter your email to check subscriptions for {username}.
             </div>
           )}

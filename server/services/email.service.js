@@ -81,4 +81,58 @@ async function sendUploadCompleteEmail({ to, galleryTitle, uploadedCount }) {
   });
 }
 
-module.exports = { sendProofingInvite, sendOrderConfirmation, sendPasswordResetEmail, sendUploadCompleteEmail };
+async function sendSubscriptionWelcomeEmail({ to, planName, trialDays, manageUrl }) {
+  if (!to) return;
+
+  await transporter.sendMail({
+    from: `"EpicBox" <${process.env.EMAIL_FROM || 'noreply@epicbox.app'}>`,
+    to,
+    subject: `Welcome to ${planName} subscription`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #0f172a;">
+        <h2 style="margin-bottom: 8px;">Subscription confirmed</h2>
+        <p style="margin: 0 0 16px; color: #334155;">
+          You're now subscribed to <strong>${planName}</strong>.
+        </p>
+        ${trialDays > 0 ? `<p style="margin: 0 0 16px; color: #334155;">Your free trial ends in <strong>${trialDays} day${trialDays > 1 ? 's' : ''}</strong>.</p>` : ''}
+        <p style="margin: 0 0 20px;">
+          <a href="${manageUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:700;">
+            Manage subscription
+          </a>
+        </p>
+      </div>
+    `,
+  });
+}
+
+async function sendTrialEndingReminderEmail({ to, planName, manageUrl }) {
+  if (!to) return;
+
+  await transporter.sendMail({
+    from: `"EpicBox" <${process.env.EMAIL_FROM || 'noreply@epicbox.app'}>`,
+    to,
+    subject: `Your ${planName} trial is ending soon`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #0f172a;">
+        <h2 style="margin-bottom: 8px;">Trial reminder</h2>
+        <p style="margin: 0 0 16px; color: #334155;">
+          Your <strong>${planName}</strong> trial will end soon. Keep your access uninterrupted by reviewing your billing details.
+        </p>
+        <p style="margin: 0 0 20px;">
+          <a href="${manageUrl}" style="display:inline-block;background:#16a34a;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:700;">
+            Review subscription
+          </a>
+        </p>
+      </div>
+    `,
+  });
+}
+
+module.exports = {
+  sendProofingInvite,
+  sendOrderConfirmation,
+  sendPasswordResetEmail,
+  sendUploadCompleteEmail,
+  sendSubscriptionWelcomeEmail,
+  sendTrialEndingReminderEmail,
+};
