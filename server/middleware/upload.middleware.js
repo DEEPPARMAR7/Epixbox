@@ -30,16 +30,20 @@ const storage = multerS3({
   },
 });
 
-const uploadPhotos = multer({
-  storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
-  fileFilter: (req, file, cb) => {
-    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error(`Invalid file type: ${file.mimetype}. Only images and videos are allowed.`));
-    }
-  },
-}).array('photos', 50);
+function createUploadPhotos({ maxFiles = 50, maxFileSizeMb = 50 } = {}) {
+  return multer({
+    storage,
+    limits: { fileSize: maxFileSizeMb * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Invalid file type: ${file.mimetype}. Only images and videos are allowed.`));
+      }
+    },
+  }).array('photos', maxFiles);
+}
 
-module.exports = { uploadPhotos };
+const uploadPhotos = createUploadPhotos();
+
+module.exports = { uploadPhotos, createUploadPhotos };

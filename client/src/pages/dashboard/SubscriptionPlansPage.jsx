@@ -5,8 +5,10 @@ import Spinner from '../../components/common/Spinner'
 import {
   createSubscriptionPlan,
   deactivateSubscriptionPlan,
+  getSubscriptionMigrationAudit,
   getMySubscriptionPlans,
   getSubscriptionAnalytics,
+  migrateSubscriptionPlansToStripe,
   updateSubscriptionPlan,
 } from '../../api/subscriptionsApi'
 import { formatCurrency } from '../../utils/formatters'
@@ -24,22 +26,35 @@ export default function SubscriptionPlansPage() {
   const [saving, setSaving] = useState(false)
   const [plans, setPlans] = useState([])
   const [analytics, setAnalytics] = useState(null)
+  const [migrationAudit, setMigrationAudit] = useState(null)
+  const [migrating, setMigrating] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
 
   const activePlans = useMemo(() => plans.filter((p) => p.is_active), [plans])
 
   const load = async () => {
     try {
-      const [planData, analyticsData] = await Promise.all([
+      const [planData, analyticsData, auditData] = await Promise.all([
         getMySubscriptionPlans(),
         getSubscriptionAnalytics(),
+        getSubscriptionMigrationAudit(),
       ])
       setPlans(planData || [])
       setAnalytics(analyticsData)
+      setMigrationAudit(auditData || null)
     } catch (err) {
       toast.error(err?.response?.data?.error || 'Failed to load subscriptions dashboard')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const reloadAudit = async () => {
+    try {
+      const audit = await getSubscriptionMigrationAudit()
+      setMigrationAudit(audit)
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to load migration audit')
     }
   }
 
@@ -87,6 +102,21 @@ export default function SubscriptionPlansPage() {
     }
   }
 
+  const runMigration = async (dryRun) => {
+    setMigrating(true)
+    try {
+      const result = await migrateSubscriptionPlansToStripe({ dryRun })
+      const base = dryRun ? 'Migration dry-run:' : 'Migration applied:'
+      toast.success(`${base} migrated ${result.migrated}, failed ${result.failed}`)
+      await load()
+      await reloadAudit()
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Migration failed')
+    } finally {
+      setMigrating(false)
+    }
+  }
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -120,6 +150,47 @@ export default function SubscriptionPlansPage() {
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.15em] text-slate-500">30d Churn</p>
             <p className="mt-2 text-2xl font-black text-white">{analytics?.churn_rate_30d || 0}%</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-bold text-white">Stripe Migration Audit</h2>
+              <p className="mt-1 text-xs text-slate-400">Find and repair legacy plans that are missing Stripe product/price linkage.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => runMigration(true)}
+                disabled={migrating}
+                className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-60"
+              >
+                {migrating ? 'Running...' : 'Dry Run'}
+              </button>
+              <button
+                type="button"
+                onClick={() => runMigration(false)}
+                disabled={migrating}
+                className="rounded-xl bg-amber-500 px-3 py-2 text-xs font-semibold text-black hover:bg-amber-400 disabled:opacity-60"
+              >
+                {migrating ? 'Running...' : 'Run Migration'}
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Plans Scanned</p>
+              <p className="mt-1 text-lg font-bold text-white">{migrationAudit?.total ?? '-'}</p>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Missing Linkage</p>
+              <p className="mt-1 text-lg font-bold text-amber-300">{migrationAudit?.missing ?? '-'}</p>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Status</p>
+              <p className="mt-1 text-lg font-bold text-white">{(migrationAudit?.missing || 0) > 0 ? 'Action needed' : 'Healthy'}</p>
+            </div>
           </div>
         </div>
 

@@ -38,6 +38,38 @@ async function findOrCreateStripeCustomer({ email, photographerUserId }) {
   });
 }
 
+async function resolvePlanStripeLink(plan) {
+  const result = {
+    needsMigration: false,
+    stripe_product_id: plan.stripe_product_id || null,
+    stripe_price_id: plan.stripe_price_id || null,
+    reason: null,
+  };
+
+  if (!plan.stripe_price_id && !plan.stripe_product_id) {
+    result.needsMigration = true;
+    result.reason = 'missing_price_and_product';
+    return result;
+  }
+
+  if (plan.stripe_price_id) {
+    try {
+      const stripePrice = await stripe.prices.retrieve(plan.stripe_price_id);
+      result.stripe_price_id = stripePrice.id;
+      result.stripe_product_id = typeof stripePrice.product === 'string' ? stripePrice.product : stripePrice.product?.id;
+      return result;
+    } catch {
+      result.needsMigration = true;
+      result.reason = 'invalid_price_id';
+      return result;
+    }
+  }
+
+  result.needsMigration = true;
+  result.reason = 'missing_price_id';
+  return result;
+}
+
 // ----- Photographer plan management -----
 
 // GET /api/subscriptions/plans (photographer)
@@ -48,6 +80,119 @@ router.get('/plans', requireAuth, async (req, res, next) => {
       order: [['created_at', 'DESC']],
     });
     res.json(plans);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/subscriptions/plans/migration-audit (photographer)
+router.get('/plans/migration-audit', requireAuth, async (req, res, next) => {
+  try {
+    const plans = await SubscriptionPlan.findAll({
+      where: { user_id: req.user.id },
+      order: [['created_at', 'DESC']],
+    });
+
+    const results = [];
+    for (const plan of plans) {
+      const link = await resolvePlanStripeLink(plan);
+      results.push({
+        id: plan.id,
+        name: plan.name,
+        is_active: plan.is_active,
+        ...link,
+      });
+    }
+
+    res.json({
+      total: results.length,
+      missing: results.filter((r) => r.needsMigration).length,
+      plans: results,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/subscriptions/plans/migrate-stripe (photographer)
+router.post('/plans/migrate-stripe', requireAuth, async (req, res, next) => {
+  try {
+    const dryRun = req.body?.dryRun !== false;
+    const includeInactive = req.body?.includeInactive === true;
+
+    const where = { user_id: req.user.id };
+    if (!includeInactive) where.is_active = true;
+
+    const plans = await SubscriptionPlan.findAll({ where, order: [['created_at', 'ASC']] });
+    const summary = {
+      scanned: plans.length,
+      migrated: 0,
+      alreadyValid: 0,
+      failed: 0,
+      dryRun,
+      details: [],
+    };
+
+    for (const plan of plans) {
+      try {
+        const link = await resolvePlanStripeLink(plan);
+        if (!link.needsMigration) {
+          if (!dryRun && (plan.stripe_product_id !== link.stripe_product_id || plan.stripe_price_id !== link.stripe_price_id)) {
+            await plan.update({
+              stripe_product_id: link.stripe_product_id,
+              stripe_price_id: link.stripe_price_id,
+            });
+          }
+
+          summary.alreadyValid += 1;
+          summary.details.push({ id: plan.id, name: plan.name, status: 'valid', ...link });
+          continue;
+        }
+
+        if (dryRun) {
+          summary.migrated += 1;
+          summary.details.push({ id: plan.id, name: plan.name, status: 'would_migrate', reason: link.reason });
+          continue;
+        }
+
+        const product = await stripe.products.create({
+          name: plan.name,
+          description: plan.description || undefined,
+          metadata: {
+            photographer_user_id: String(plan.user_id),
+            plan_id: String(plan.id),
+            migration: 'true',
+          },
+        });
+
+        const amount = Number(plan.price_cents || 0);
+        if (!Number.isFinite(amount) || amount < 100) {
+          throw new Error('Invalid plan price_cents for migration');
+        }
+
+        const interval = parseBillingPeriod(plan.billing_period) === 'yearly' ? 'year' : 'month';
+        const price = await stripe.prices.create({
+          product: product.id,
+          unit_amount: amount,
+          currency: 'usd',
+          recurring: { interval },
+          metadata: {
+            photographer_user_id: String(plan.user_id),
+            plan_id: String(plan.id),
+            migration: 'true',
+          },
+        });
+
+        await plan.update({ stripe_product_id: product.id, stripe_price_id: price.id });
+        summary.migrated += 1;
+        summary.details.push({ id: plan.id, name: plan.name, status: 'migrated', stripe_product_id: product.id, stripe_price_id: price.id });
+      } catch (err) {
+        summary.failed += 1;
+        summary.details.push({ id: plan.id, name: plan.name, status: 'failed', error: err.message });
+      }
+    }
+
+    res.json(summary);
   } catch (error) {
     next(error);
   }

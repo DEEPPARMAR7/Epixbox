@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const { Op, fn, col } = require('sequelize');
 const requireAuth = require('../middleware/auth.middleware');
 const { requireRole } = require('../middleware/rbac.middleware');
-const { User, Gallery, Photo, Order, sequelize } = require('../models/index');
+const { User, Gallery, Photo, Order, SubscriptionPlan, sequelize } = require('../models/index');
 const { getRateAnalytics } = require('../services/rateAnalytics.service');
 const { deleteFile } = require('../services/s3.service');
 const { getOwnerEmails } = require('../utils/roles');
@@ -312,6 +312,42 @@ router.get('/payments/transactions', async (req, res, next) => {
       total: count,
       totalPages: Math.ceil(count / limit),
       paidRevenueCents: Number(paidTotal || 0),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/billing/stripe-linkage', async (req, res, next) => {
+  try {
+    const plans = await SubscriptionPlan.findAll({
+      include: [{ model: User, attributes: ['id', 'email', 'username'] }],
+      order: [['created_at', 'DESC']],
+    });
+
+    const missing = plans.filter((p) => !p.stripe_product_id || !p.stripe_price_id);
+    const invalidShape = plans.filter((p) => !p.name || !p.price_cents || Number(p.price_cents) < 100);
+
+    res.json({
+      totals: {
+        plans: plans.length,
+        missingStripeLinkage: missing.length,
+        invalidPriceShape: invalidShape.length,
+      },
+      items: missing.slice(0, 200).map((p) => ({
+        id: p.id,
+        name: p.name,
+        price_cents: p.price_cents,
+        billing_period: p.billing_period,
+        stripe_product_id: p.stripe_product_id || null,
+        stripe_price_id: p.stripe_price_id || null,
+        is_active: p.is_active,
+        user: p.User ? {
+          id: p.User.id,
+          email: p.User.email,
+          username: p.User.username,
+        } : null,
+      })),
     });
   } catch (err) {
     next(err);

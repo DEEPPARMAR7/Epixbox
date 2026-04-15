@@ -1,6 +1,8 @@
 import axiosClient from './axiosClient'
 
 export const getMySubscriptionPlans = () => axiosClient.get('/subscriptions/plans').then((r) => r.data)
+export const getSubscriptionMigrationAudit = () => axiosClient.get('/subscriptions/plans/migration-audit').then((r) => r.data)
+export const migrateSubscriptionPlansToStripe = (data) => axiosClient.post('/subscriptions/plans/migrate-stripe', data).then((r) => r.data)
 export const createSubscriptionPlan = (data) => axiosClient.post('/subscriptions/plans', data).then((r) => r.data)
 export const updateSubscriptionPlan = (id, data) => axiosClient.patch(`/subscriptions/plans/${id}`, data).then((r) => r.data)
 export const deactivateSubscriptionPlan = (id) => axiosClient.delete(`/subscriptions/plans/${id}`).then((r) => r.data)

@@ -6,6 +6,8 @@ const s3Client = require('../config/s3');
 const stripe = require('../config/stripe');
 const { User, CustomDomain } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
+const { requireFeature } = require('../middleware/featureGate.middleware');
+const { getTierLimits } = require('../utils/subscriptionTiers');
 const crypto = require('crypto');
 
 router.use(requireAuth);
@@ -66,7 +68,10 @@ router.post('/avatar', (req, res, next) => {
 });
 
 // POST /api/settings/domain
-router.post('/domain', async (req, res, next) => {
+router.post('/domain', requireFeature(async ({ limits }) => ({
+  allowed: limits.canCustomDomain,
+  message: 'Custom domain is available on Pro and Business plans only.',
+})), async (req, res, next) => {
   try {
     const { domain } = req.body;
     if (!domain) return res.status(400).json({ error: 'Domain is required' });
@@ -83,7 +88,8 @@ router.post('/domain', async (req, res, next) => {
 // GET /api/settings/billing
 router.get('/billing', async (req, res, next) => {
   try {
-    res.json({ plan: req.user.plan, stripe_customer_id: req.user.stripe_customer_id });
+    const limits = getTierLimits(req.user.plan);
+    res.json({ plan: req.user.plan, stripe_customer_id: req.user.stripe_customer_id, tier_limits: limits });
   } catch (err) { next(err); }
 });
 

@@ -2,12 +2,19 @@ const express = require('express');
 const { Op } = require('sequelize');
 const { Order, OrderItem, Photo, Gallery, User } = require('../models');
 const requireAuth = require('../middleware/auth.middleware');
+const { requireFeature } = require('../middleware/featureGate.middleware');
 const sequelize = require('../config/database');
 
 const router = express.Router();
 
+router.use(requireAuth);
+router.use(requireFeature(async ({ limits }) => ({
+  allowed: limits.canAdvancedAnalytics,
+  message: 'Advanced analytics are available on Pro and Business plans only.',
+})));
+
 // GET revenue summary
-router.get('/revenue-summary', requireAuth, async (req, res, next) => {
+router.get('/revenue-summary', async (req, res, next) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -35,7 +42,7 @@ router.get('/revenue-summary', requireAuth, async (req, res, next) => {
 });
 
 // GET customer insights
-router.get('/customer-insights', requireAuth, async (req, res, next) => {
+router.get('/customer-insights', async (req, res, next) => {
   try {
     const orders = await Order.findAll({
       where: { photographer_id: req.user.id, status: 'paid' },
@@ -76,7 +83,7 @@ router.get('/customer-insights', requireAuth, async (req, res, next) => {
 });
 
 // GET sales by product
-router.get('/product-sales', requireAuth, async (req, res, next) => {
+router.get('/product-sales', async (req, res, next) => {
   try {
     const sales = await OrderItem.findAll({
       include: [
@@ -102,7 +109,7 @@ router.get('/product-sales', requireAuth, async (req, res, next) => {
 });
 
 // GET sales by gallery
-router.get('/gallery-sales', requireAuth, async (req, res, next) => {
+router.get('/gallery-sales', async (req, res, next) => {
   try {
     const sales = await OrderItem.findAll({
       include: [
@@ -132,7 +139,7 @@ router.get('/gallery-sales', requireAuth, async (req, res, next) => {
 });
 
 // POST export report to CSV
-router.post('/export-report', requireAuth, async (req, res, next) => {
+router.post('/export-report', async (req, res, next) => {
   try {
     const { startDate, endDate } = req.body;
 

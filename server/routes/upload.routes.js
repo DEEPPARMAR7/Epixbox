@@ -1,10 +1,11 @@
 const router = require('express').Router();
 const { v4: uuidv4 } = require('uuid');
 const { Photo, Gallery } = require('../models/index');
-const { uploadPhotos } = require('../middleware/upload.middleware');
+const { createUploadPhotos } = require('../middleware/upload.middleware');
+const { getTierLimits } = require('../utils/subscriptionTiers');
 const { processUploadedPhoto } = require('../services/imageProcess.service');
 const { extractExif } = require('../services/exif.service');
-const { getObjectBuffer, getSignedUploadUrl, getPublicUrl } = require('../services/s3.service');
+const { getObjectBuffer, getSignedUploadUrl, getPublicUrl, deleteFile } = require('../services/s3.service');
 const requireAuth = require('../middleware/auth.middleware');
 const { uploadLimiter } = require('../middleware/rateLimit.middleware');
 const { audit } = require('../middleware/audit.middleware');
@@ -24,11 +25,30 @@ router.use(uploadLimiter);
 
 // POST /api/upload/photos
 router.post('/photos', audit('upload.photos'), (req, res, next) => {
+  const limits = getTierLimits(req.user?.plan);
+  const uploadPhotos = createUploadPhotos({
+    maxFiles: limits.maxUploadBatch,
+    maxFileSizeMb: limits.maxUploadFileSizeMb,
+  });
+
   uploadPhotos(req, res, async (err) => {
     if (err) return next(err);
     try {
       const { gallery_id } = req.body;
       if (!gallery_id) return res.status(400).json({ error: 'gallery_id is required' });
+
+      const incomingCount = (req.files || []).length;
+      const currentPhotoCount = await Photo.count({ where: { user_id: req.user.id } });
+      if (currentPhotoCount + incomingCount > limits.maxPhotosAccount) {
+        for (const file of req.files || []) {
+          try { await deleteFile(file.key); } catch {}
+        }
+        return res.status(403).json({
+          error: `Your ${limits.label} plan allows up to ${limits.maxPhotosAccount} photos. Upgrade to continue.`,
+          tier: limits.tier,
+          limits,
+        });
+      }
 
       const gallery = await Gallery.findOne({ where: { id: gallery_id, user_id: req.user.id } });
       if (!gallery) {

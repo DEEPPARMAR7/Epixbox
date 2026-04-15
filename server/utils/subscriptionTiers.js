@@ -2,6 +2,9 @@ const TIER_LIMITS = {
   free: {
     maxGalleries: 3,
     maxActivePlans: 1,
+    maxUploadBatch: 10,
+    maxUploadFileSizeMb: 25,
+    maxPhotosAccount: 500,
     canCustomDomain: false,
     canAdvancedAnalytics: false,
     label: 'Free',
@@ -9,6 +12,9 @@ const TIER_LIMITS = {
   pro: {
     maxGalleries: 25,
     maxActivePlans: 5,
+    maxUploadBatch: 30,
+    maxUploadFileSizeMb: 50,
+    maxPhotosAccount: 5000,
     canCustomDomain: true,
     canAdvancedAnalytics: true,
     label: 'Pro',
@@ -16,6 +22,9 @@ const TIER_LIMITS = {
   business: {
     maxGalleries: 9999,
     maxActivePlans: 50,
+    maxUploadBatch: 50,
+    maxUploadFileSizeMb: 100,
+    maxPhotosAccount: 100000,
     canCustomDomain: true,
     canAdvancedAnalytics: true,
     label: 'Business',
