@@ -17,6 +17,8 @@ import AboutPage from "./pages/About";
 import PortfolioHomePage from "./pages/portfolio/PortfolioHomePage.jsx";
 import PortfolioGalleryPage from "./pages/portfolio/PortfolioGalleryPage.jsx";
 import ClientProofingPage from "./pages/proofing/ClientProofingPage.jsx";
+import SubscribePage from "./pages/subscriptions/SubscribePage.jsx";
+import ManageSubscriptionPage from "./pages/subscriptions/ManageSubscriptionPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +57,8 @@ const App = () => (
 						<Route path="/p/:username" element={<PortfolioHomePage />} />
 						<Route path="/p/:username/:slug" element={<PortfolioGalleryPage />} />
 						<Route path="/proof/:token" element={<ClientProofingPage />} />
+						<Route path="/subscribe/:username" element={<SubscribePage />} />
+						<Route path="/subscribe/:username/manage" element={<ManageSubscriptionPage />} />
 						<Route path="*" element={<NotFound />} />
 					</Routes>
 				</BrowserRouter>

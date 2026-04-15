@@ -3,6 +3,7 @@ const slugify = require('slugify');
 const { Gallery, GallerySetting, Photo } = require('../models/index');
 const { deleteFile } = require('../services/s3.service');
 const requireAuth = require('../middleware/auth.middleware');
+const { requireFeature } = require('../middleware/featureGate.middleware');
 const { Op } = require('sequelize');
 
 router.use(requireAuth);
@@ -25,7 +26,13 @@ router.get('/', async (req, res, next) => {
 });
 
 // POST /api/galleries
-router.post('/', async (req, res, next) => {
+router.post('/', requireFeature(async ({ req, limits }) => {
+  const galleryCount = await Gallery.count({ where: { user_id: req.user.id } });
+  return {
+    allowed: galleryCount < limits.maxGalleries,
+    message: `Your ${limits.label} plan allows up to ${limits.maxGalleries} galleries. Upgrade to continue.`,
+  };
+}), async (req, res, next) => {
   try {
     const { title, description, visibility, parent_id, settings } = req.body;
     if (!title) return res.status(400).json({ error: 'Title is required' });

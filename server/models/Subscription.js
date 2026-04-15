@@ -3,18 +3,17 @@ module.exports = (sequelize, DataTypes) => {
     'Subscription',
     {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         primaryKey: true,
-        autoIncrement: true,
+        defaultValue: DataTypes.UUIDV4,
       },
       plan_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
-        references: {
-          model: 'SubscriptionPlans',
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
+      },
+      photographer_user_id: {
+        type: DataTypes.UUID,
+        allowNull: false,
       },
       customer_email: {
         type: DataTypes.STRING(255),
@@ -33,8 +32,8 @@ module.exports = (sequelize, DataTypes) => {
         comment: 'Stripe Customer ID',
       },
       status: {
-        type: DataTypes.ENUM('active', 'past_due', 'canceled', 'unpaid', 'trialing'),
-        defaultValue: 'active',
+        type: DataTypes.ENUM('incomplete', 'trialing', 'active', 'past_due', 'canceled', 'unpaid'),
+        defaultValue: 'incomplete',
       },
       current_period_start: {
         type: DataTypes.DATE,
@@ -52,12 +51,20 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      canceled_at_period_end: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
       trial_start: {
         type: DataTypes.DATE,
         allowNull: true,
       },
       trial_end: {
         type: DataTypes.DATE,
+        allowNull: true,
+      },
+      latest_invoice_id: {
+        type: DataTypes.STRING(255),
         allowNull: true,
       },
       created_at: {
@@ -71,11 +78,13 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
-      tableName: 'Subscriptions',
-      timestamps: false,
+      tableName: 'subscriptions',
+      underscored: true,
       indexes: [
         { fields: ['plan_id'] },
+        { fields: ['photographer_user_id'] },
         { fields: ['stripe_subscription_id'] },
+        { fields: ['customer_email'] },
         { fields: ['status'] },
       ],
     }

@@ -60,6 +60,8 @@ app.use(cors({
 // Raw body for Stripe webhook
 app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
 app.use('/api/v1/orders/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/v1/subscriptions/webhook', express.raw({ type: 'application/json' }));
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
