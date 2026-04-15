@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout'
-import Spinner from '../../components/common/Spinner'
+import IllustratedEmptyState from '../../components/common/IllustratedEmptyState'
+import {
+  DashboardCardsSkeleton,
+  DashboardHeaderSkeleton,
+  DashboardStatsSkeleton,
+  DashboardTableSkeleton,
+} from '../../components/common/DashboardSkeletons'
 import { getGalleries } from '../../api/galleryApi'
 import { getMyOrders } from '../../api/orderApi'
 import { formatCurrency, formatDate } from '../../utils/formatters'
@@ -152,7 +158,7 @@ export default function DashboardHome() {
 
   return (
     <DashboardLayout>
-      <div className="mb-8 rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.25)] sm:p-7">
+      <div className="mb-6 rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)] sm:mb-8 sm:p-7">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-emerald-200/70">Dashboard</p>
@@ -199,9 +205,14 @@ export default function DashboardHome() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20"><Spinner /></div>
+        <div className="space-y-5 sm:space-y-6">
+          <DashboardHeaderSkeleton />
+          <DashboardCardsSkeleton count={5} />
+          <DashboardStatsSkeleton count={4} />
+          <DashboardTableSkeleton rows={5} />
+        </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           <section>
             <div className="mb-4">
               <h2 className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">Getting Started</h2>
@@ -225,7 +236,7 @@ export default function DashboardHome() {
             </div>
           </section>
 
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label="Galleries" value={galleries.length} icon="🖼️" color="bg-gradient-to-br from-indigo-500 to-indigo-700" />
             <StatCard label="Photos" value={totalPhotos.toLocaleString()} icon="📷" color="bg-gradient-to-br from-violet-500 to-violet-700" />
             <StatCard label="Orders" value={monthOrders.length} icon="📦" color="bg-gradient-to-br from-sky-500 to-sky-700" />
@@ -313,7 +324,7 @@ export default function DashboardHome() {
           {orders.length > 0 && (
             <div>
               <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">Recent Orders</h2>
-              <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+              <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
                 <table className="w-full text-sm">
                   <thead className="border-b border-white/10 bg-white/5">
                     <tr>
@@ -346,17 +357,13 @@ export default function DashboardHome() {
 
           {/* Empty state */}
           {galleries.length === 0 && orders.length === 0 && (
-            <div className="text-center py-16 bg-white/5 rounded-2xl border border-dashed border-white/20">
-              <div className="text-5xl mb-4">📷</div>
-              <h3 className="text-lg font-bold text-white mb-2">Start building your portfolio</h3>
-              <p className="text-slate-400 text-sm mb-6 max-w-sm mx-auto">Create your first gallery, upload photos, and share your work with the world.</p>
-              <Link
-                to="/dashboard/galleries"
-                className="inline-flex items-center gap-2 bg-emerald-300 text-[#06210f] px-6 py-3 rounded-xl text-sm font-extrabold uppercase tracking-wide hover:bg-emerald-200 transition"
-              >
-                + Create First Gallery
-              </Link>
-            </div>
+            <IllustratedEmptyState
+              variant="gallery"
+              title="Start building your portfolio"
+              description="Create your first gallery, upload photos, and share your work with clients and visitors."
+              actionLabel="Create First Gallery"
+              actionTo="/dashboard/galleries"
+            />
           )}
         </div>
       )}

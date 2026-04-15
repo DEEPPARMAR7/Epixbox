@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import DashboardLayout from '../../components/layout/DashboardLayout'
-import Spinner from '../../components/common/Spinner'
+import IllustratedEmptyState from '../../components/common/IllustratedEmptyState'
+import {
+  DashboardHeaderSkeleton,
+  DashboardStatsSkeleton,
+  DashboardTableSkeleton,
+} from '../../components/common/DashboardSkeletons'
 import {
   createSubscriptionPlan,
   deactivateSubscriptionPlan,
@@ -150,21 +155,25 @@ export default function SubscriptionPlansPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center py-16"><Spinner /></div>
+        <div className="space-y-5 sm:space-y-6">
+          <DashboardHeaderSkeleton />
+          <DashboardStatsSkeleton count={4} />
+          <DashboardTableSkeleton rows={6} />
+        </div>
       </DashboardLayout>
     )
   }
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Subscriptions</p>
-          <h1 className="mt-2 text-3xl font-black text-white">Subscriber Plans</h1>
+          <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">Subscriber Plans</h1>
           <p className="mt-2 text-sm text-slate-400">Create recurring plans like SmugMug memberships and manage renewals via Stripe.</p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Active Plans</p>
             <p className="mt-2 text-2xl font-black text-white">{activePlans.length}</p>
@@ -275,47 +284,55 @@ export default function SubscriptionPlansPage() {
           </button>
         </form>
 
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-          <table className="w-full text-sm">
-            <thead className="bg-white/5 text-left">
-              <tr>
-                <th onClick={() => onSort('name')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Plan</th>
-                <th onClick={() => onSort('price_cents')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Price</th>
-                <th onClick={() => onSort('trial_days')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Trial</th>
-                <th onClick={() => onSort('is_active')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Status</th>
-                <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/10">
-              {sortedPlans.map((plan) => (
-                <tr key={plan.id}>
-                  <td className="px-4 py-3 text-slate-200">
-                    <p className="font-semibold">{plan.name}</p>
-                    <p className="text-xs text-slate-400">{plan.description || 'No description'}</p>
-                  </td>
-                  <td className="px-4 py-3 text-slate-200">{formatCurrency(plan.price_cents)} / {plan.billing_period}</td>
-                  <td className="px-4 py-3 text-slate-200">{plan.trial_days || 0} days</td>
-                  <td className="px-4 py-3 text-slate-200 uppercase">{plan.is_active ? 'active' : 'inactive'}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      <button onClick={() => onToggleActive(plan)} className="rounded-md border border-white/20 px-2.5 py-1 text-xs text-slate-200 hover:bg-white/10">
-                        {plan.is_active ? 'Pause' : 'Activate'}
-                      </button>
-                      <button onClick={() => onArchive(plan)} className="rounded-md border border-red-400/40 px-2.5 py-1 text-xs text-red-300 hover:bg-red-400/10">
-                        Deactivate
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {plans.length === 0 && (
+        {plans.length > 0 ? (
+          <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
+            <table className="w-full text-sm">
+              <thead className="bg-white/5 text-left">
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-slate-400">No plans created yet</td>
+                  <th onClick={() => onSort('name')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Plan</th>
+                  <th onClick={() => onSort('price_cents')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Price</th>
+                  <th onClick={() => onSort('trial_days')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Trial</th>
+                  <th onClick={() => onSort('is_active')} className="cursor-pointer px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Status</th>
+                  <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-white/10">
+                {sortedPlans.map((plan) => (
+                  <tr key={plan.id}>
+                    <td className="px-4 py-3 text-slate-200">
+                      <p className="font-semibold">{plan.name}</p>
+                      <p className="text-xs text-slate-400">{plan.description || 'No description'}</p>
+                    </td>
+                    <td className="px-4 py-3 text-slate-200">{formatCurrency(plan.price_cents)} / {plan.billing_period}</td>
+                    <td className="px-4 py-3 text-slate-200">{plan.trial_days || 0} days</td>
+                    <td className="px-4 py-3 text-slate-200 uppercase">{plan.is_active ? 'active' : 'inactive'}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        <button onClick={() => onToggleActive(plan)} className="rounded-md border border-white/20 px-2.5 py-1 text-xs text-slate-200 hover:bg-white/10">
+                          {plan.is_active ? 'Pause' : 'Activate'}
+                        </button>
+                        <button onClick={() => onArchive(plan)} className="rounded-md border border-red-400/40 px-2.5 py-1 text-xs text-red-300 hover:bg-red-400/10">
+                          Deactivate
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <IllustratedEmptyState
+            variant="plans"
+            title="No subscription plans created"
+            description="Create your first recurring plan to start selling memberships and premium access."
+            actionLabel="Create Plan"
+            action={() => {
+              const el = document.querySelector('form')
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }}
+          />
+        )}
       </div>
     </DashboardLayout>
   )
