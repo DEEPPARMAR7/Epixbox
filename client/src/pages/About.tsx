@@ -44,9 +44,9 @@ const stats = [
 ];
 
 const team = [
-  { name: "Alex Rivera", role: "Co-founder & CEO", bio: "Wedding photographer turned builder. Started EpixBox after losing a hard drive full of irreplaceable client work." },
-  { name: "Jordan Lee", role: "Co-founder & CTO", bio: "Full-stack engineer with a love for film photography. Obsessed with making complex things feel simple." },
-  { name: "Sam Patel", role: "Head of Product", bio: "Former photo editor at a major magazine. Brings a deep understanding of how photographers actually work." },
+  { name: "Arjun Chauhan", role: "Co-founder & CEO", bio: "Wedding photographer turned builder. Started EpixBox after losing a hard drive full of irreplaceable client work." },
+  { name: "Jenil Sarvani", role: "Co-founder & CTO", bio: "Full-stack engineer with a love for film photography. Obsessed with making complex things feel simple." },
+  { name: "Kartik Rathod", role: "Head of Product", bio: "Former photo editor at a major magazine. Brings a deep understanding of how photographers actually work." },
 ];
 
 const AboutPage = () => {
