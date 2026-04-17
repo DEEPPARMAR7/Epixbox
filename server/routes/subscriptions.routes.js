@@ -71,6 +71,101 @@ async function resolvePlanStripeLink(plan) {
   return result;
 }
 
+// ----- Public browsing endpoints (no auth required) -----
+
+// GET /api/subscriptions/browse (public - all active plans)
+router.get('/browse', async (req, res, next) => {
+  try {
+    const plans = await SubscriptionPlan.findAll({
+      where: { is_active: true },
+      include: [{
+        model: User,
+        attributes: ['id', 'username', 'brand_name', 'email'],
+      }],
+      attributes: ['id', 'user_id', 'name', 'description', 'price_cents', 'billing_period', 'trial_days', 'features', 'created_at'],
+      order: [['price_cents', 'ASC']],
+    });
+
+    // Group by photographer or return flat list
+    const groupByPhotographer = req.query.groupBy === 'photographer';
+    
+    if (groupByPhotographer) {
+      const grouped = {};
+      plans.forEach(plan => {
+        const username = plan.User?.username || 'unknown';
+        if (!grouped[username]) {
+          grouped[username] = {
+            photographer: {
+              id: plan.User?.id,
+              username: plan.User?.username,
+              brand_name: plan.User?.brand_name,
+            },
+            plans: [],
+          };
+        }
+        grouped[username].plans.push({
+          id: plan.id,
+          name: plan.name,
+          description: plan.description,
+          price_cents: plan.price_cents,
+          billing_period: plan.billing_period,
+          trial_days: plan.trial_days,
+          features: plan.features,
+        });
+      });
+      res.json(Object.values(grouped));
+    } else {
+      res.json({
+        total: plans.length,
+        plans: plans.map(p => ({
+          id: p.id,
+          photographer: {
+            id: p.User?.id,
+            username: p.User?.username,
+            brand_name: p.User?.brand_name,
+          },
+          name: p.name,
+          description: p.description,
+          price_cents: p.price_cents,
+          billing_period: p.billing_period,
+          trial_days: p.trial_days,
+          features: p.features,
+        })),
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/subscriptions/browse/:username (public - plans for specific photographer)
+router.get('/browse/:username', async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: { username: req.params.username },
+      attributes: ['id', 'username', 'brand_name'],
+    });
+    if (!user) return res.status(404).json({ error: 'Photographer not found' });
+
+    const plans = await SubscriptionPlan.findAll({
+      where: { user_id: user.id, is_active: true },
+      attributes: ['id', 'name', 'description', 'price_cents', 'billing_period', 'trial_days', 'features'],
+      order: [['price_cents', 'ASC']],
+    });
+
+    res.json({
+      photographer: {
+        username: user.username,
+        brand_name: user.brand_name,
+      },
+      total: plans.length,
+      plans,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ----- Photographer plan management -----
 
 // GET /api/subscriptions/plans (photographer)

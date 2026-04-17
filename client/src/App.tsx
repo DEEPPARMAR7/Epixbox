@@ -23,6 +23,7 @@ import CartPage from "./pages/shop/CartPage.jsx";
 import CheckoutPage from "./pages/shop/CheckoutPage.jsx";
 import OrderSuccessPage from "./pages/shop/OrderSuccessPage.jsx";
 import OrderStatusPage from "./pages/shop/OrderStatusPage.jsx";
+import SubscriptionsPage from "./pages/subscriptions/SubscriptionsPage.jsx";
 import SubscribePage from "./pages/subscriptions/SubscribePage.jsx";
 import ManageSubscriptionPage from "./pages/subscriptions/ManageSubscriptionPage.jsx";
 import SubscriptionSuccessPage from "./pages/subscriptions/SubscriptionSuccessPage.jsx";
@@ -52,6 +53,7 @@ const App = () => (
 						<Route path="/" element={<Index />} />
 						<Route path="/features" element={<FeaturesPage />} />
 						<Route path="/pricing" element={<PricingPage />} />
+						<Route path="/subscriptions" element={<SubscriptionsPage />} />
 						<Route path="/apps" element={<StaticMarketingPage page="apps" />} />
 						<Route path="/login" element={<LoginPage />} />
 						<Route path="/signup" element={<SignupPage />} />

@@ -9,6 +9,16 @@ export const deactivateSubscriptionPlan = (id) => axiosClient.delete(`/subscript
 export const getSubscriptionAnalytics = () => axiosClient.get('/subscriptions/analytics').then((r) => r.data)
 export const getFeatureGates = () => axiosClient.get('/subscriptions/feature-gates').then((r) => r.data)
 
+// Public browsing endpoints (no auth required)
+export const browseAllSubscriptionPlans = (groupBy = null) => {
+  const params = groupBy ? { groupBy } : {}
+  return axiosClient.get('/subscriptions/browse', { params }).then((r) => r.data)
+}
+
+export const browsePhotographerSubscriptionPlans = (username) => 
+  axiosClient.get(`/subscriptions/browse/${username}`).then((r) => r.data)
+
+// Deprecated - use browsePhotographerSubscriptionPlans instead
 export const getPublicSubscriptionPlans = (username) => axiosClient.get(`/subscriptions/public/${username}/plans`).then((r) => r.data)
 
 export const createSubscriptionCheckoutSession = (data) =>

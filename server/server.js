@@ -14,14 +14,17 @@ async function runMigrations() {
   try {
     console.log('Checking for pending database migrations...');
     // Run pending migrations using sequelize-cli
-    execSync('npx sequelize-cli db:migrate', {
+    const output = execSync('npx sequelize-cli db:migrate', {
       cwd: __dirname,
-      stdio: 'inherit',
-      env: { ...process.env },
+      env: { ...process.env, DEBUG: 'sequelize:*' },
+      encoding: 'utf-8',
     });
+    console.log('Migration output:', output);
     console.log('✓ Database migrations completed successfully');
   } catch (err) {
     console.error('⚠ Migration error (non-blocking):', err.message);
+    console.error('Migration stderr:', err.stderr?.toString());
+    console.error('Migration stdout:', err.stdout?.toString());
     // Non-blocking error - server will still start
     // This allows for graceful degradation if migrations fail
   }
