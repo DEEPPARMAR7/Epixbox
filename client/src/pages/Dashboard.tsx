@@ -11,7 +11,6 @@ import AccountSettingsPage from "./dashboard/AccountSettingsPage.jsx";
 import EditProfilePage from "./dashboard/EditProfilePage.jsx";
 import AdminPanelPage from "./dashboard/AdminPanelPage.jsx";
 import PaymentsPage from "./dashboard/PaymentsPage.jsx";
-import SubscriptionPlansPage from "./dashboard/SubscriptionPlansPage.jsx";
 import AnalyticsPage from "./dashboard/AnalyticsPage.jsx";
 
 const DashboardPage = () => {
@@ -26,7 +25,6 @@ const DashboardPage = () => {
       <Route path="proofing" element={<ClientProofingAdminPage />} />
       <Route path="pricing" element={<PricingEditorPage />} />
       <Route path="payments" element={<PaymentsPage />} />
-      <Route path="subscriptions" element={<SubscriptionPlansPage />} />
       <Route path="analytics" element={<AnalyticsPage />} />
       <Route path="settings" element={<AccountSettingsPage />} />
       <Route path="profile" element={<EditProfilePage />} />
