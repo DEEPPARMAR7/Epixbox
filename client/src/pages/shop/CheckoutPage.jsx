@@ -16,7 +16,8 @@ import { formatCurrency } from '../../utils/formatters'
 import { useEffect } from 'react'
 import toast from 'react-hot-toast'
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || import.meta.env.STRIPE_PUBLISHABLE_KEY
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null
 
 function CheckoutForm({ totalCents, onSuccess }) {
   const stripe = useStripe()
@@ -152,6 +153,8 @@ export default function CheckoutPage() {
     )
   }
 
+  const stripeKeyMissing = !stripePublishableKey
+
   return (
     <PublicLayout>
       <Helmet>
@@ -205,7 +208,11 @@ export default function CheckoutPage() {
               </p>
             </div>
 
-            {clientSecret ? (
+            {stripeKeyMissing ? (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                Stripe is not configured. Set <code className="font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> in your environment file and restart the client.
+              </div>
+            ) : clientSecret ? (
               <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
                 <CheckoutForm
                   totalCents={totalCents}
