@@ -5,6 +5,40 @@ const requireAuth = require('../middleware/auth.middleware');
 const { sendOrderConfirmation } = require('../services/email.service');
 const { pushUserNotification } = require('../services/realtime.service');
 
+const ORDER_STATUSES = new Set(['pending', 'paid', 'processing', 'shipped', 'cancelled']);
+
+function parseOrderMeta(order) {
+  try {
+    const parsed = order?.notes ? JSON.parse(order.notes) : {};
+    if (!parsed || typeof parsed !== 'object') return { timeline: [] };
+    if (!Array.isArray(parsed.timeline)) parsed.timeline = [];
+    return parsed;
+  } catch {
+    return { timeline: [] };
+  }
+}
+
+async function appendOrderTimelineEvent(order, event) {
+  const meta = parseOrderMeta(order);
+  const timeline = Array.isArray(meta.timeline) ? meta.timeline : [];
+  timeline.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    created_at: new Date().toISOString(),
+    ...event,
+  });
+  meta.timeline = timeline;
+  await order.update({ notes: JSON.stringify(meta) });
+}
+
+function timelineForOrder(order) {
+  const meta = parseOrderMeta(order);
+  return (meta.timeline || []).slice().sort((a, b) => {
+    const aTime = new Date(a.created_at || 0).getTime();
+    const bTime = new Date(b.created_at || 0).getTime();
+    return aTime - bTime;
+  });
+}
+
 // POST /api/orders — create order + Stripe PaymentIntent
 router.post('/', async (req, res, next) => {
   try {
@@ -70,6 +104,13 @@ router.post('/', async (req, res, next) => {
       shipping_address,
     });
 
+    await appendOrderTimelineEvent(order, {
+      type: 'order_created',
+      title: 'Order created',
+      description: 'Order created and payment intent generated',
+      status: 'pending',
+    });
+
     for (const oi of orderItems) {
       await OrderItem.create({
         order_id: order.id,
@@ -105,6 +146,13 @@ router.post('/webhook', async (req, res, next) => {
         : order.buyer_email;
 
       await order.update({ status: 'paid', stripe_charge_id: pi.latest_charge, buyer_email: nextBuyerEmail });
+      await appendOrderTimelineEvent(order, {
+        type: 'payment_succeeded',
+        title: 'Payment received',
+        description: 'Stripe payment intent was captured successfully',
+        status: 'paid',
+        stripe_payment_intent_id: pi.id,
+      });
       pushUserNotification(order.photographer_id, {
         type: 'order.paid',
         title: 'Order Paid',
@@ -146,7 +194,23 @@ router.patch('/mine/:id/status', requireAuth, async (req, res, next) => {
   try {
     const order = await Order.findOne({ where: { id: req.params.id, photographer_id: req.user.id } });
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    await order.update({ status: req.body.status });
+    const nextStatus = String(req.body.status || '').trim();
+    if (!ORDER_STATUSES.has(nextStatus)) {
+      return res.status(400).json({ error: 'Invalid order status' });
+    }
+
+    const prevStatus = order.status;
+    await order.update({ status: nextStatus });
+    await appendOrderTimelineEvent(order, {
+      type: 'status_updated',
+      title: `Status changed to ${nextStatus}`,
+      description: prevStatus && prevStatus !== nextStatus
+        ? `Order moved from ${prevStatus} to ${nextStatus}`
+        : `Order status set to ${nextStatus}`,
+      status: nextStatus,
+      previous_status: prevStatus,
+    });
+
     pushUserNotification(req.user.id, {
       type: 'order.status_changed',
       title: 'Order Status Updated',
@@ -154,6 +218,67 @@ router.patch('/mine/:id/status', requireAuth, async (req, res, next) => {
       orderId: order.id,
     });
     res.json(order);
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/orders/mine/:id/shipping
+router.patch('/mine/:id/shipping', requireAuth, async (req, res, next) => {
+  try {
+    const order = await Order.findOne({ where: { id: req.params.id, photographer_id: req.user.id } });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    const shipping_carrier = req.body.shipping_carrier ? String(req.body.shipping_carrier).trim() : null;
+    const tracking_number = req.body.tracking_number ? String(req.body.tracking_number).trim() : null;
+    const estimated_delivery = req.body.estimated_delivery ? new Date(req.body.estimated_delivery) : null;
+    if (estimated_delivery && Number.isNaN(estimated_delivery.getTime())) {
+      return res.status(400).json({ error: 'Invalid estimated_delivery value' });
+    }
+
+    const markShipped = req.body.mark_shipped === true || req.body.status === 'shipped';
+    const updates = {
+      shipping_carrier,
+      tracking_number,
+      estimated_delivery,
+    };
+
+    if (markShipped) {
+      updates.status = 'shipped';
+      updates.shipped_at = order.shipped_at || new Date();
+    }
+
+    await order.update(updates);
+    await appendOrderTimelineEvent(order, {
+      type: 'shipping_updated',
+      title: markShipped ? 'Order shipped' : 'Shipping updated',
+      description: tracking_number
+        ? `Tracking ${tracking_number}${shipping_carrier ? ` via ${shipping_carrier}` : ''}`
+        : 'Shipping details were updated',
+      status: order.status,
+      shipping_carrier: order.shipping_carrier,
+      tracking_number: order.tracking_number,
+      estimated_delivery: order.estimated_delivery,
+      shipped_at: order.shipped_at,
+    });
+
+    res.json(order);
+  } catch (err) { next(err); }
+});
+
+// GET /api/orders/mine/:id/timeline
+router.get('/mine/:id/timeline', requireAuth, async (req, res, next) => {
+  try {
+    const order = await Order.findOne({ where: { id: req.params.id, photographer_id: req.user.id } });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    res.json({
+      order_id: order.id,
+      timeline: timelineForOrder(order),
+      shipping: {
+        shipping_carrier: order.shipping_carrier || null,
+        tracking_number: order.tracking_number || null,
+        estimated_delivery: order.estimated_delivery || null,
+        shipped_at: order.shipped_at || null,
+      },
+    });
   } catch (err) { next(err); }
 });
 

@@ -16,6 +16,10 @@ const Order = sequelize.define('Order', {
   tax_cents: { type: DataTypes.INTEGER, defaultValue: 0 },
   total_cents: { type: DataTypes.INTEGER },
   shipping_address: { type: DataTypes.JSON },
+  shipping_carrier: { type: DataTypes.STRING(100) },
+  tracking_number: { type: DataTypes.STRING(255) },
+  estimated_delivery: { type: DataTypes.DATE },
+  shipped_at: { type: DataTypes.DATE },
   notes: { type: DataTypes.TEXT },
 }, { tableName: 'orders', underscored: true });
 
