@@ -126,6 +126,8 @@ const BREAKPOINTS = { default: 3, 1100: 3, 768: 2, 480: 1 }
 
 export default function PortfolioGalleryPage() {
   const { username, slug } = useParams()
+  const normalizedUsername = String(username || '').trim().toLowerCase()
+  const normalizedSlug = String(slug || '').trim()
   const [photographer, setPhotographer] = useState(null)
   const [gallery, setGallery] = useState(null)
   const [photos, setPhotos] = useState([])
@@ -134,7 +136,7 @@ export default function PortfolioGalleryPage() {
   const [lightboxIdx, setLightboxIdx] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [layoutMode, setLayoutMode] = useState('masonry')
-  const [accessToken, setAccessToken] = useState(() => sessionStorage.getItem(`gallery-access:${username}:${slug}`) || '')
+  const [accessToken, setAccessToken] = useState(() => sessionStorage.getItem(`gallery-access:${normalizedUsername}:${normalizedSlug}`) || '')
   const [passwordRequired, setPasswordRequired] = useState(false)
   const [protectedGalleryId, setProtectedGalleryId] = useState(null)
   const [passwordHint, setPasswordHint] = useState('')
@@ -149,7 +151,7 @@ export default function PortfolioGalleryPage() {
       setLoading(true)
       setError(null)
 
-      if (username === 'demo') {
+      if (normalizedUsername === 'demo') {
         if (cancelled) return
         setPhotographer(DEMO_PHOTOGRAPHER)
         setGallery(DEMO_GALLERY)
@@ -160,17 +162,49 @@ export default function PortfolioGalleryPage() {
         return
       }
 
-      try {
-        const [p, galleryData] = await Promise.all([
-          getPhotographerProfile(username),
-          getPublicGallery(username, slug, accessToken),
-        ])
+      if (!normalizedUsername || !normalizedSlug) {
         if (cancelled) return
-        setPhotographer(p)
-        setGallery(galleryData.gallery)
-        setPhotos(galleryData.photos || [])
-        setPasswordRequired(false)
-        setUnlockError('')
+        setError('Gallery not found.')
+        setLoading(false)
+        return
+      }
+
+      try {
+        const [profileResult, galleryResult] = await Promise.allSettled([
+          getPhotographerProfile(normalizedUsername),
+          getPublicGallery(normalizedUsername, normalizedSlug, accessToken),
+        ])
+
+        if (cancelled) return
+
+        if (profileResult.status === 'fulfilled') {
+          setPhotographer(profileResult.value)
+        } else {
+          setPhotographer(null)
+        }
+
+        if (galleryResult.status === 'fulfilled') {
+          const galleryData = galleryResult.value
+          setGallery(galleryData.gallery)
+          setPhotos(galleryData.photos || [])
+          setPasswordRequired(false)
+          setUnlockError('')
+          return
+        }
+
+        const response = galleryResult.reason?.response
+        if (response?.status === 401 && response?.data?.needs_password) {
+          setPasswordRequired(true)
+          setProtectedGalleryId(response.data.gallery_id)
+          setPasswordHint(response.data.hint || '')
+          setError(null)
+        } else if (response?.status === 410) {
+          setError('This gallery has expired and is no longer available.')
+        } else if (response?.status === 404) {
+          setError('Gallery not found.')
+        } else {
+          setError('Unable to load this gallery right now.')
+        }
       } catch (err) {
         if (cancelled) return
         const response = err?.response
@@ -196,7 +230,7 @@ export default function PortfolioGalleryPage() {
     return () => {
       cancelled = true
     }
-  }, [username, slug, accessToken])
+  }, [normalizedUsername, normalizedSlug, accessToken])
 
   const handleUnlock = async (e) => {
     e.preventDefault()
@@ -211,7 +245,7 @@ export default function PortfolioGalleryPage() {
         setUnlockError('Unlock token not received. Please try again.')
         return
       }
-      sessionStorage.setItem(`gallery-access:${username}:${slug}`, token)
+      sessionStorage.setItem(`gallery-access:${normalizedUsername}:${normalizedSlug}`, token)
       setAccessToken(token)
       setPasswordInput('')
       setPasswordRequired(false)
@@ -233,7 +267,7 @@ export default function PortfolioGalleryPage() {
 
   const displayName = photographer?.brand_name ||
     `${photographer?.first_name || ''} ${photographer?.last_name || ''}`.trim() ||
-    photographer?.username || username
+    photographer?.username || normalizedUsername
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-black">
