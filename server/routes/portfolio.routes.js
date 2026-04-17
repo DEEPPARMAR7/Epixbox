@@ -1,8 +1,14 @@
 const router = require('express').Router();
-const { User, Gallery, Photo, Tag } = require('../models/index');
+const { User, Gallery, Photo, Tag, GalleryExpiry } = require('../models/index');
 const { getPublicUrl } = require('../services/s3.service');
 const { Op } = require('sequelize');
 const { setPublicCache } = require('../middleware/cache.middleware');
+
+function isGalleryExpired(expiry) {
+  if (!expiry || expiry.is_enabled === false) return false;
+  if (!expiry.expires_at) return false;
+  return new Date(expiry.expires_at).getTime() <= Date.now();
+}
 
 // Attach public URLs to a photo plain object
 function withPhotoUrls(photo) {
@@ -43,10 +49,18 @@ router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
 
     const galleries = await Gallery.findAll({
       where: { user_id: user.id, visibility: 'public' },
-      include: [{ model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb', 's3_key_medium'], required: false }],
+      include: [
+        { model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb', 's3_key_medium'], required: false },
+        { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
+      ],
       order: [['sort_order', 'ASC'], ['created_at', 'DESC']],
     });
-    res.json(galleries.map(withGalleryUrls));
+
+    const visibleGalleries = galleries
+      .filter((gallery) => !isGalleryExpired(gallery.GalleryExpiry))
+      .map(withGalleryUrls);
+
+    res.json(visibleGalleries);
   } catch (err) {
     next(err);
   }
@@ -60,8 +74,13 @@ router.get('/:username/galleries/:slug', setPublicCache, async (req, res, next) 
 
     const gallery = await Gallery.findOne({
       where: { user_id: user.id, slug: req.params.slug, visibility: { [Op.in]: ['public', 'unlisted'] } },
+      include: [{ model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false }],
     });
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
+
+    if (isGalleryExpired(gallery.GalleryExpiry)) {
+      return res.status(410).json({ error: 'Gallery has expired' });
+    }
 
     const photos = await Photo.findAll({
       where: { gallery_id: gallery.id },
@@ -83,11 +102,21 @@ router.get('/:username/photos/:id', setPublicCache, async (req, res, next) => {
     const photo = await Photo.findOne({
       where: { id: req.params.id, user_id: user.id },
       include: [
-        { model: Gallery, where: { visibility: 'public' }, required: true },
+        {
+          model: Gallery,
+          where: { visibility: 'public' },
+          include: [{ model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false }],
+          required: true,
+        },
         { model: Tag, through: { attributes: [] } },
       ],
     });
     if (!photo) return res.status(404).json({ error: 'Photo not found' });
+
+    if (isGalleryExpired(photo.Gallery?.GalleryExpiry)) {
+      return res.status(410).json({ error: 'Gallery has expired' });
+    }
+
     res.json(withPhotoUrls(photo));
   } catch (err) {
     next(err);

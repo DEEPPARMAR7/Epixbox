@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import Masonry from 'react-masonry-css'
 import Spinner from '../../components/common/Spinner'
-import ShareBar from '../../components/common/ShareBar'
+import SocialShare from '../../components/common/SocialShare'
 import { getPhotographerProfile, getPublicGallery } from '../../api/portfolioApi'
 
 const SAMPLE_PHOTOS = [
@@ -175,7 +175,11 @@ export default function PortfolioGalleryPage() {
         )}
         <div className="mt-4 w-12 h-px bg-white/20 mx-auto" />
         <div className="mt-6 flex justify-center">
-          <ShareBar url={window.location.href} title={`${gallery?.title} — ${displayName}`} />
+          <SocialShare
+            url={window.location.href}
+            title={`${gallery?.title} — ${displayName}`}
+            description={gallery?.description || `Photography gallery by ${displayName}`}
+          />
         </div>
         <div className="mt-6 inline-flex rounded-full border border-white/15 bg-white/5 p-1">
           <button

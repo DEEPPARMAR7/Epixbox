@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Share2, Facebook, Linkedin, Twitter, Copy, Mail, QrCode, Code } from 'lucide-react';
+import { Share2, Facebook, Linkedin, Twitter, Copy, Mail, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import Button from './Button';
 import Modal from './Modal';
 import toast from 'react-hot-toast';
@@ -156,9 +157,15 @@ export default function SocialShare({
             <p className="text-sm text-gray-600">
               Scan to open gallery on mobile devices
             </p>
-            {/* QR code would be generated here using a library like qrcode.react */}
-            <div className="mt-3 p-4 bg-gray-100 rounded-lg text-center">
-              <p className="text-sm text-gray-500">QR Code will appear here</p>
+            <div className="mt-3 p-4 bg-gray-100 rounded-lg flex items-center justify-center">
+              <QRCodeSVG
+                value={url}
+                size={180}
+                bgColor="#ffffff"
+                fgColor="#111827"
+                level="M"
+                includeMargin
+              />
             </div>
           </div>
 
