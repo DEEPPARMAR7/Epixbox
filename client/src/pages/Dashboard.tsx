@@ -12,6 +12,7 @@ import EditProfilePage from "./dashboard/EditProfilePage.jsx";
 import AdminPanelPage from "./dashboard/AdminPanelPage.jsx";
 import PaymentsPage from "./dashboard/PaymentsPage.jsx";
 import AnalyticsPage from "./dashboard/AnalyticsPage.jsx";
+import ProfessionalThemesPage from "./dashboard/ProfessionalThemesPage.jsx";
 
 const DashboardPage = () => {
   return (
@@ -26,6 +27,7 @@ const DashboardPage = () => {
       <Route path="pricing" element={<PricingEditorPage />} />
       <Route path="payments" element={<PaymentsPage />} />
       <Route path="analytics" element={<AnalyticsPage />} />
+      <Route path="themes" element={<ProfessionalThemesPage />} />
       <Route path="settings" element={<AccountSettingsPage />} />
       <Route path="profile" element={<EditProfilePage />} />
       <Route path="admin" element={<AdminPanelPage />} />

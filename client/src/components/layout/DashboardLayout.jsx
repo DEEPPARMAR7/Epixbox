@@ -15,6 +15,7 @@ const navItems = [
   { to: '/dashboard/analytics', label: 'Analytics', icon: '📈' },
   { to: '/dashboard/payments', label: 'Payments', icon: '💳' },
   { to: '/dashboard/settings', label: 'My Site', icon: '🌐' },
+  { to: '/dashboard/themes', label: 'Themes', icon: '🎨' },
   { to: '/dashboard/pricing', label: 'Selling Tools', icon: '💰' },
 ]
 

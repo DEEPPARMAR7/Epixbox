@@ -26,6 +26,27 @@ const INFO_CHIPS = [
   'SEO Ready',
 ]
 
+const TEMPLATE_SHOWCASE = [
+  {
+    name: 'Editorial Luxe',
+    mood: 'Premium wedding and portrait storytelling',
+    palette: 'from-[#1f2937] via-[#312e81] to-[#0f172a]',
+    premium: true,
+  },
+  {
+    name: 'Minimal Atelier',
+    mood: 'Clean commercial and brand photography',
+    palette: 'from-[#0f172a] via-[#334155] to-[#1e293b]',
+    premium: false,
+  },
+  {
+    name: 'Bold Gallery',
+    mood: 'High-contrast art and fashion portfolios',
+    palette: 'from-[#3f1d2e] via-[#831843] to-[#111827]',
+    premium: true,
+  },
+]
+
 export default function AccountSettingsPage() {
   const navigate = useNavigate()
   const { user, updateUser } = useAuthStore()
@@ -157,6 +178,7 @@ export default function AccountSettingsPage() {
   }
 
   const publishedDate = new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+  const isPaidPlan = user?.plan === 'pro' || user?.plan === 'business'
 
   return (
     <DashboardLayout>
@@ -199,8 +221,8 @@ export default function AccountSettingsPage() {
           <div className="mt-6 space-y-7 text-sm leading-6">
             <div>
               <p className="font-bold uppercase tracking-[0.18em] text-white/90">Visitor Access</p>
-              <p className="mt-1 font-semibold text-slate-200">Your Website is Private</p>
-              <p className="mt-1 text-emerald-300">Upgrade your plan to make your portfolio visible to visitors.</p>
+              <p className="mt-1 font-semibold text-slate-200">{isPaidPlan ? 'Your Website is Public' : 'Your Website is Private'}</p>
+              <p className="mt-1 text-emerald-300">{isPaidPlan ? 'Your paid plan keeps your public portfolio active for clients.' : 'Upgrade to Pro or Business to make your portfolio visible to visitors.'}</p>
             </div>
 
             <div>
@@ -221,7 +243,7 @@ export default function AccountSettingsPage() {
 
             <div>
               <p className="font-bold uppercase tracking-[0.18em] text-white/90">Site Designs</p>
-              <button onClick={() => document.getElementById('design-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' })} className="mt-2 block text-left font-semibold text-emerald-300 underline-offset-2 hover:underline">New & Saved Website Designs</button>
+              <button onClick={() => navigate('/dashboard/themes')} className="mt-2 block text-left font-semibold text-emerald-300 underline-offset-2 hover:underline">Open Professional Theme Studio</button>
             </div>
           </div>
         </aside>
@@ -263,13 +285,32 @@ export default function AccountSettingsPage() {
               <h4 className="text-2xl font-black text-white">Edit Website Layout</h4>
               <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300">Global</span>
             </div>
-            <p className="mt-2 max-w-3xl text-sm text-slate-300">Edit content that appears on every page of your website. Add a logo, change your menu, or update colors and fonts.</p>
+            <p className="mt-2 max-w-3xl text-sm text-slate-300">Choose premium-ready templates, refine typography and color systems, and make your portfolio look production-grade for client delivery.</p>
+
+            <div className="mt-5 grid gap-3 lg:grid-cols-3">
+              {TEMPLATE_SHOWCASE.map((template) => (
+                <div key={template.name} className={`rounded-xl border border-white/10 bg-gradient-to-br ${template.palette} p-4`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-black text-white">{template.name}</p>
+                    {template.premium && (
+                      <span className="rounded-full border border-amber-300/45 bg-amber-300/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-100">Pro</span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-white/80">{template.mood}</p>
+                </div>
+              ))}
+            </div>
             <div className="mt-4 space-y-1.5 text-sm">
               {SUPPORT_LINKS.map((line) => (
                 <p key={line} className="font-semibold text-emerald-300 underline-offset-2 hover:underline">{line}</p>
               ))}
             </div>
-            <button onClick={() => navigate('/dashboard/galleries')} className="mt-5 rounded-md border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">Edit Website Layout</button>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button onClick={() => navigate('/dashboard/themes')} className="rounded-md border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">Open Theme Studio</button>
+              {!isPaidPlan && (
+                <button onClick={() => navigate('/pricing')} className="rounded-md border border-emerald-300/35 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-300/15">Upgrade for Public Portfolio</button>
+              )}
+            </div>
           </div>
 
           <div className="rounded-sm border border-white/10 bg-[#121926] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.38)]">

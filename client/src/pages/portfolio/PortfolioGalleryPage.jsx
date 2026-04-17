@@ -198,6 +198,8 @@ export default function PortfolioGalleryPage() {
           setProtectedGalleryId(response.data.gallery_id)
           setPasswordHint(response.data.hint || '')
           setError(null)
+        } else if (response?.status === 402) {
+          setError('This portfolio is private on the current plan.')
         } else if (response?.status === 410) {
           setError('This gallery has expired and is no longer available.')
         } else if (response?.status === 404) {
@@ -213,6 +215,8 @@ export default function PortfolioGalleryPage() {
           setProtectedGalleryId(response.data.gallery_id)
           setPasswordHint(response.data.hint || '')
           setError(null)
+        } else if (response?.status === 402) {
+          setError('This portfolio is private on the current plan.')
         } else if (response?.status === 410) {
           setError('This gallery has expired and is no longer available.')
         } else if (response?.status === 404) {

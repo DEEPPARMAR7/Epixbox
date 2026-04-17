@@ -3,6 +3,7 @@ const { User, Gallery, Photo, Tag, GalleryExpiry, GalleryPassword } = require('.
 const { getPublicUrl } = require('../services/s3.service');
 const { Op } = require('sequelize');
 const { setPublicCache } = require('../middleware/cache.middleware');
+const { getTierLimits } = require('../utils/subscriptionTiers');
 
 function isGalleryExpired(expiry) {
   if (!expiry || expiry.is_enabled === false) return false;
@@ -38,6 +39,19 @@ function requireGalleryPasswordAccess(req, res, gallery) {
   return true;
 }
 
+function requirePublicPortfolioEnabled(res, user) {
+  const limits = getTierLimits(user?.plan);
+  if (limits.tier === 'free') {
+    res.status(402).json({
+      error: 'Public portfolio is available on paid plans only.',
+      code: 'PORTFOLIO_REQUIRES_PAID_PLAN',
+      upgrade_path: '/pricing',
+    });
+    return true;
+  }
+  return false;
+}
+
 // Attach public URLs to a photo plain object
 function withPhotoUrls(photo) {
   const p = photo.toJSON ? photo.toJSON() : { ...photo };
@@ -64,6 +78,7 @@ router.get('/:username', setPublicCache, async (req, res, next) => {
       attributes: ['id', 'username', 'first_name', 'last_name', 'bio', 'avatar_url', 'website_url', 'brand_name', 'brand_logo_url', 'brand_color'],
     });
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
+    if (requirePublicPortfolioEnabled(res, user)) return;
     res.json(user);
   } catch (err) {
     next(err);
@@ -75,6 +90,7 @@ router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
   try {
     const user = await User.findOne({ where: { username: req.params.username.toLowerCase() } });
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
+    if (requirePublicPortfolioEnabled(res, user)) return;
 
     const galleries = await Gallery.findAll({
       where: { user_id: user.id, visibility: 'public' },
@@ -100,6 +116,7 @@ router.get('/:username/galleries/:slug', setPublicCache, async (req, res, next) 
   try {
     const user = await User.findOne({ where: { username: req.params.username.toLowerCase() } });
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
+    if (requirePublicPortfolioEnabled(res, user)) return;
 
     const gallery = await Gallery.findOne({
       where: { user_id: user.id, slug: req.params.slug, visibility: { [Op.in]: ['public', 'unlisted'] } },
@@ -134,6 +151,7 @@ router.get('/:username/photos/:id', setPublicCache, async (req, res, next) => {
   try {
     const user = await User.findOne({ where: { username: req.params.username.toLowerCase() } });
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
+    if (requirePublicPortfolioEnabled(res, user)) return;
 
     const photo = await Photo.findOne({
       where: { id: req.params.id, user_id: user.id },

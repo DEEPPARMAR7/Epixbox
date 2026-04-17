@@ -71,6 +71,8 @@ export default function PortfolioHomePage() {
           const status = profileResult.reason?.response?.status
           if (status === 404) {
             setError('Portfolio not found')
+          } else if (status === 402) {
+            setError('This portfolio is private on the current plan')
           } else {
             setError('Portfolio is temporarily unavailable')
           }
