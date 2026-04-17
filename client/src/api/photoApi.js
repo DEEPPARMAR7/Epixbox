@@ -1,6 +1,8 @@
 import axiosClient from './axiosClient'
 export const getPhotos = (params) => axiosClient.get('/photos', { params }).then(r => r.data)
 export const getPhoto = (id) => axiosClient.get(`/photos/${id}`).then(r => r.data)
+export const getPhotoDownloadUrl = (id, variant = 'original') =>
+	axiosClient.get(`/photos/${id}/download`, { params: { variant } }).then(r => r.data)
 export const updatePhoto = (id, data) => axiosClient.put(`/photos/${id}`, data).then(r => r.data)
 export const deletePhoto = (id) => axiosClient.delete(`/photos/${id}`).then(r => r.data)
 export const bulkDelete = (ids) => axiosClient.post('/photos/bulk-delete', { ids }).then(r => r.data)

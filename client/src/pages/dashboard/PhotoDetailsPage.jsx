@@ -5,7 +5,7 @@ import CreatableSelect from 'react-select/creatable'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Button from '../../components/common/Button'
 import Spinner from '../../components/common/Spinner'
-import { getPhoto, updatePhoto, deletePhoto, addTags, removeTag } from '../../api/photoApi'
+import { getPhoto, getPhotoDownloadUrl, updatePhoto, deletePhoto, addTags, removeTag } from '../../api/photoApi'
 import { formatFileSize, formatDate } from '../../utils/formatters'
 
 export default function PhotoDetailsPage() {
@@ -69,6 +69,25 @@ export default function PhotoDetailsPage() {
     }
   }
 
+  const handleDownload = async (variant = 'original') => {
+    try {
+      const data = await getPhotoDownloadUrl(id, variant)
+      const response = await fetch(data.url)
+      const blob = await response.blob()
+      const objectUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = objectUrl
+      a.download = data.filename || photo.filename_original || 'photo'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000)
+      toast.success(`${variant === 'original' ? 'Original' : variant} download started`)
+    } catch {
+      toast.error('Failed to generate download link')
+    }
+  }
+
   const exifRows = photo ? [
     { label: 'Camera', value: [photo.exif_make, photo.exif_model].filter(Boolean).join(' ') || '—' },
     { label: 'Lens', value: photo.exif_lens || '—' },
@@ -77,6 +96,7 @@ export default function PhotoDetailsPage() {
     { label: 'Shutter Speed', value: photo.exif_shutter_speed || '—' },
     { label: 'ISO', value: photo.exif_iso || '—' },
     { label: 'Date Taken', value: photo.exif_taken_at ? formatDate(photo.exif_taken_at) : '—' },
+    { label: 'Original File', value: photo.original_url ? 'Preserved' : 'Unavailable' },
   ] : []
 
   if (loading) return <DashboardLayout><div className="flex justify-center py-12"><Spinner /></div></DashboardLayout>
@@ -145,6 +165,12 @@ export default function PhotoDetailsPage() {
               <Button onClick={handleSave} loading={saving}>Save</Button>
               <Button variant="danger" onClick={handleDelete}>Delete</Button>
             </div>
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <button onClick={() => handleDownload('original')} className="rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-300/15">Download Original</button>
+              <button onClick={() => handleDownload('large')} className="rounded-md border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10">Large</button>
+              <button onClick={() => handleDownload('medium')} className="rounded-md border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10">Medium</button>
+              <button onClick={() => handleDownload('thumb')} className="rounded-md border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10">Thumb</button>
+            </div>
           </div>
 
           <div className="rounded-xl border border-white/10 bg-[#0d1626] p-4">
@@ -153,6 +179,7 @@ export default function PhotoDetailsPage() {
               <div className="flex justify-between"><span className="text-slate-400">Dimensions</span><span className="text-slate-200">{photo.width && photo.height ? `${photo.width} × ${photo.height}` : '—'}</span></div>
               <div className="flex justify-between"><span className="text-slate-400">File Size</span><span className="text-slate-200">{formatFileSize(photo.file_size_bytes)}</span></div>
               <div className="flex justify-between"><span className="text-slate-400">Taken</span><span className="text-slate-200">{photo.exif_taken_at ? formatDate(photo.exif_taken_at) : '—'}</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">Original Preserved</span><span className="text-slate-200">{photo.s3_key_original ? 'Yes' : 'No'}</span></div>
               <details className="pt-1">
                 <summary className="cursor-pointer text-slate-300">More EXIF</summary>
                 <div className="mt-2 space-y-1">

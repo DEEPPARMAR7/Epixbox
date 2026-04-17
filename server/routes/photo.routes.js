@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const slugify = require('slugify');
 const { Photo, Tag, PhotoTag, Gallery } = require('../models/index');
-const { deleteFile, getPublicUrl, getSignedViewUrl } = require('../services/s3.service');
+const { deleteFile, getPublicUrl, getSignedViewUrl, getSignedDownloadUrl } = require('../services/s3.service');
 const requireAuth = require('../middleware/auth.middleware');
 const { Op } = require('sequelize');
 
@@ -20,6 +20,13 @@ async function withUrls(photo) {
     p.display_url = p.thumb_url || p.medium_url || p.large_url || p.original_url;
   }
   return p;
+}
+
+function getVariantKey(photo, variant) {
+  if (variant === 'thumb') return photo.s3_key_thumb || photo.s3_key_medium || photo.s3_key_large || photo.s3_key_original;
+  if (variant === 'medium') return photo.s3_key_medium || photo.s3_key_large || photo.s3_key_thumb || photo.s3_key_original;
+  if (variant === 'large') return photo.s3_key_large || photo.s3_key_medium || photo.s3_key_thumb || photo.s3_key_original;
+  return photo.s3_key_original || photo.s3_key_large || photo.s3_key_medium || photo.s3_key_thumb;
 }
 
 // GET /api/photos
@@ -50,6 +57,33 @@ router.get('/:id', async (req, res, next) => {
     });
     if (!photo) return res.status(404).json({ error: 'Photo not found' });
     res.json(await withUrls(photo));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/photos/:id/download?variant=original|large|medium|thumb
+router.get('/:id/download', async (req, res, next) => {
+  try {
+    const photo = await Photo.findOne({
+      where: { id: req.params.id, user_id: req.user.id },
+      include: [{ model: Tag, through: { attributes: [] } }],
+    });
+    if (!photo) return res.status(404).json({ error: 'Photo not found' });
+
+    const variant = String(req.query.variant || 'original').toLowerCase();
+    const key = getVariantKey(photo, variant);
+    if (!key) return res.status(404).json({ error: 'No downloadable file available for this photo' });
+
+    const filename = photo.filename_original || photo.title || `${photo.id}`;
+    const contentType = photo.mime_type || 'application/octet-stream';
+    const url = await getSignedDownloadUrl(key, 3600, filename, contentType);
+    res.json({
+      url,
+      filename,
+      variant,
+      mime_type: photo.mime_type,
+    });
   } catch (err) {
     next(err);
   }
