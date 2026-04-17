@@ -6,6 +6,13 @@ import Button from '../../components/common/Button'
 import Spinner from '../../components/common/Spinner'
 import { getGallery, updateGallery } from '../../api/galleryApi'
 import { getPhotos, deletePhoto } from '../../api/photoApi'
+import {
+  getGalleryAccessConfig,
+  setGalleryPassword,
+  removeGalleryPassword,
+  setGalleryExpiry,
+  removeGalleryExpiry,
+} from '../../api/galleryAccessApi'
 
 const SAMPLE_PHOTOS = [
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=70',
@@ -24,6 +31,14 @@ const VISIBILITY_CONFIG = {
 
 const INPUT = 'w-full px-3 py-2.5 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-300/50 focus:border-transparent text-sm bg-white/5 text-white transition'
 
+function toDateTimeLocal(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 export default function GalleryEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -32,16 +47,48 @@ export default function GalleryEditorPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ title: '', description: '', visibility: 'public' })
+  const [accessLoading, setAccessLoading] = useState(true)
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [expirySaving, setExpirySaving] = useState(false)
+  const [accessConfig, setAccessConfig] = useState(null)
+  const [passwordForm, setPasswordForm] = useState({ password: '', hint: '' })
+  const [expiryForm, setExpiryForm] = useState({ expires_at: '', download_limit: '' })
+
+  const loadAccessConfig = async () => {
+    setAccessLoading(true)
+    try {
+      const config = await getGalleryAccessConfig(id)
+      setAccessConfig(config)
+      setPasswordForm((prev) => ({ ...prev, hint: config?.password_hint || '' }))
+      setExpiryForm({
+        expires_at: toDateTimeLocal(config?.expiry_date),
+        download_limit: config?.download_limit ?? '',
+      })
+    } catch {
+      toast.error('Failed to load access controls')
+    } finally {
+      setAccessLoading(false)
+    }
+  }
 
   useEffect(() => {
-    Promise.all([getGallery(id), getPhotos({ galleryId: id })])
-      .then(([g, p]) => {
+    Promise.all([getGallery(id), getPhotos({ galleryId: id }), getGalleryAccessConfig(id)])
+      .then(([g, p, config]) => {
         setGallery(g)
         setPhotos(p)
         setForm({ title: g.title || '', description: g.description || '', visibility: g.visibility || 'public' })
+        setAccessConfig(config)
+        setPasswordForm({ password: '', hint: config?.password_hint || '' })
+        setExpiryForm({
+          expires_at: toDateTimeLocal(config?.expiry_date),
+          download_limit: config?.download_limit ?? '',
+        })
       })
       .catch(() => toast.error('Failed to load gallery'))
-      .finally(() => setLoading(false))
+      .finally(() => {
+        setLoading(false)
+        setAccessLoading(false)
+      })
   }, [id])
 
   const handleSave = async (e) => {
@@ -66,6 +113,75 @@ export default function GalleryEditorPage() {
       toast.success('Photo deleted')
     } catch {
       toast.error('Failed to delete photo')
+    }
+  }
+
+  const handleSetPassword = async (e) => {
+    e.preventDefault()
+    if (!passwordForm.password.trim()) {
+      toast.error('Password is required')
+      return
+    }
+    setPasswordSaving(true)
+    try {
+      await setGalleryPassword(id, { password: passwordForm.password.trim(), hint: passwordForm.hint.trim() || null })
+      setPasswordForm((prev) => ({ ...prev, password: '' }))
+      await loadAccessConfig()
+      toast.success('Gallery password saved')
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to save password')
+    } finally {
+      setPasswordSaving(false)
+    }
+  }
+
+  const handleRemovePassword = async () => {
+    if (!confirm('Remove password protection for this gallery?')) return
+    setPasswordSaving(true)
+    try {
+      await removeGalleryPassword(id)
+      await loadAccessConfig()
+      toast.success('Password protection removed')
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to remove password')
+    } finally {
+      setPasswordSaving(false)
+    }
+  }
+
+  const handleSetExpiry = async (e) => {
+    e.preventDefault()
+    if (!expiryForm.expires_at) {
+      toast.error('Expiry date is required')
+      return
+    }
+    setExpirySaving(true)
+    try {
+      const payload = {
+        expires_at: new Date(expiryForm.expires_at).toISOString(),
+        download_limit: expiryForm.download_limit === '' ? null : Number(expiryForm.download_limit),
+      }
+      await setGalleryExpiry(id, payload)
+      await loadAccessConfig()
+      toast.success('Expiry settings saved')
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to save expiry settings')
+    } finally {
+      setExpirySaving(false)
+    }
+  }
+
+  const handleRemoveExpiry = async () => {
+    if (!confirm('Remove expiry and download limit for this gallery?')) return
+    setExpirySaving(true)
+    try {
+      await removeGalleryExpiry(id)
+      await loadAccessConfig()
+      toast.success('Expiry removed')
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to remove expiry')
+    } finally {
+      setExpirySaving(false)
     }
   }
 
@@ -157,6 +273,86 @@ export default function GalleryEditorPage() {
             </div>
             <Button type="submit" loading={saving} className="w-full">Save Changes</Button>
           </form>
+
+          <div className="mt-6 bg-white/5 rounded-2xl border border-white/10 p-6 space-y-4">
+            <h2 className="text-base font-bold text-white">Client Access Control</h2>
+
+            {accessLoading ? (
+              <div className="text-sm text-slate-300">Loading access settings...</div>
+            ) : (
+              <>
+                <form onSubmit={handleSetPassword} className="space-y-3 border border-white/10 rounded-xl p-4 bg-white/5">
+                  <p className="text-sm font-semibold text-white">Gallery Password</p>
+                  <p className="text-xs text-slate-300">
+                    Status: {accessConfig?.password_protected ? 'Protected' : 'Open'}
+                  </p>
+                  <input
+                    type="password"
+                    placeholder={accessConfig?.password_protected ? 'Set new password' : 'Set password'}
+                    value={passwordForm.password}
+                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, password: e.target.value }))}
+                    className={INPUT}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Password hint (optional)"
+                    value={passwordForm.hint}
+                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, hint: e.target.value }))}
+                    className={INPUT}
+                  />
+                  <div className="flex gap-2">
+                    <Button type="submit" loading={passwordSaving} className="flex-1">
+                      {accessConfig?.password_protected ? 'Update Password' : 'Enable Password'}
+                    </Button>
+                    {accessConfig?.password_protected && (
+                      <button
+                        type="button"
+                        onClick={handleRemovePassword}
+                        disabled={passwordSaving}
+                        className="px-4 py-2 rounded-lg bg-red-500/15 border border-red-400/30 text-red-200 text-sm font-semibold hover:bg-red-500/25 disabled:opacity-60"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </form>
+
+                <form onSubmit={handleSetExpiry} className="space-y-3 border border-white/10 rounded-xl p-4 bg-white/5">
+                  <p className="text-sm font-semibold text-white">Expiry & Download Limits</p>
+                  <p className="text-xs text-slate-300">
+                    Remaining downloads: {accessConfig?.downloads_remaining ?? 'Unlimited'}
+                  </p>
+                  <input
+                    type="datetime-local"
+                    value={expiryForm.expires_at}
+                    onChange={(e) => setExpiryForm((prev) => ({ ...prev, expires_at: e.target.value }))}
+                    className={INPUT}
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Download limit (optional)"
+                    value={expiryForm.download_limit}
+                    onChange={(e) => setExpiryForm((prev) => ({ ...prev, download_limit: e.target.value }))}
+                    className={INPUT}
+                  />
+                  <div className="flex gap-2">
+                    <Button type="submit" loading={expirySaving} className="flex-1">Save Expiry</Button>
+                    {accessConfig?.expiry_date && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveExpiry}
+                        disabled={expirySaving}
+                        className="px-4 py-2 rounded-lg bg-red-500/15 border border-red-400/30 text-red-200 text-sm font-semibold hover:bg-red-500/25 disabled:opacity-60"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Photos grid */}
