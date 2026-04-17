@@ -17,6 +17,11 @@ import AboutPage from "./pages/About";
 import PortfolioHomePage from "./pages/portfolio/PortfolioHomePage.jsx";
 import PortfolioGalleryPage from "./pages/portfolio/PortfolioGalleryPage.jsx";
 import ClientProofingPage from "./pages/proofing/ClientProofingPage.jsx";
+import ShopPage from "./pages/shop/ShopPage.jsx";
+import CartPage from "./pages/shop/CartPage.jsx";
+import CheckoutPage from "./pages/shop/CheckoutPage.jsx";
+import OrderSuccessPage from "./pages/shop/OrderSuccessPage.jsx";
+import OrderStatusPage from "./pages/shop/OrderStatusPage.jsx";
 import SubscribePage from "./pages/subscriptions/SubscribePage.jsx";
 import ManageSubscriptionPage from "./pages/subscriptions/ManageSubscriptionPage.jsx";
 import SubscriptionSuccessPage from "./pages/subscriptions/SubscriptionSuccessPage.jsx";
@@ -57,6 +62,11 @@ const App = () => (
 						<Route path="/dashboard/*" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
 						<Route path="/p/:username" element={<PortfolioHomePage />} />
 						<Route path="/p/:username/:slug" element={<PortfolioGalleryPage />} />
+						<Route path="/shop/:photoId" element={<ShopPage />} />
+						<Route path="/cart" element={<CartPage />} />
+						<Route path="/checkout" element={<CheckoutPage />} />
+						<Route path="/order-success" element={<OrderSuccessPage />} />
+						<Route path="/order-status" element={<OrderStatusPage />} />
 						<Route path="/proof/:token" element={<ClientProofingPage />} />
 						<Route path="/subscribe/:username" element={<SubscribePage />} />
 						<Route path="/subscribe/:username/manage" element={<ManageSubscriptionPage />} />

@@ -13,8 +13,14 @@ import {
   getAdminPhotos,
   deleteAdminPhoto,
   getAdminTransactions,
+  getAdminTransactionDetail,
+  updateAdminTransactionStatus,
+  updateAdminTransactionShipping,
+  createAdminTransactionRefund,
   getAdminSystemOverview,
 } from '../../api/adminApi'
+
+const ORDER_STATUS_OPTIONS = ['pending', 'paid', 'processing', 'shipped', 'cancelled']
 
 function Stat({ label, value }) {
   return (
@@ -36,6 +42,17 @@ export default function AdminPanelPage() {
   const [transactions, setTransactions] = useState([])
   const [systemOverview, setSystemOverview] = useState(null)
   const [search, setSearch] = useState('')
+  const [activeTransactionId, setActiveTransactionId] = useState(null)
+  const [transactionDetail, setTransactionDetail] = useState(null)
+  const [loadingTransactionDetail, setLoadingTransactionDetail] = useState(false)
+  const [updatingTransaction, setUpdatingTransaction] = useState(false)
+  const [transactionShippingForm, setTransactionShippingForm] = useState({
+    shipping_carrier: '',
+    tracking_number: '',
+    estimated_delivery: '',
+    mark_shipped: false,
+  })
+  const [transactionRefundForm, setTransactionRefundForm] = useState({ amount_cents: '', reason: 'requested_by_customer', notes: '' })
 
   const totals = useMemo(() => analytics?.totals || {}, [analytics])
 
@@ -128,6 +145,91 @@ export default function AdminPanelPage() {
       toast.success('Photo removed')
     } catch (err) {
       toast.error(err?.response?.data?.error || 'Failed to delete photo')
+    }
+  }
+
+  const openTransactionDetail = async (id) => {
+    setActiveTransactionId(id)
+    setLoadingTransactionDetail(true)
+    try {
+      const detail = await getAdminTransactionDetail(id)
+      setTransactionDetail(detail)
+      const shipping = detail?.order || {}
+      setTransactionShippingForm({
+        shipping_carrier: shipping.shipping_carrier || '',
+        tracking_number: shipping.tracking_number || '',
+        estimated_delivery: shipping.estimated_delivery ? new Date(shipping.estimated_delivery).toISOString().slice(0, 16) : '',
+        mark_shipped: false,
+      })
+      setTransactionRefundForm({ amount_cents: '', reason: 'requested_by_customer', notes: '' })
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to load transaction detail')
+      setActiveTransactionId(null)
+    } finally {
+      setLoadingTransactionDetail(false)
+    }
+  }
+
+  const refreshTransactionDetail = async () => {
+    if (!activeTransactionId) return
+    const detail = await getAdminTransactionDetail(activeTransactionId)
+    setTransactionDetail(detail)
+  }
+
+  const handleAdminStatusUpdate = async (status) => {
+    if (!activeTransactionId) return
+    setUpdatingTransaction(true)
+    try {
+      const updated = await updateAdminTransactionStatus(activeTransactionId, status)
+      setTransactions(prev => prev.map(t => (t.id === activeTransactionId ? { ...t, status: updated.status } : t)))
+      await refreshTransactionDetail()
+      toast.success('Transaction status updated')
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to update status')
+    } finally {
+      setUpdatingTransaction(false)
+    }
+  }
+
+  const handleAdminShippingSave = async (e) => {
+    e.preventDefault()
+    if (!activeTransactionId) return
+    setUpdatingTransaction(true)
+    try {
+      await updateAdminTransactionShipping(activeTransactionId, {
+        shipping_carrier: transactionShippingForm.shipping_carrier || null,
+        tracking_number: transactionShippingForm.tracking_number || null,
+        estimated_delivery: transactionShippingForm.estimated_delivery ? new Date(transactionShippingForm.estimated_delivery).toISOString() : null,
+        mark_shipped: transactionShippingForm.mark_shipped,
+      })
+      await refreshTransactionDetail()
+      setTransactionShippingForm((prev) => ({ ...prev, mark_shipped: false }))
+      toast.success('Shipping updated')
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to update shipping')
+    } finally {
+      setUpdatingTransaction(false)
+    }
+  }
+
+  const handleAdminRefundCreate = async (e) => {
+    e.preventDefault()
+    if (!activeTransactionId) return
+    setUpdatingTransaction(true)
+    try {
+      const payload = {
+        reason: transactionRefundForm.reason,
+        notes: transactionRefundForm.notes || null,
+      }
+      if (transactionRefundForm.amount_cents !== '') payload.amount_cents = Number(transactionRefundForm.amount_cents)
+      await createAdminTransactionRefund(activeTransactionId, payload)
+      await refreshTransactionDetail()
+      toast.success('Refund created')
+      setTransactionRefundForm({ amount_cents: '', reason: 'requested_by_customer', notes: '' })
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to create refund')
+    } finally {
+      setUpdatingTransaction(false)
     }
   }
 
@@ -306,6 +408,7 @@ export default function AdminPanelPage() {
                     <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Amount</th>
                     <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Status</th>
                     <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Stripe Ref</th>
+                    <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
@@ -316,16 +419,109 @@ export default function AdminPanelPage() {
                       <td className="px-4 py-3 text-slate-200">${((t.total_cents || 0) / 100).toFixed(2)}</td>
                       <td className="px-4 py-3 uppercase text-slate-200">{t.status}</td>
                       <td className="px-4 py-3 font-mono text-[11px] text-slate-400">{t.stripe_payment_intent_id || 'n/a'}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => openTransactionDetail(t.id)}
+                          className="rounded-md border border-white/20 px-2.5 py-1 text-xs text-slate-200 hover:bg-white/10"
+                        >
+                          Manage
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {transactions.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-slate-400">No transactions found</td>
+                      <td colSpan={6} className="px-4 py-8 text-center text-slate-400">No transactions found</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+
+            {activeTransactionId && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-white">Transaction #{activeTransactionId.slice(0, 8)}</p>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTransactionId(null); setTransactionDetail(null) }}
+                    className="rounded-md border border-white/20 px-2.5 py-1 text-xs text-slate-200 hover:bg-white/10"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                {loadingTransactionDetail || !transactionDetail ? (
+                  <p className="text-sm text-slate-400">Loading transaction detail...</p>
+                ) : (
+                  <>
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs uppercase tracking-[0.15em] text-slate-500 mb-2">Update Status</p>
+                      <div className="flex flex-wrap gap-2">
+                        {ORDER_STATUS_OPTIONS.map((status) => (
+                          <button
+                            key={status}
+                            type="button"
+                            disabled={updatingTransaction}
+                            onClick={() => handleAdminStatusUpdate(status)}
+                            className="rounded-md border border-white/20 px-2.5 py-1 text-xs text-slate-200 hover:bg-white/10 disabled:opacity-60"
+                          >
+                            {status}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleAdminShippingSave} className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-2">
+                      <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Shipping</p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <input value={transactionShippingForm.shipping_carrier} onChange={(e) => setTransactionShippingForm(prev => ({ ...prev, shipping_carrier: e.target.value }))} placeholder="Carrier" className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500" />
+                        <input value={transactionShippingForm.tracking_number} onChange={(e) => setTransactionShippingForm(prev => ({ ...prev, tracking_number: e.target.value }))} placeholder="Tracking" className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500" />
+                        <input type="datetime-local" value={transactionShippingForm.estimated_delivery} onChange={(e) => setTransactionShippingForm(prev => ({ ...prev, estimated_delivery: e.target.value }))} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white" />
+                        <label className="inline-flex items-center gap-2 text-sm text-slate-300">
+                          <input type="checkbox" checked={transactionShippingForm.mark_shipped} onChange={(e) => setTransactionShippingForm(prev => ({ ...prev, mark_shipped: e.target.checked }))} />
+                          Mark shipped
+                        </label>
+                      </div>
+                      <button type="submit" disabled={updatingTransaction} className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60">Save Shipping</button>
+                    </form>
+
+                    <form onSubmit={handleAdminRefundCreate} className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-2">
+                      <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Create Refund</p>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <input type="number" min="1" value={transactionRefundForm.amount_cents} onChange={(e) => setTransactionRefundForm(prev => ({ ...prev, amount_cents: e.target.value }))} placeholder="Amount cents" className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500" />
+                        <select value={transactionRefundForm.reason} onChange={(e) => setTransactionRefundForm(prev => ({ ...prev, reason: e.target.value }))} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white">
+                          <option value="requested_by_customer">Requested by customer</option>
+                          <option value="duplicate">Duplicate</option>
+                          <option value="fraud">Fraud</option>
+                          <option value="other">Other</option>
+                        </select>
+                        <button type="submit" disabled={updatingTransaction} className="rounded-md bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-60">Create Refund</button>
+                      </div>
+                      <input value={transactionRefundForm.notes} onChange={(e) => setTransactionRefundForm(prev => ({ ...prev, notes: e.target.value }))} placeholder="Notes" className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500" />
+                    </form>
+
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                      <p className="text-xs uppercase tracking-[0.15em] text-slate-500 mb-2">Timeline</p>
+                      {(transactionDetail.timeline || []).length === 0 ? (
+                        <p className="text-sm text-slate-400">No timeline entries</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {(transactionDetail.timeline || []).map((event) => (
+                            <div key={event.id} className="border-l-2 border-blue-300/40 pl-3">
+                              <p className="text-sm font-semibold text-white">{event.title || event.type}</p>
+                              {event.description && <p className="text-sm text-slate-300">{event.description}</p>}
+                              <p className="text-xs text-slate-500">{new Date(event.created_at).toLocaleString()}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 

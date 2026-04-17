@@ -12,5 +12,9 @@ export const getAdminPhotos = (params) => axiosClient.get('/admin/media/photos',
 export const deleteAdminPhoto = (id) => axiosClient.delete(`/admin/media/photos/${id}`).then(r => r.data)
 
 export const getAdminTransactions = (params) => axiosClient.get('/admin/payments/transactions', { params }).then(r => r.data)
+export const getAdminTransactionDetail = (id) => axiosClient.get(`/admin/payments/transactions/${id}`).then(r => r.data)
+export const updateAdminTransactionStatus = (id, status) => axiosClient.patch(`/admin/payments/transactions/${id}/status`, { status }).then(r => r.data)
+export const updateAdminTransactionShipping = (id, payload) => axiosClient.patch(`/admin/payments/transactions/${id}/shipping`, payload).then(r => r.data)
+export const createAdminTransactionRefund = (id, payload) => axiosClient.post(`/admin/payments/transactions/${id}/refunds`, payload).then(r => r.data)
 
 export const getAdminSystemOverview = () => axiosClient.get('/admin/system/overview').then(r => r.data)

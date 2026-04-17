@@ -6,3 +6,5 @@ export const updateOrderStatus = (id, status) => axiosClient.patch(`/orders/mine
 export const updateOrderShipping = (id, payload) => axiosClient.patch(`/orders/mine/${id}/shipping`, payload).then(r => r.data)
 export const getOrderTimeline = (id) => axiosClient.get(`/orders/mine/${id}/timeline`).then(r => r.data)
 export const createOrderRefund = (id, payload) => axiosClient.post(`/orders/mine/${id}/refunds`, payload).then(r => r.data)
+export const getPublicOrderStatus = (id, token) =>
+	axiosClient.get(`/orders/public/${id}/status`, { params: { token } }).then(r => r.data)

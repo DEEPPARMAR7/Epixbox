@@ -112,6 +112,7 @@ export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState(null)
   const [loading, setLoading] = useState(true)
   const [orderId, setOrderId] = useState(null)
+  const [trackingToken, setTrackingToken] = useState(null)
 
   useEffect(() => {
     if (items.length === 0) {
@@ -125,9 +126,10 @@ export default function CheckoutPage() {
         quantity: i.quantity,
       })),
     })
-      .then(({ clientSecret: cs, orderId: oid }) => {
+      .then(({ clientSecret: cs, orderId: oid, trackingToken: tt }) => {
         setClientSecret(cs)
         setOrderId(oid)
+        setTrackingToken(tt || null)
       })
       .catch((err) => {
         console.error(err)
@@ -138,7 +140,8 @@ export default function CheckoutPage() {
 
   const handleSuccess = () => {
     clearCart()
-    navigate(`/order-success?orderId=${orderId}`)
+    const tokenPart = trackingToken ? `&token=${encodeURIComponent(trackingToken)}` : ''
+    navigate(`/order-success?orderId=${orderId}${tokenPart}`)
   }
 
   if (loading) {

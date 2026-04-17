@@ -1,8 +1,13 @@
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import PublicLayout from '../../components/layout/PublicLayout'
 
 export default function OrderSuccessPage() {
+  const [searchParams] = useSearchParams()
+  const orderId = searchParams.get('orderId')
+  const token = searchParams.get('token')
+  const canTrack = Boolean(orderId && token)
+
   return (
     <PublicLayout>
       <Helmet>
@@ -21,12 +26,22 @@ export default function OrderSuccessPage() {
           <p className="text-gray-400 text-sm mb-8">
             Your prints will be processed and shipped within 5–7 business days.
           </p>
-          <Link
-            to="/"
-            className="inline-block bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition"
-          >
-            Back to Home
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {canTrack && (
+              <Link
+                to={`/order-status?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`}
+                className="inline-block bg-emerald-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition"
+              >
+                Track Order
+              </Link>
+            )}
+            <Link
+              to="/"
+              className="inline-block bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition"
+            >
+              Back to Home
+            </Link>
+          </div>
         </div>
       </div>
     </PublicLayout>

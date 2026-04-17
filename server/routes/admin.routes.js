@@ -1,10 +1,11 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const stripe = require('../config/stripe');
 const { Op, fn, col } = require('sequelize');
 const requireAuth = require('../middleware/auth.middleware');
 const { requireRole } = require('../middleware/rbac.middleware');
-const { User, Gallery, Photo, Order, SubscriptionPlan, sequelize } = require('../models/index');
+const { User, Gallery, Photo, Order, OrderItem, SubscriptionPlan, sequelize } = require('../models/index');
 const { getRateAnalytics } = require('../services/rateAnalytics.service');
 const { deleteFile } = require('../services/s3.service');
 const { getOwnerEmails } = require('../utils/roles');
@@ -25,6 +26,60 @@ function requireOwner(req, res, next) {
 }
 
 router.use(requireAuth, requireRole('admin'), requireOwner);
+
+const ADMIN_ORDER_STATUSES = new Set(['pending', 'paid', 'processing', 'shipped', 'cancelled']);
+
+function parseOrderMeta(order) {
+  try {
+    const parsed = order?.notes ? JSON.parse(order.notes) : {};
+    if (!parsed || typeof parsed !== 'object') return { timeline: [], refunds: [] };
+    if (!Array.isArray(parsed.timeline)) parsed.timeline = [];
+    if (!Array.isArray(parsed.refunds)) parsed.refunds = [];
+    return parsed;
+  } catch {
+    return { timeline: [], refunds: [] };
+  }
+}
+
+async function updateOrderMeta(order, updater) {
+  const meta = parseOrderMeta(order);
+  const next = updater({ ...meta }) || meta;
+  if (!Array.isArray(next.timeline)) next.timeline = [];
+  if (!Array.isArray(next.refunds)) next.refunds = [];
+  await order.update({ notes: JSON.stringify(next) });
+  return next;
+}
+
+async function appendOrderTimelineEvent(order, event) {
+  await updateOrderMeta(order, (meta) => {
+    const timeline = Array.isArray(meta.timeline) ? meta.timeline : [];
+    timeline.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      created_at: new Date().toISOString(),
+      ...event,
+    });
+    meta.timeline = timeline;
+    return meta;
+  });
+}
+
+function timelineForOrder(order) {
+  const meta = parseOrderMeta(order);
+  return (meta.timeline || []).slice().sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
+}
+
+function refundedTotalCents(order) {
+  const meta = parseOrderMeta(order);
+  return (meta.refunds || []).reduce((sum, r) => sum + Number(r?.amount_cents || 0), 0);
+}
+
+function mapStripeRefundReason(reason) {
+  const normalized = String(reason || '').trim().toLowerCase();
+  if (normalized === 'requested_by_customer') return 'requested_by_customer';
+  if (normalized === 'duplicate') return 'duplicate';
+  if (normalized === 'fraud' || normalized === 'fraudulent') return 'fraudulent';
+  return null;
+}
 
 router.get('/analytics', async (req, res, next) => {
   try {
@@ -312,6 +367,174 @@ router.get('/payments/transactions', async (req, res, next) => {
       total: count,
       totalPages: Math.ceil(count / limit),
       paidRevenueCents: Number(paidTotal || 0),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/payments/transactions/:id', async (req, res, next) => {
+  try {
+    const order = await Order.findByPk(req.params.id, {
+      include: [
+        { model: User, as: 'photographer', attributes: ['id', 'email', 'username'] },
+        { model: OrderItem, include: [{ model: Photo, attributes: ['id', 'title'] }] },
+      ],
+    });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    const meta = parseOrderMeta(order);
+    res.json({
+      order,
+      timeline: timelineForOrder(order),
+      refunds: meta.refunds || [],
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/payments/transactions/:id/status', async (req, res, next) => {
+  try {
+    const order = await Order.findByPk(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    const status = String(req.body?.status || '').trim();
+    if (!ADMIN_ORDER_STATUSES.has(status)) {
+      return res.status(400).json({ error: 'Invalid order status' });
+    }
+
+    const prevStatus = order.status;
+    await order.update({ status });
+    await appendOrderTimelineEvent(order, {
+      type: 'admin_status_updated',
+      title: `Admin updated status to ${status}`,
+      description: `Changed from ${prevStatus} to ${status}`,
+      status,
+      previous_status: prevStatus,
+      admin_user_id: req.user.id,
+    });
+
+    res.json(order);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/payments/transactions/:id/shipping', async (req, res, next) => {
+  try {
+    const order = await Order.findByPk(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    const shipping_carrier = req.body.shipping_carrier ? String(req.body.shipping_carrier).trim() : null;
+    const tracking_number = req.body.tracking_number ? String(req.body.tracking_number).trim() : null;
+    const estimated_delivery = req.body.estimated_delivery ? new Date(req.body.estimated_delivery) : null;
+    if (estimated_delivery && Number.isNaN(estimated_delivery.getTime())) {
+      return res.status(400).json({ error: 'Invalid estimated_delivery value' });
+    }
+
+    const markShipped = req.body.mark_shipped === true;
+    const updates = {
+      shipping_carrier,
+      tracking_number,
+      estimated_delivery,
+    };
+    if (markShipped) {
+      updates.status = 'shipped';
+      updates.shipped_at = order.shipped_at || new Date();
+    }
+
+    await order.update(updates);
+    await appendOrderTimelineEvent(order, {
+      type: 'admin_shipping_updated',
+      title: markShipped ? 'Admin marked order shipped' : 'Admin updated shipping',
+      description: tracking_number ? `Tracking ${tracking_number}${shipping_carrier ? ` via ${shipping_carrier}` : ''}` : 'Shipping details updated',
+      status: order.status,
+      shipping_carrier: order.shipping_carrier,
+      tracking_number: order.tracking_number,
+      estimated_delivery: order.estimated_delivery,
+      shipped_at: order.shipped_at,
+      admin_user_id: req.user.id,
+    });
+
+    res.json(order);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/payments/transactions/:id/refunds', async (req, res, next) => {
+  try {
+    const order = await Order.findByPk(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    const paymentRef = order.stripe_charge_id || order.stripe_payment_intent_id;
+    if (!paymentRef) {
+      return res.status(400).json({ error: 'No Stripe payment reference available for this order' });
+    }
+
+    const refundedSoFar = refundedTotalCents(order);
+    const maxRefundable = Math.max(0, Number(order.total_cents || 0) - refundedSoFar);
+    if (maxRefundable <= 0) {
+      return res.status(400).json({ error: 'This order is already fully refunded' });
+    }
+
+    const requestedAmount = req.body?.amount_cents !== undefined && req.body?.amount_cents !== null
+      ? Number(req.body.amount_cents)
+      : maxRefundable;
+    if (!Number.isFinite(requestedAmount) || requestedAmount <= 0) {
+      return res.status(400).json({ error: 'amount_cents must be a positive number' });
+    }
+    const amount_cents = Math.min(Math.floor(requestedAmount), maxRefundable);
+
+    const refundPayload = {
+      amount: amount_cents,
+      metadata: {
+        order_id: String(order.id),
+        admin_user_id: String(req.user.id),
+      },
+    };
+    if (order.stripe_charge_id) refundPayload.charge = order.stripe_charge_id;
+    else refundPayload.payment_intent = order.stripe_payment_intent_id;
+    const reason = mapStripeRefundReason(req.body?.reason);
+    if (reason) refundPayload.reason = reason;
+
+    const refund = await stripe.refunds.create(refundPayload);
+
+    await updateOrderMeta(order, (meta) => {
+      const refunds = Array.isArray(meta.refunds) ? meta.refunds : [];
+      refunds.push({
+        id: refund.id,
+        amount_cents,
+        reason: req.body?.reason || 'other',
+        notes: req.body?.notes || null,
+        status: refund.status || 'pending',
+        created_at: new Date().toISOString(),
+        created_by_admin_id: req.user.id,
+      });
+      meta.refunds = refunds;
+      return meta;
+    });
+
+    await appendOrderTimelineEvent(order, {
+      type: 'admin_refund_created',
+      title: 'Admin issued refund',
+      description: `Refund ${refund.id} created for ${(amount_cents / 100).toFixed(2)} USD`,
+      status: order.status,
+      refund_id: refund.id,
+      amount_cents,
+      reason: req.body?.reason || 'other',
+      admin_user_id: req.user.id,
+    });
+
+    res.status(201).json({
+      refund: {
+        id: refund.id,
+        amount_cents,
+        status: refund.status || 'pending',
+      },
+      refunded_total_cents: refundedTotalCents(order),
+      refundable_remaining_cents: Math.max(0, Number(order.total_cents || 0) - refundedTotalCents(order)),
     });
   } catch (err) {
     next(err);

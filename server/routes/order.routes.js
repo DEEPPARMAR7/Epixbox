@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const crypto = require('crypto');
 const stripe = require('../config/stripe');
 const { Order, OrderItem, Product, Photo, PriceList } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
@@ -48,6 +49,11 @@ function timelineForOrder(order) {
     const bTime = new Date(b.created_at || 0).getTime();
     return aTime - bTime;
   });
+}
+
+function getOrderPublicTrackingToken(order) {
+  const meta = parseOrderMeta(order);
+  return meta.public_tracking_token || null;
 }
 
 function refundedTotalCents(order) {
@@ -126,6 +132,11 @@ router.post('/', async (req, res, next) => {
       status: 'pending',
       subtotal_cents, tax_cents: 0, total_cents,
       shipping_address,
+      notes: JSON.stringify({
+        public_tracking_token: crypto.randomBytes(16).toString('hex'),
+        timeline: [],
+        refunds: [],
+      }),
     });
 
     await appendOrderTimelineEvent(order, {
@@ -146,7 +157,11 @@ router.post('/', async (req, res, next) => {
       });
     }
 
-    res.status(201).json({ orderId: order.id, clientSecret: paymentIntent.client_secret });
+    res.status(201).json({
+      orderId: order.id,
+      clientSecret: paymentIntent.client_secret,
+      trackingToken: getOrderPublicTrackingToken(order),
+    });
   } catch (err) { next(err); }
 });
 
@@ -384,6 +399,50 @@ router.post('/mine/:id/refunds', requireAuth, async (req, res, next) => {
       order_status: order.status,
       refunded_total_cents: totalRefunded,
       refundable_remaining_cents: Math.max(0, Number(order.total_cents || 0) - totalRefunded),
+    });
+  } catch (err) { next(err); }
+});
+
+// GET /api/orders/public/:id/status?token=...
+router.get('/public/:id/status', async (req, res, next) => {
+  try {
+    const order = await Order.findByPk(req.params.id, {
+      include: [{ model: OrderItem, include: [{ model: Photo, attributes: ['id', 'title'] }] }],
+    });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    const token = String(req.query.token || req.headers['x-order-tracking-token'] || '').trim();
+    const expected = getOrderPublicTrackingToken(order);
+    if (!expected || token !== expected) {
+      return res.status(403).json({ error: 'Invalid tracking token' });
+    }
+
+    const maskedEmail = String(order.buyer_email || '')
+      .replace(/(^.).*(@.*$)/, '$1***$2');
+
+    res.json({
+      id: order.id,
+      buyer_name: order.buyer_name || null,
+      buyer_email_masked: maskedEmail,
+      status: order.status,
+      subtotal_cents: order.subtotal_cents,
+      total_cents: order.total_cents,
+      created_at: order.created_at,
+      shipping: {
+        shipping_carrier: order.shipping_carrier || null,
+        tracking_number: order.tracking_number || null,
+        estimated_delivery: order.estimated_delivery || null,
+        shipped_at: order.shipped_at || null,
+      },
+      timeline: timelineForOrder(order),
+      refunds: parseOrderMeta(order).refunds || [],
+      items: (order.OrderItems || []).map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+        unit_price_cents: item.unit_price_cents,
+        product_snapshot: item.product_snapshot,
+        photo: item.Photo ? { id: item.Photo.id, title: item.Photo.title } : null,
+      })),
     });
   } catch (err) { next(err); }
 });
