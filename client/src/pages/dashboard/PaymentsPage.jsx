@@ -7,7 +7,7 @@ import {
   DashboardStatsSkeleton,
   DashboardTableSkeleton,
 } from '../../components/common/DashboardSkeletons'
-import { getMyOrders, getOrderTimeline, updateOrderShipping, updateOrderStatus } from '../../api/orderApi'
+import { createOrderRefund, getMyOrders, getOrderTimeline, updateOrderShipping, updateOrderStatus } from '../../api/orderApi'
 import { createBillingPortal, getBilling } from '../../api/settingsApi'
 import { formatCurrency } from '../../utils/formatters'
 
@@ -24,6 +24,9 @@ export default function PaymentsPage() {
   const [loadingOrderPanel, setLoadingOrderPanel] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [savingShipping, setSavingShipping] = useState(false)
+  const [savingRefund, setSavingRefund] = useState(false)
+  const [refundSummary, setRefundSummary] = useState({ refunded_total_cents: 0, refundable_remaining_cents: 0 })
+  const [refundForm, setRefundForm] = useState({ amount_cents: '', reason: 'requested_by_customer', notes: '' })
   const [shippingForm, setShippingForm] = useState({
     shipping_carrier: '',
     tracking_number: '',
@@ -62,6 +65,13 @@ export default function PaymentsPage() {
       const data = await getOrderTimeline(orderId)
       setActiveTimeline(data?.timeline || [])
       setActiveShipping(data?.shipping || null)
+      const refundedTotal = Number(data?.refunded_total_cents || 0)
+      const selectedOrder = orders.find((o) => o.id === orderId)
+      const total = Number(selectedOrder?.total_cents || 0)
+      setRefundSummary({
+        refunded_total_cents: refundedTotal,
+        refundable_remaining_cents: Math.max(0, total - refundedTotal),
+      })
       setShippingForm({
         shipping_carrier: data?.shipping?.shipping_carrier || '',
         tracking_number: data?.shipping?.tracking_number || '',
@@ -77,6 +87,7 @@ export default function PaymentsPage() {
 
   const openOrderManager = async (orderId) => {
     setActiveOrderId(orderId)
+    setRefundForm({ amount_cents: '', reason: 'requested_by_customer', notes: '' })
     await loadOrderPanel(orderId)
   }
 
@@ -114,6 +125,37 @@ export default function PaymentsPage() {
       toast.error(err?.response?.data?.error || 'Failed to update shipping details')
     } finally {
       setSavingShipping(false)
+    }
+  }
+
+  const handleCreateRefund = async (e) => {
+    e.preventDefault()
+    if (!activeOrderId) return
+    setSavingRefund(true)
+    try {
+      const payload = {
+        reason: refundForm.reason,
+        notes: refundForm.notes || null,
+      }
+      if (refundForm.amount_cents !== '') {
+        payload.amount_cents = Number(refundForm.amount_cents)
+      }
+
+      const result = await createOrderRefund(activeOrderId, payload)
+      if (result?.order_status) {
+        setOrders((prev) => prev.map((o) => (o.id === activeOrderId ? { ...o, status: result.order_status } : o)))
+      }
+      setRefundSummary({
+        refunded_total_cents: Number(result?.refunded_total_cents || 0),
+        refundable_remaining_cents: Number(result?.refundable_remaining_cents || 0),
+      })
+      await loadOrderPanel(activeOrderId)
+      setRefundForm({ amount_cents: '', reason: 'requested_by_customer', notes: '' })
+      toast.success('Refund request created')
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to create refund')
+    } finally {
+      setSavingRefund(false)
     }
   }
 
@@ -292,6 +334,46 @@ export default function PaymentsPage() {
                       Current: {activeShipping.shipping_carrier || 'No carrier'} · {activeShipping.tracking_number || 'No tracking'}
                     </p>
                   )}
+                </form>
+
+                <form onSubmit={handleCreateRefund} className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-3">
+                  <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Issue Refund</p>
+                  <p className="text-xs text-slate-400">
+                    Refunded: {formatCurrency(refundSummary.refunded_total_cents)} · Remaining: {formatCurrency(refundSummary.refundable_remaining_cents)}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    <input
+                      type="number"
+                      min="1"
+                      value={refundForm.amount_cents}
+                      onChange={(e) => setRefundForm((prev) => ({ ...prev, amount_cents: e.target.value }))}
+                      placeholder="Amount in cents (empty = full remaining)"
+                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 sm:col-span-2"
+                    />
+                    <select
+                      value={refundForm.reason}
+                      onChange={(e) => setRefundForm((prev) => ({ ...prev, reason: e.target.value }))}
+                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+                    >
+                      <option value="requested_by_customer">Requested by customer</option>
+                      <option value="duplicate">Duplicate</option>
+                      <option value="fraud">Fraud</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <input
+                    value={refundForm.notes}
+                    onChange={(e) => setRefundForm((prev) => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Notes (optional)"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={savingRefund || refundSummary.refundable_remaining_cents <= 0}
+                    className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+                  >
+                    {savingRefund ? 'Creating Refund...' : 'Create Refund'}
+                  </button>
                 </form>
 
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">

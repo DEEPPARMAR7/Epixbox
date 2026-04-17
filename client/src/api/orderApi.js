@@ -5,3 +5,4 @@ export const getMyOrder = (id) => axiosClient.get(`/orders/mine/${id}`).then(r =
 export const updateOrderStatus = (id, status) => axiosClient.patch(`/orders/mine/${id}/status`, { status }).then(r => r.data)
 export const updateOrderShipping = (id, payload) => axiosClient.patch(`/orders/mine/${id}/shipping`, payload).then(r => r.data)
 export const getOrderTimeline = (id) => axiosClient.get(`/orders/mine/${id}/timeline`).then(r => r.data)
+export const createOrderRefund = (id, payload) => axiosClient.post(`/orders/mine/${id}/refunds`, payload).then(r => r.data)

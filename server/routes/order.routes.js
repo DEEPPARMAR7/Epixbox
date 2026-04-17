@@ -12,22 +12,33 @@ function parseOrderMeta(order) {
     const parsed = order?.notes ? JSON.parse(order.notes) : {};
     if (!parsed || typeof parsed !== 'object') return { timeline: [] };
     if (!Array.isArray(parsed.timeline)) parsed.timeline = [];
+    if (!Array.isArray(parsed.refunds)) parsed.refunds = [];
     return parsed;
   } catch {
-    return { timeline: [] };
+    return { timeline: [], refunds: [] };
   }
 }
 
-async function appendOrderTimelineEvent(order, event) {
+async function updateOrderMeta(order, updater) {
   const meta = parseOrderMeta(order);
-  const timeline = Array.isArray(meta.timeline) ? meta.timeline : [];
-  timeline.push({
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    created_at: new Date().toISOString(),
-    ...event,
+  const next = updater({ ...meta }) || meta;
+  if (!Array.isArray(next.timeline)) next.timeline = [];
+  if (!Array.isArray(next.refunds)) next.refunds = [];
+  await order.update({ notes: JSON.stringify(next) });
+  return next;
+}
+
+async function appendOrderTimelineEvent(order, event) {
+  await updateOrderMeta(order, (meta) => {
+    const timeline = Array.isArray(meta.timeline) ? meta.timeline : [];
+    timeline.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      created_at: new Date().toISOString(),
+      ...event,
+    });
+    meta.timeline = timeline;
+    return meta;
   });
-  meta.timeline = timeline;
-  await order.update({ notes: JSON.stringify(meta) });
 }
 
 function timelineForOrder(order) {
@@ -37,6 +48,19 @@ function timelineForOrder(order) {
     const bTime = new Date(b.created_at || 0).getTime();
     return aTime - bTime;
   });
+}
+
+function refundedTotalCents(order) {
+  const meta = parseOrderMeta(order);
+  return (meta.refunds || []).reduce((sum, r) => sum + Number(r?.amount_cents || 0), 0);
+}
+
+function mapStripeRefundReason(reason) {
+  const normalized = String(reason || '').trim().toLowerCase();
+  if (normalized === 'requested_by_customer') return 'requested_by_customer';
+  if (normalized === 'duplicate') return 'duplicate';
+  if (normalized === 'fraud' || normalized === 'fraudulent') return 'fraudulent';
+  return null;
 }
 
 // POST /api/orders — create order + Stripe PaymentIntent
@@ -264,6 +288,106 @@ router.patch('/mine/:id/shipping', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// POST /api/orders/mine/:id/refunds
+router.post('/mine/:id/refunds', requireAuth, async (req, res, next) => {
+  try {
+    const order = await Order.findOne({ where: { id: req.params.id, photographer_id: req.user.id } });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    if (!['paid', 'processing', 'shipped', 'cancelled'].includes(order.status)) {
+      return res.status(400).json({ error: 'Order is not eligible for refund yet' });
+    }
+
+    const paymentIntentOrCharge = order.stripe_charge_id || order.stripe_payment_intent_id;
+    if (!paymentIntentOrCharge) {
+      return res.status(400).json({ error: 'No Stripe payment reference available for this order' });
+    }
+
+    const refundedSoFar = refundedTotalCents(order);
+    const maxRefundable = Math.max(0, Number(order.total_cents || 0) - refundedSoFar);
+    if (maxRefundable <= 0) {
+      return res.status(400).json({ error: 'This order is already fully refunded' });
+    }
+
+    const requestedAmount = req.body?.amount_cents !== undefined && req.body?.amount_cents !== null
+      ? Number(req.body.amount_cents)
+      : maxRefundable;
+    if (!Number.isFinite(requestedAmount) || requestedAmount <= 0) {
+      return res.status(400).json({ error: 'amount_cents must be a positive number' });
+    }
+    const amount_cents = Math.min(Math.floor(requestedAmount), maxRefundable);
+
+    const stripeReason = mapStripeRefundReason(req.body?.reason);
+    const refundPayload = {
+      amount: amount_cents,
+      metadata: {
+        order_id: String(order.id),
+        photographer_id: String(req.user.id),
+      },
+    };
+
+    if (order.stripe_charge_id) refundPayload.charge = order.stripe_charge_id;
+    else refundPayload.payment_intent = order.stripe_payment_intent_id;
+    if (stripeReason) refundPayload.reason = stripeReason;
+
+    const refund = await stripe.refunds.create(refundPayload);
+
+    await updateOrderMeta(order, (meta) => {
+      const refunds = Array.isArray(meta.refunds) ? meta.refunds : [];
+      refunds.push({
+        id: refund.id,
+        amount_cents,
+        reason: req.body?.reason || 'other',
+        notes: req.body?.notes || null,
+        status: refund.status || 'pending',
+        created_at: new Date().toISOString(),
+      });
+      meta.refunds = refunds;
+      return meta;
+    });
+
+    await appendOrderTimelineEvent(order, {
+      type: 'refund_created',
+      title: 'Refund issued',
+      description: `Refund ${refund.id} created for ${(amount_cents / 100).toFixed(2)} USD`,
+      status: order.status,
+      refund_id: refund.id,
+      amount_cents,
+      reason: req.body?.reason || 'other',
+    });
+
+    const totalRefunded = refundedTotalCents(order);
+    if (totalRefunded >= Number(order.total_cents || 0) && order.status !== 'cancelled') {
+      await order.update({ status: 'cancelled' });
+      await appendOrderTimelineEvent(order, {
+        type: 'order_fully_refunded',
+        title: 'Order fully refunded',
+        description: 'Refund amount reached order total, order marked as cancelled',
+        status: 'cancelled',
+      });
+    }
+
+    pushUserNotification(req.user.id, {
+      type: 'order.refund_created',
+      title: 'Refund Created',
+      message: `Refund ${refund.id} created for order ${order.id.slice(0, 8)}`,
+      orderId: order.id,
+    });
+
+    res.status(201).json({
+      refund: {
+        id: refund.id,
+        amount_cents,
+        status: refund.status || 'pending',
+        reason: req.body?.reason || 'other',
+      },
+      order_status: order.status,
+      refunded_total_cents: totalRefunded,
+      refundable_remaining_cents: Math.max(0, Number(order.total_cents || 0) - totalRefunded),
+    });
+  } catch (err) { next(err); }
+});
+
 // GET /api/orders/mine/:id/timeline
 router.get('/mine/:id/timeline', requireAuth, async (req, res, next) => {
   try {
@@ -278,6 +402,8 @@ router.get('/mine/:id/timeline', requireAuth, async (req, res, next) => {
         estimated_delivery: order.estimated_delivery || null,
         shipped_at: order.shipped_at || null,
       },
+      refunds: parseOrderMeta(order).refunds || [],
+      refunded_total_cents: refundedTotalCents(order),
     });
   } catch (err) { next(err); }
 });
