@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { User, Gallery, Photo, Tag, GalleryExpiry } = require('../models/index');
+const { User, Gallery, Photo, Tag, GalleryExpiry, GalleryPassword } = require('../models/index');
 const { getPublicUrl } = require('../services/s3.service');
 const { Op } = require('sequelize');
 const { setPublicCache } = require('../middleware/cache.middleware');
@@ -8,6 +8,34 @@ function isGalleryExpired(expiry) {
   if (!expiry || expiry.is_enabled === false) return false;
   if (!expiry.expires_at) return false;
   return new Date(expiry.expires_at).getTime() <= Date.now();
+}
+
+function expectedGalleryAccessToken(galleryId) {
+  return Buffer.from(`gallery-${galleryId}-access`).toString('base64');
+}
+
+function readGalleryAccessToken(req) {
+  const headerToken = req.headers['x-gallery-access-token'];
+  if (headerToken) return String(headerToken).trim();
+  const queryToken = req.query.access_token;
+  return queryToken ? String(queryToken).trim() : '';
+}
+
+function requireGalleryPasswordAccess(req, res, gallery) {
+  const password = gallery.GalleryPassword;
+  if (!password || password.is_enabled === false) return false;
+
+  const providedToken = readGalleryAccessToken(req);
+  const expectedToken = expectedGalleryAccessToken(gallery.id);
+  if (providedToken === expectedToken) return false;
+
+  res.status(401).json({
+    error: 'This gallery is password protected',
+    needs_password: true,
+    gallery_id: gallery.id,
+    hint: password.hint || null,
+  });
+  return true;
 }
 
 // Attach public URLs to a photo plain object
@@ -74,12 +102,19 @@ router.get('/:username/galleries/:slug', setPublicCache, async (req, res, next) 
 
     const gallery = await Gallery.findOne({
       where: { user_id: user.id, slug: req.params.slug, visibility: { [Op.in]: ['public', 'unlisted'] } },
-      include: [{ model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false }],
+      include: [
+        { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
+        { model: GalleryPassword, attributes: ['gallery_id', 'hint', 'is_enabled'], required: false },
+      ],
     });
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
 
     if (isGalleryExpired(gallery.GalleryExpiry)) {
       return res.status(410).json({ error: 'Gallery has expired' });
+    }
+
+    if (requireGalleryPasswordAccess(req, res, gallery)) {
+      return;
     }
 
     const photos = await Photo.findAll({
@@ -105,7 +140,10 @@ router.get('/:username/photos/:id', setPublicCache, async (req, res, next) => {
         {
           model: Gallery,
           where: { visibility: 'public' },
-          include: [{ model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false }],
+          include: [
+            { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
+            { model: GalleryPassword, attributes: ['gallery_id', 'hint', 'is_enabled'], required: false },
+          ],
           required: true,
         },
         { model: Tag, through: { attributes: [] } },
@@ -115,6 +153,10 @@ router.get('/:username/photos/:id', setPublicCache, async (req, res, next) => {
 
     if (isGalleryExpired(photo.Gallery?.GalleryExpiry)) {
       return res.status(410).json({ error: 'Gallery has expired' });
+    }
+
+    if (requireGalleryPasswordAccess(req, res, photo.Gallery)) {
+      return;
     }
 
     res.json(withPhotoUrls(photo));

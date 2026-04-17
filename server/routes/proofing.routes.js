@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const crypto = require('crypto');
 const sharp = require('sharp');
-const { ProofingSession, ProofingSelection, ProofingComment, ProofingDownload, Gallery, Photo } = require('../models/index');
+const { ProofingSession, ProofingSelection, ProofingComment, ProofingDownload, Gallery, Photo, GalleryExpiry } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
 const proofingAccess = require('../middleware/proofingAccess.middleware');
 const { sendProofingInvite } = require('../services/email.service');
@@ -50,6 +50,12 @@ async function registerDownload(session, photo, mode, req) {
     download_count: (session.download_count || 0) + 1,
     last_download_at: new Date(),
   });
+
+  const expiry = await GalleryExpiry.findOne({ where: { gallery_id: session.gallery_id, is_enabled: true } });
+  if (expiry && expiry.downloads_remaining !== null && expiry.downloads_remaining !== undefined) {
+    const nextRemaining = Math.max(0, Number(expiry.downloads_remaining) - 1);
+    await expiry.update({ downloads_remaining: nextRemaining });
+  }
 }
 
 function ensureDownloadAllowed(session) {
@@ -57,6 +63,21 @@ function ensureDownloadAllowed(session) {
   if (session.max_download_count && (session.download_count || 0) >= session.max_download_count) {
     return 'Download limit reached for this session';
   }
+  return null;
+}
+
+async function ensureGalleryExpiryAllowsDownload(session) {
+  const expiry = await GalleryExpiry.findOne({ where: { gallery_id: session.gallery_id, is_enabled: true } });
+  if (!expiry) return null;
+
+  if (expiry.expires_at && new Date(expiry.expires_at).getTime() <= Date.now()) {
+    return 'Gallery has expired';
+  }
+
+  if (expiry.downloads_remaining !== null && expiry.downloads_remaining !== undefined && Number(expiry.downloads_remaining) <= 0) {
+    return 'Gallery download limit has been reached';
+  }
+
   return null;
 }
 
@@ -334,6 +355,9 @@ router.get('/session/:token/photos/:photoId/download-url', proofingAccess, async
     const denyReason = ensureDownloadAllowed(session);
     if (denyReason) return res.status(403).json({ error: denyReason });
 
+    const galleryDenyReason = await ensureGalleryExpiryAllowsDownload(session);
+    if (galleryDenyReason) return res.status(403).json({ error: galleryDenyReason });
+
     const photo = await findScopedPhoto(session, req.params.photoId);
     if (!photo) return res.status(404).json({ error: 'Photo not found' });
 
@@ -351,6 +375,9 @@ router.get('/session/:token/photos/:photoId/download', proofingAccess, async (re
     const session = req.proofingSession;
     const denyReason = ensureDownloadAllowed(session);
     if (denyReason) return res.status(403).json({ error: denyReason });
+
+    const galleryDenyReason = await ensureGalleryExpiryAllowsDownload(session);
+    if (galleryDenyReason) return res.status(403).json({ error: galleryDenyReason });
 
     const photo = await findScopedPhoto(session, req.params.photoId);
     if (!photo) return res.status(404).json({ error: 'Photo not found' });
@@ -392,6 +419,9 @@ router.get('/session/:token/download-urls', proofingAccess, async (req, res, nex
     const session = req.proofingSession;
     const denyReason = ensureDownloadAllowed(session);
     if (denyReason) return res.status(403).json({ error: denyReason });
+
+    const galleryDenyReason = await ensureGalleryExpiryAllowsDownload(session);
+    if (galleryDenyReason) return res.status(403).json({ error: galleryDenyReason });
 
     const selectedOnly = String(req.query.selectedOnly || 'false') === 'true';
 

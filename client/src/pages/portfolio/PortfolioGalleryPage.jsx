@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import Masonry from 'react-masonry-css'
 import Spinner from '../../components/common/Spinner'
 import SocialShare from '../../components/common/SocialShare'
-import { getPhotographerProfile, getPublicGallery } from '../../api/portfolioApi'
+import { getPhotographerProfile, getPublicGallery, verifyGalleryPassword } from '../../api/portfolioApi'
 
 const SAMPLE_PHOTOS = [
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80',
@@ -105,20 +105,85 @@ export default function PortfolioGalleryPage() {
   const [gallery, setGallery] = useState(null)
   const [photos, setPhotos] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [lightboxIdx, setLightboxIdx] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [layoutMode, setLayoutMode] = useState('masonry')
+  const [accessToken, setAccessToken] = useState(() => sessionStorage.getItem(`gallery-access:${username}:${slug}`) || '')
+  const [passwordRequired, setPasswordRequired] = useState(false)
+  const [protectedGalleryId, setProtectedGalleryId] = useState(null)
+  const [passwordHint, setPasswordHint] = useState('')
+  const [passwordInput, setPasswordInput] = useState('')
+  const [unlocking, setUnlocking] = useState(false)
+  const [unlockError, setUnlockError] = useState('')
 
   useEffect(() => {
-    Promise.all([getPhotographerProfile(username), getPublicGallery(username, slug)])
-      .then(([p, { gallery: g, photos: ph }]) => {
+    let cancelled = false
+
+    const load = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const [p, galleryData] = await Promise.all([
+          getPhotographerProfile(username),
+          getPublicGallery(username, slug, accessToken),
+        ])
+        if (cancelled) return
         setPhotographer(p)
-        setGallery(g)
-        setPhotos(ph)
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [username, slug])
+        setGallery(galleryData.gallery)
+        setPhotos(galleryData.photos || [])
+        setPasswordRequired(false)
+        setUnlockError('')
+      } catch (err) {
+        if (cancelled) return
+        const response = err?.response
+        if (response?.status === 401 && response?.data?.needs_password) {
+          setPasswordRequired(true)
+          setProtectedGalleryId(response.data.gallery_id)
+          setPasswordHint(response.data.hint || '')
+          setError(null)
+        } else if (response?.status === 410) {
+          setError('This gallery has expired and is no longer available.')
+        } else if (response?.status === 404) {
+          setError('Gallery not found.')
+        } else {
+          setError('Unable to load this gallery right now.')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      cancelled = true
+    }
+  }, [username, slug, accessToken])
+
+  const handleUnlock = async (e) => {
+    e.preventDefault()
+    if (!protectedGalleryId || !passwordInput.trim()) return
+
+    setUnlocking(true)
+    setUnlockError('')
+    try {
+      const data = await verifyGalleryPassword(protectedGalleryId, passwordInput.trim())
+      const token = data?.access_token || ''
+      if (!token) {
+        setUnlockError('Unlock token not received. Please try again.')
+        return
+      }
+      sessionStorage.setItem(`gallery-access:${username}:${slug}`, token)
+      setAccessToken(token)
+      setPasswordInput('')
+      setPasswordRequired(false)
+    } catch (err) {
+      setUnlockError(err?.response?.data?.error || 'Incorrect password. Please try again.')
+    } finally {
+      setUnlocking(false)
+    }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -138,6 +203,17 @@ export default function PortfolioGalleryPage() {
       <Spinner size="lg" />
     </div>
   )
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center px-6 text-center">
+        <div>
+          <p className="text-2xl font-bold mb-3">Gallery Unavailable</p>
+          <p className="text-white/60">{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -286,6 +362,36 @@ export default function PortfolioGalleryPage() {
           onPrev={handlePrev}
           onNext={handleNext}
         />
+      )}
+
+      {passwordRequired && (
+        <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-zinc-950 p-6">
+            <h3 className="text-xl font-bold text-white mb-2">This Gallery Is Password Protected</h3>
+            <p className="text-sm text-white/60 mb-4">Enter the client password to view this gallery.</p>
+            {passwordHint && (
+              <p className="text-xs text-emerald-300/90 mb-4">Hint: {passwordHint}</p>
+            )}
+            <form onSubmit={handleUnlock} className="space-y-3">
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="Enter password"
+                className="w-full rounded-lg border border-white/15 bg-black px-3 py-2 text-sm text-white placeholder:text-white/35 focus:outline-none focus:border-white/40"
+                autoFocus
+              />
+              {unlockError && <p className="text-xs text-red-300">{unlockError}</p>}
+              <button
+                type="submit"
+                disabled={unlocking || !passwordInput.trim()}
+                className="w-full rounded-lg bg-white text-black py-2 text-sm font-semibold hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {unlocking ? 'Unlocking...' : 'Unlock Gallery'}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   )
