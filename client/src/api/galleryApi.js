@@ -6,3 +6,5 @@ export const updateGallery = (id, data) => axiosClient.put(`/galleries/${id}`, d
 export const deleteGallery = (id) => axiosClient.delete(`/galleries/${id}`).then(r => r.data)
 export const setCoverPhoto = (id, photoId) => axiosClient.patch(`/galleries/${id}/cover`, { photoId }).then(r => r.data)
 export const updateVisibility = (id, visibility) => axiosClient.put(`/galleries/${id}/visibility`, { visibility }).then(r => r.data)
+export const applyGalleryTheme = (id, theme_id) => axiosClient.post(`/galleries/${id}/apply-theme`, { theme_id }).then(r => r.data)
+export const saveGalleryCustomCss = (id, css) => axiosClient.put(`/galleries/${id}/custom-css`, { css }).then(r => r.data)

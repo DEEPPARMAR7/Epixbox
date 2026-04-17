@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { User, Gallery, Photo, Tag, GalleryExpiry, GalleryPassword } = require('../models/index');
+const { User, Gallery, Photo, Tag, GalleryExpiry, GalleryPassword, GallerySetting } = require('../models/index');
 const { getPublicUrl } = require('../services/s3.service');
 const { Op } = require('sequelize');
 const { setPublicCache } = require('../middleware/cache.middleware');
@@ -123,6 +123,7 @@ router.get('/:username/galleries/:slug', setPublicCache, async (req, res, next) 
       include: [
         { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
         { model: GalleryPassword, attributes: ['gallery_id', 'hint', 'is_enabled'], required: false },
+        { model: GallerySetting, as: 'settings', attributes: ['appearance'], required: false },
       ],
     });
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });

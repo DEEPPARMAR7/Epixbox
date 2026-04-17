@@ -5,6 +5,7 @@ import Masonry from 'react-masonry-css'
 import Spinner from '../../components/common/Spinner'
 import SocialShare from '../../components/common/SocialShare'
 import { getPhotographerProfile, getPublicGallery, verifyGalleryPassword } from '../../api/portfolioApi'
+import { getThemeById } from '../../api/themeApi'
 
 const SAMPLE_PHOTOS = [
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80',
@@ -143,6 +144,8 @@ export default function PortfolioGalleryPage() {
   const [passwordInput, setPasswordInput] = useState('')
   const [unlocking, setUnlocking] = useState(false)
   const [unlockError, setUnlockError] = useState('')
+  const [themeVars, setThemeVars] = useState(null)
+  const [customCss, setCustomCss] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -189,6 +192,19 @@ export default function PortfolioGalleryPage() {
           setPhotos(galleryData.photos || [])
           setPasswordRequired(false)
           setUnlockError('')
+
+          const appearance = galleryData?.gallery?.settings?.appearance || {}
+          setCustomCss(String(appearance.custom_css || ''))
+          if (appearance.theme_id) {
+            try {
+              const theme = await getThemeById(appearance.theme_id)
+              setThemeVars(theme?.css_variables || null)
+            } catch {
+              setThemeVars(null)
+            }
+          } else {
+            setThemeVars(null)
+          }
           return
         }
 
@@ -290,13 +306,25 @@ export default function PortfolioGalleryPage() {
     )
   }
 
+  const galleryStyle = themeVars
+    ? {
+      '--theme-bg': themeVars.bg || '#000000',
+      '--theme-text': themeVars.text || '#ffffff',
+      '--theme-accent': themeVars.accent || '#34d399',
+      backgroundColor: 'var(--theme-bg)',
+      color: 'var(--theme-text)',
+    }
+    : undefined
+
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white" style={galleryStyle}>
       {gallery && (
         <Helmet>
           <title>{gallery.title} — {displayName}</title>
         </Helmet>
       )}
+
+      {customCss && <style>{customCss}</style>}
 
       {/* Navbar */}
       <nav className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${
@@ -313,7 +341,7 @@ export default function PortfolioGalleryPage() {
               <a href="#grid" className="text-white/60 hover:text-white transition">Search</a>
             </div>
           </div>
-          <h2 className="hidden lg:block text-sm font-semibold text-white tracking-wide truncate px-4">{gallery?.title}</h2>
+          <h2 className="hidden lg:block text-sm font-semibold tracking-wide truncate px-4" style={themeVars?.accent ? { color: themeVars.accent } : undefined}>{gallery?.title}</h2>
           <p className="text-sm text-white/40">{photos.length} photos</p>
         </div>
       </nav>

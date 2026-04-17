@@ -1,7 +1,10 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import useAuthStore from '../../store/authStore'
+import { getGalleries, applyGalleryTheme, saveGalleryCustomCss } from '../../api/galleryApi'
+import { getThemes } from '../../api/themeApi'
 
 const THEMES = [
   {
@@ -38,15 +41,106 @@ const THEMES = [
   },
 ]
 
+const PREMIUM_THEME_IDS = new Set(['theme-dark-elegance', 'theme-bold-vibrant', 'theme-artistic'])
+
 export default function ProfessionalThemesPage() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const isPaidPlan = user?.plan === 'pro' || user?.plan === 'business'
+  const [themes, setThemes] = useState([])
+  const [galleries, setGalleries] = useState([])
+  const [selectedGalleryId, setSelectedGalleryId] = useState('')
+  const [selectedThemeId, setSelectedThemeId] = useState('')
+  const [customCss, setCustomCss] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [savingTheme, setSavingTheme] = useState(false)
+  const [savingCss, setSavingCss] = useState(false)
 
   const availableThemes = useMemo(() => {
-    if (isPaidPlan) return THEMES
-    return THEMES.filter((theme) => !theme.premium)
-  }, [isPaidPlan])
+    const merged = themes.length ? themes.map((t) => ({
+      id: t.id,
+      name: t.name,
+      style: t.description || 'Portfolio theme preset',
+      gradient: 'from-[#111827] via-[#1f2937] to-[#0f172a]',
+      premium: PREMIUM_THEME_IDS.has(t.id),
+      tags: [String(t.category || 'theme').toUpperCase(), 'Template', 'Portfolio'],
+      css: t.css_variables || {},
+    })) : THEMES
+
+    if (isPaidPlan) return merged
+    return merged.filter((theme) => !theme.premium)
+  }, [isPaidPlan, themes])
+
+  useEffect(() => {
+    let cancelled = false
+
+    Promise.allSettled([getThemes(), getGalleries()])
+      .then(([themesResult, galleriesResult]) => {
+        if (cancelled) return
+
+        if (themesResult.status === 'fulfilled') {
+          setThemes(Array.isArray(themesResult.value) ? themesResult.value : [])
+        }
+
+        if (galleriesResult.status === 'fulfilled') {
+          const items = Array.isArray(galleriesResult.value) ? galleriesResult.value : []
+          setGalleries(items)
+          if (items[0]?.id) {
+            setSelectedGalleryId(items[0].id)
+            setSelectedThemeId(items[0]?.settings?.appearance?.theme_id || '')
+            setCustomCss(items[0]?.settings?.appearance?.custom_css || '')
+          }
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const selectedGallery = useMemo(
+    () => galleries.find((g) => g.id === selectedGalleryId) || null,
+    [galleries, selectedGalleryId],
+  )
+
+  useEffect(() => {
+    if (!selectedGallery) return
+    setSelectedThemeId(selectedGallery?.settings?.appearance?.theme_id || '')
+    setCustomCss(selectedGallery?.settings?.appearance?.custom_css || '')
+  }, [selectedGallery])
+
+  const handleApplyTheme = async (theme) => {
+    if (!selectedGalleryId) return toast.error('Select a gallery first')
+    if (theme.premium && !isPaidPlan) return toast.error('Upgrade to Pro or Business for this premium theme')
+
+    setSavingTheme(true)
+    try {
+      await applyGalleryTheme(selectedGalleryId, theme.id)
+      setSelectedThemeId(theme.id)
+      toast.success(`Applied ${theme.name}`)
+    } catch (error) {
+      toast.error(error?.response?.data?.error || 'Failed to apply theme')
+    } finally {
+      setSavingTheme(false)
+    }
+  }
+
+  const handleSaveCss = async () => {
+    if (!selectedGalleryId) return toast.error('Select a gallery first')
+
+    setSavingCss(true)
+    try {
+      await saveGalleryCustomCss(selectedGalleryId, customCss)
+      toast.success('Custom CSS saved')
+    } catch (error) {
+      toast.error(error?.response?.data?.error || 'Failed to save custom CSS')
+    } finally {
+      setSavingCss(false)
+    }
+  }
 
   return (
     <DashboardLayout>
@@ -83,13 +177,32 @@ export default function ProfessionalThemesPage() {
         </div>
       )}
 
+      <section className="mt-6 rounded-2xl border border-white/10 bg-[#0f172a] p-6">
+        <h2 className="text-xl font-black text-white">Select Gallery</h2>
+        <p className="mt-2 text-sm text-slate-300">Apply a theme and custom CSS to a specific gallery.</p>
+        <div className="mt-4">
+          <select
+            value={selectedGalleryId}
+            onChange={(e) => setSelectedGalleryId(e.target.value)}
+            className="w-full rounded-md border border-white/20 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-emerald-300"
+            disabled={loading || galleries.length === 0}
+          >
+            {galleries.length === 0 && <option value="">No galleries yet</option>}
+            {galleries.map((gallery) => (
+              <option key={gallery.id} value={gallery.id}>{gallery.title}</option>
+            ))}
+          </select>
+        </div>
+      </section>
+
       <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {THEMES.map((theme) => {
+        {availableThemes.map((theme) => {
           const locked = theme.premium && !isPaidPlan
+          const selected = selectedThemeId === theme.id
           return (
             <article
               key={theme.id}
-              className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d1426] shadow-[0_18px_50px_rgba(0,0,0,0.38)]"
+              className={`overflow-hidden rounded-2xl border bg-[#0d1426] shadow-[0_18px_50px_rgba(0,0,0,0.38)] ${selected ? 'border-emerald-300/60' : 'border-white/10'}`}
             >
               <div className={`relative h-44 bg-gradient-to-br ${theme.gradient}`}>
                 <div className="absolute inset-0 bg-black/15" />
@@ -121,16 +234,39 @@ export default function ProfessionalThemesPage() {
                 <div className="mt-4">
                   <button
                     type="button"
-                    disabled={locked}
+                    disabled={locked || savingTheme || !selectedGalleryId}
+                    onClick={() => handleApplyTheme(theme)}
                     className="w-full rounded-md border border-white/25 bg-white/5 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {locked ? 'Upgrade to Use Theme' : 'Apply Theme'}
+                    {locked ? 'Upgrade to Use Theme' : selected ? 'Theme Applied' : 'Apply Theme'}
                   </button>
                 </div>
               </div>
             </article>
           )
         })}
+      </section>
+
+      <section className="mt-6 rounded-2xl border border-white/10 bg-[#0f172a] p-6">
+        <h2 className="text-xl font-black text-white">Custom CSS</h2>
+        <p className="mt-2 text-sm text-slate-300">Fine tune your selected gallery style with custom CSS.</p>
+        <textarea
+          value={customCss}
+          onChange={(e) => setCustomCss(e.target.value)}
+          placeholder=".portfolio-header { letter-spacing: 0.08em; }"
+          rows={7}
+          className="mt-4 w-full rounded-md border border-white/20 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-emerald-300"
+        />
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={handleSaveCss}
+            disabled={!selectedGalleryId || savingCss}
+            className="rounded-md border border-white/25 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {savingCss ? 'Saving...' : 'Save Custom CSS'}
+          </button>
+        </div>
       </section>
 
       <section className="mt-6 rounded-2xl border border-white/10 bg-[#0f172a] p-6">
