@@ -42,19 +42,51 @@ export default function PortfolioHomePage() {
   const [galleries, setGalleries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [warning, setWarning] = useState('')
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    if (username === 'demo') {
+    const normalizedUsername = String(username || '').trim().toLowerCase()
+
+    if (normalizedUsername === 'demo') {
       setPhotographer(DEMO_PHOTOGRAPHER)
       setGalleries(DEMO_GALLERIES)
+      setWarning('')
       setLoading(false)
       return
     }
 
-    Promise.all([getPhotographerProfile(username), getPublicGalleries(username)])
-      .then(([p, g]) => { setPhotographer(p); setGalleries(g) })
-      .catch(() => setError('Photographer not found'))
+    if (!normalizedUsername) {
+      setError('Portfolio not found')
+      setLoading(false)
+      return
+    }
+
+    Promise.allSettled([
+      getPhotographerProfile(normalizedUsername),
+      getPublicGalleries(normalizedUsername),
+    ])
+      .then(([profileResult, galleriesResult]) => {
+        if (profileResult.status === 'rejected') {
+          const status = profileResult.reason?.response?.status
+          if (status === 404) {
+            setError('Portfolio not found')
+          } else {
+            setError('Portfolio is temporarily unavailable')
+          }
+          return
+        }
+
+        setPhotographer(profileResult.value)
+
+        if (galleriesResult.status === 'fulfilled') {
+          setGalleries(galleriesResult.value)
+          setWarning('')
+        } else {
+          setGalleries([])
+          setWarning('Galleries are temporarily unavailable. Please refresh in a moment.')
+        }
+      })
       .finally(() => setLoading(false))
   }, [username])
 
@@ -79,8 +111,8 @@ export default function PortfolioHomePage() {
     <div className="min-h-screen flex items-center justify-center bg-black text-white">
       <div className="text-center">
         <div className="text-6xl mb-4">📷</div>
-        <h1 className="text-2xl font-bold mb-2">Portfolio not found</h1>
-        <p className="text-white/50">This portfolio does not exist yet.</p>
+        <h1 className="text-2xl font-bold mb-2">{error}</h1>
+        <p className="text-white/50">Check the portfolio username or try again shortly.</p>
         <Link to="/" className="mt-6 inline-block text-indigo-400 hover:underline">Back to EpicBox</Link>
       </div>
     </div>
@@ -146,6 +178,11 @@ export default function PortfolioHomePage() {
 
       <section id="galleries" className="py-20 px-4 bg-black">
         <div className="max-w-7xl mx-auto">
+          {warning && (
+            <div className="mb-8 rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-200">
+              {warning}
+            </div>
+          )}
           {galleries.length === 0 ? (
             <div className="text-center py-20 text-white/30">
               <div className="text-6xl mb-4">🖼️</div>

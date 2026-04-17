@@ -514,6 +514,16 @@ Before declaring "production ready," test:
 
 ---
 
+## SmugMug Parity Gaps (Added)
+
+- SmugMug-level website template/theme customization depth is stronger (your site has branding/settings, but not full no-code template ecosystem parity yet).
+- SmugMug has mature native app ecosystem and desktop auto-upload + deep Lightroom workflows; this platform has apps marketing routes but not full parity in product depth.
+- SmugMug has advanced seller toolkit options like coupons/packages/profit tooling breadth across plans; current pricing/selling tools exist but are not yet as deep feature-by-feature.
+- SmugMug has long-mature enterprise/team features; current dashboard is photographer-centric.
+- SmugMug UX polish and consistency across all edge cases is still ahead due to product maturity.
+
+---
+
 ## Questions or Issues?
 
 - **Migrations not running?** See Troubleshooting in ENVIRONMENT_SETUP.md
