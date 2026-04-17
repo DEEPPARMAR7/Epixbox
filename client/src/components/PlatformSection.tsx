@@ -26,10 +26,10 @@ const PlatformSection = () => {
         {/* Content */}
         <div>
           <h2 className="heading-lg text-foreground mb-6">
-            Get more done better.
+            Everything you need to run a photography business.
           </h2>
           <p className="body-lg mb-8">
-            Store your photos. Share the highlights. Delight your clients. Make some money. Do it all with one platform.
+            Store your photos, build your portfolio, send proofing galleries, sell prints and downloads, and manage memberships from one platform.
           </p>
           <a href="#features" className="btn-outline-cta">
             Explore Features <ArrowRight size={18} />

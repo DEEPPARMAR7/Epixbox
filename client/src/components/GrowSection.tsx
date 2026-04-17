@@ -8,10 +8,10 @@ const GrowSection = () => {
         {/* Content */}
         <div>
           <h2 className="heading-lg text-foreground mb-6">
-            Grow with the flow.
+            Grow from hobbyist to studio to full business.
           </h2>
           <p className="body-lg mb-8">
-            Whether you're a two-person team, a volume photography studio, an organization like a school or camp, or even multiple photo businesses under one roof, EpixBox adapts to your needs and scales with your growth.
+            Whether you're a solo creator, a volume photography studio, a school, a camp, or a brand with multiple photographers, EpixBox scales with your workflow.
           </p>
           <a href="#pricing" className="btn-outline-cta">
             Explore Plans <ArrowRight size={18} />

@@ -17,12 +17,12 @@ const GRID_PHOTOS = [
 ]
 
 const features = [
-  { icon: '🖼️', title: 'Stunning Galleries', desc: 'Organize your work into beautiful, customizable galleries with masonry layouts.' },
-  { icon: '✅', title: 'Client Proofing', desc: 'Share private galleries. Clients star, select, and comment — no login needed.' },
-  { icon: '🛒', title: 'Sell Prints Online', desc: 'Sell prints, canvases, and digital downloads directly from your portfolio.' },
-  { icon: '🌐', title: 'Your Portfolio Site', desc: 'A beautiful public portfolio at yourname.epicbox.app — instant setup.' },
-  { icon: '📤', title: 'Batch Upload', desc: 'Drag and drop hundreds of photos. EXIF data extracted automatically.' },
-  { icon: '🎨', title: 'Custom Branding', desc: 'Your brand colors, logo, and name. Clients see you — not us.' },
+  { icon: '🖼️', title: 'Stunning Galleries', desc: 'Organize your work into beautiful galleries with client-friendly browsing.' },
+  { icon: '✅', title: 'Client Proofing', desc: 'Share private galleries. Clients star, select, and comment with controlled access.' },
+  { icon: '🛒', title: 'Sell Prints Online', desc: 'Sell prints, canvases, and digital downloads from your portfolio workflow.' },
+  { icon: '🌐', title: 'Your Portfolio Site', desc: 'A polished public portfolio that puts your brand front and center.' },
+  { icon: '📤', title: 'Batch Upload', desc: 'Drag and drop hundreds of photos. EXIF data and derivatives are handled for you.' },
+  { icon: '🎨', title: 'Custom Branding', desc: 'Brand colors, logo, and name so clients see your studio, not a generic template.' },
 ]
 
 const plans = [
@@ -150,6 +150,7 @@ export default function LandingPage() {
         </h2>
       </section>
 
+
       {/* Features */}
       <section className="py-24 px-4 bg-zinc-950">
         <div className="max-w-6xl mx-auto">
@@ -166,6 +167,56 @@ export default function LandingPage() {
                 <p className="text-white/50 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* What you can do - Feature Matrix */}
+      <section className="py-20 px-4 bg-black">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-center text-white/40 tracking-widest uppercase text-sm mb-4">What you can do</p>
+          <h2 className="text-4xl font-bold text-center text-white mb-12">SmugMug-style platform, your way</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10">
+              <span className="text-4xl mb-4">🖼️</span>
+              <h3 className="font-semibold text-white mb-2">Portfolios & Galleries</h3>
+              <p className="text-white/60 text-sm">Showcase your work in beautiful, customizable galleries and portfolios.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10">
+              <span className="text-4xl mb-4">✅</span>
+              <h3 className="font-semibold text-white mb-2">Client Proofing</h3>
+              <p className="text-white/60 text-sm">Let clients select favorites, comment, and approve images securely.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10">
+              <span className="text-4xl mb-4">🛒</span>
+              <h3 className="font-semibold text-white mb-2">Print & Digital Sales</h3>
+              <p className="text-white/60 text-sm">Sell prints and downloads directly from your galleries with Stripe payments.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10">
+              <span className="text-4xl mb-4">⚙️</span>
+              <h3 className="font-semibold text-white mb-2">Admin Panel</h3>
+              <p className="text-white/60 text-sm">Manage galleries, orders, users, and site settings in one place.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10">
+              <span className="text-4xl mb-4">💳</span>
+              <h3 className="font-semibold text-white mb-2">Payment Gateway</h3>
+              <p className="text-white/60 text-sm">Accept secure payments for your products and services via Stripe.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10">
+              <span className="text-4xl mb-4">🎨</span>
+              <h3 className="font-semibold text-white mb-2">Branding & Templates</h3>
+              <p className="text-white/60 text-sm">Personalize your site with your logo, colors, and portfolio templates.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10">
+              <span className="text-4xl mb-4">📈</span>
+              <h3 className="font-semibold text-white mb-2">Analytics & Tools</h3>
+              <p className="text-white/60 text-sm">Track gallery views, sales, and client activity with built-in analytics.</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10">
+              <span className="text-4xl mb-4">📱</span>
+              <h3 className="font-semibold text-white mb-2">Mobile-Friendly</h3>
+              <p className="text-white/60 text-sm">Access and manage your business from any device, anywhere.</p>
+            </div>
           </div>
         </div>
       </section>

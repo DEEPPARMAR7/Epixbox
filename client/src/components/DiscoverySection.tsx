@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const discoverItems = [
   {
     title: "Features",
-    description: "See uploads, proofing, sharing, selling, and branding in one place.",
+    description: "See uploads, galleries, proofing, selling, and branding in one place.",
     href: "/features",
     icon: LayoutGrid,
   },
@@ -16,7 +16,7 @@ const discoverItems = [
   },
   {
     title: "Apps",
-    description: "Browse mobile and desktop workflows designed for photographers on the move.",
+    description: "Browse mobile-friendly and desktop workflows designed for photographers on the move.",
     href: "/apps",
     icon: Smartphone,
   },
@@ -89,12 +89,12 @@ const DiscoverySection = () => {
           <div className="border-2 border-border bg-background p-5">
             <ShieldCheck size={20} className="text-foreground mb-3" />
             <p className="font-heading text-xs uppercase tracking-wider text-foreground mb-2">Protected galleries</p>
-            <p className="font-body text-sm text-muted-foreground">Password protection, expiring links, and download control.</p>
+            <p className="font-body text-sm text-muted-foreground">Password protection, expiring links, comments, favorites, and download control.</p>
           </div>
           <div className="border-2 border-border bg-background p-5">
             <LayoutGrid size={20} className="text-foreground mb-3" />
             <p className="font-heading text-xs uppercase tracking-wider text-foreground mb-2">Business tools</p>
-            <p className="font-body text-sm text-muted-foreground">Pricing, sales, proofing, and portfolio management from one account.</p>
+            <p className="font-body text-sm text-muted-foreground">Pricing, subscriptions, sales, proofing, and portfolio management from one account.</p>
           </div>
           <div className="border-2 border-border bg-background p-5">
             <Sparkles size={20} className="text-foreground mb-3" />

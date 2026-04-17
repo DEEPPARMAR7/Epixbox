@@ -7,7 +7,7 @@ const TemplatesSection = () => {
   return (
     <section className="section-padding">
       <h2 className="heading-lg text-foreground mb-12 text-center">
-        Show off with gorgeous drag-and-drop site templates.
+        Show off with portfolio templates that feel polished out of the box.
       </h2>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

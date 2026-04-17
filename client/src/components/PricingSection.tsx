@@ -6,7 +6,7 @@ const plans = [
     name: "Basic",
     price: "13",
     period: "/mo",
-    description: "For hobbyists who want unlimited photo storage.",
+    description: "For hobbyists who want a clean portfolio and unlimited photo storage.",
     features: [
       "Unlimited photo uploads",
       "Custom photo site",
@@ -21,7 +21,7 @@ const plans = [
     name: "Power",
     price: "27",
     period: "/mo",
-    description: "For enthusiasts who want to showcase and share.",
+    description: "For creators who want to showcase, proof, and share with clients.",
     features: [
       "Everything in Basic",
       "Advanced customization",
@@ -37,7 +37,7 @@ const plans = [
     name: "Pro",
     price: "36",
     period: "/mo",
-    description: "For professionals who want to sell and grow.",
+    description: "For professionals who want to sell, grow, and run the business.",
     features: [
       "Everything in Power",
       "Print sales & fulfillment",
@@ -57,7 +57,7 @@ const PricingSection = () => {
     <section className="section-padding bg-card" id="pricing">
       <div className="text-center mb-16">
         <p className="font-heading text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">
-          Subscriber Plans
+          SmugMug-style memberships
         </p>
         <h2 className="heading-lg text-foreground mb-4">
           Professional plans for every stage.

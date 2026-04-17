@@ -7,7 +7,7 @@ import { ArrowRight, BookOpen, Building2, CalendarDays, CircleHelp, Code2, Globe
 const PAGE_CONFIG = {
   apps: {
     title: 'Apps',
-    subtitle: 'Take your workflow everywhere with mobile and desktop tools built for photographers.',
+    subtitle: 'Take your workflow everywhere with mobile-friendly and desktop tools built for photographers.',
     hero: 'Upload, organize, proof, and sell from anywhere.',
     actionLabel: 'Start Free Trial',
     actionHref: '/signup',
@@ -18,7 +18,7 @@ const PAGE_CONFIG = {
     ],
     sections: [
       { title: 'Why photographers use the app experience', body: 'Quick culling, portfolio sharing, and client management are available where you need them most.' },
-      { title: 'Designed for speed', body: 'We optimized gallery browsing, downloads, and proofing so the app feels fast even with large libraries.' },
+      { title: 'Designed for speed', body: 'We optimized gallery browsing, downloads, and proofing so the experience feels fast even with large libraries.' },
     ],
   },
   blog: {

@@ -7,32 +7,32 @@ import featuresHero from "../assets/features-hero.jpg";
 const featureCategories = [
   {
     title: "Store & Organize",
-    description: "Keep every pixel safe with unlimited, full-resolution storage.",
+    description: "Keep every pixel safe with full-resolution storage and structured organization.",
     features: [
-      { icon: Cloud, title: "Unlimited Storage", desc: "Upload unlimited photos and videos in full resolution. No compression, no limits." },
-      { icon: Layers, title: "Smart Organization", desc: "Auto-organize with AI-powered keywords, folders, and galleries. Find any photo in seconds." },
-      { icon: Shield, title: "Backup & Protection", desc: "Military-grade encryption and automatic backups. Your work is always safe." },
-      { icon: Download, title: "Easy Downloads", desc: "Let clients download originals, web-sized, or custom sizes with one click." },
+      { icon: Cloud, title: "Full-Resolution Storage", desc: "Upload photos in full resolution with S3-backed storage and derivative variants." },
+      { icon: Layers, title: "Smart Organization", desc: "Organize with galleries, folders, and searchable metadata so you can find work fast." },
+      { icon: Shield, title: "Backup & Protection", desc: "Private galleries, expiring links, and controlled access keep your work protected." },
+      { icon: Download, title: "Easy Downloads", desc: "Let clients download originals or web-ready sizes with the right access controls." },
     ],
   },
   {
     title: "Share & Showcase",
-    description: "Beautiful galleries that make your work shine.",
+    description: "Beautiful galleries and portfolio pages that make your work shine.",
     features: [
-      { icon: Globe, title: "Custom Website", desc: "Build a stunning portfolio site with drag-and-drop ease. Your domain, your brand." },
-      { icon: Palette, title: "Customizable Templates", desc: "Choose from dozens of gorgeous templates and make them uniquely yours." },
-      { icon: Image, title: "Client Galleries", desc: "Share password-protected galleries. Clients can favorite, comment, and download." },
-      { icon: Smartphone, title: "Mobile Optimized", desc: "Every gallery looks perfect on any device. Beautiful from desktop to phone." },
+      { icon: Globe, title: "Custom Website", desc: "Build a branded portfolio site and public home for your work." },
+      { icon: Palette, title: "Customizable Templates", desc: "Choose polished templates and shape them to your brand." },
+      { icon: Image, title: "Client Galleries", desc: "Share password-protected galleries where clients can favorite, comment, and download." },
+      { icon: Smartphone, title: "Mobile Optimized", desc: "Every gallery is designed to work beautifully on desktop and mobile web." },
     ],
   },
   {
     title: "Sell & Grow",
-    description: "Turn your passion into profit with built-in commerce.",
+    description: "Turn your portfolio into a business with built-in commerce and growth tools.",
     features: [
-      { icon: ShoppingBag, title: "Print Sales", desc: "Sell prints, canvases, and products with automated fulfillment. You shoot, we ship." },
-      { icon: BarChart3, title: "Business Analytics", desc: "Track sales, views, and engagement. Know what's working and grow smarter." },
-      { icon: Users, title: "Client Management", desc: "CRM tools to manage clients, invoices, and bookings all in one place." },
-      { icon: Zap, title: "Marketing Tools", desc: "Email campaigns, SEO tools, and social sharing to grow your audience." },
+      { icon: ShoppingBag, title: "Print Sales", desc: "Sell prints, canvases, and products with fulfillment workflows." },
+      { icon: BarChart3, title: "Business Analytics", desc: "Track sales, views, and engagement so you know what works." },
+      { icon: Users, title: "Client Management", desc: "Manage clients, proofing sessions, pricing, and subscriptions in one account." },
+      { icon: Zap, title: "Marketing Tools", desc: "Use SEO, sharing, and discovery pages to grow your audience." },
     ],
   },
 ];
@@ -41,7 +41,7 @@ const additionalFeatures = [
   { icon: Lock, title: "Privacy Controls", desc: "Granular privacy settings for every gallery and photo." },
   { icon: Search, title: "SEO Built-in", desc: "Optimized for search engines so clients can find you." },
   { icon: Mail, title: "Contact Forms", desc: "Built-in contact and booking forms for your site." },
-  { icon: Smartphone, title: "Mobile App", desc: "Upload and manage photos on the go with our mobile app." },
+  { icon: Smartphone, title: "Mobile Web", desc: "Upload and manage photos on the go from a mobile-friendly web experience." },
 ];
 
 const subscriberOptions = [

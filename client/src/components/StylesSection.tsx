@@ -8,10 +8,10 @@ const StylesSection = () => {
         {/* Content */}
         <div>
           <h2 className="heading-lg text-foreground mb-6">
-            Zero-stress support for every style and subject.
+            Built for every style, subject, and client workflow.
           </h2>
           <p className="body-lg mb-8">
-            From astrophotography to zoological portraits and everything in between, these are just a few of the businesses finding success on EpixBox.
+            From weddings and portraits to schools, teams, and branded client galleries, EpixBox is built to handle the real work photographers do every day.
           </p>
           <a href="#features" className="btn-outline-cta">
             Learn More <ArrowRight size={18} />
