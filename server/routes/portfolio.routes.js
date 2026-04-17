@@ -50,7 +50,8 @@ function withPhotoUrls(photo) {
 function withGalleryUrls(gallery) {
   const g = gallery.toJSON ? gallery.toJSON() : { ...gallery };
   if (g.coverPhoto) {
-    g.cover_url = getPublicUrl(g.coverPhoto.s3_key_medium || g.coverPhoto.s3_key_thumb);
+    const coverPhoto = g.coverPhoto.toJSON ? g.coverPhoto.toJSON() : g.coverPhoto;
+    g.cover_url = getPublicUrl(coverPhoto.s3_key_medium || coverPhoto.s3_key_thumb);
   }
   return g;
 }
