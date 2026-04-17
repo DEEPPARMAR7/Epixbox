@@ -14,6 +14,7 @@ import ResetPasswordPage from "./pages/ResetPassword";
 import DashboardPage from "./pages/Dashboard";
 import ResourcesPage from "./pages/Resources";
 import AboutPage from "./pages/About";
+import StaticMarketingPage from "./pages/marketing/StaticMarketingPage.jsx";
 import PortfolioHomePage from "./pages/portfolio/PortfolioHomePage.jsx";
 import PortfolioGalleryPage from "./pages/portfolio/PortfolioGalleryPage.jsx";
 import ClientProofingPage from "./pages/proofing/ClientProofingPage.jsx";
@@ -51,6 +52,7 @@ const App = () => (
 						<Route path="/" element={<Index />} />
 						<Route path="/features" element={<FeaturesPage />} />
 						<Route path="/pricing" element={<PricingPage />} />
+						<Route path="/apps" element={<StaticMarketingPage page="apps" />} />
 						<Route path="/login" element={<LoginPage />} />
 						<Route path="/signup" element={<SignupPage />} />
 						<Route path="/register" element={<SignupPage />} />
@@ -58,6 +60,18 @@ const App = () => (
 						<Route path="/reset-password" element={<ResetPasswordPage />} />
 						<Route path="/resources" element={<ResourcesPage />} />
 						<Route path="/about" element={<AboutPage />} />
+						<Route path="/blog" element={<StaticMarketingPage page="blog" />} />
+						<Route path="/support" element={<StaticMarketingPage page="support" />} />
+						<Route path="/contact" element={<StaticMarketingPage page="contact" />} />
+						<Route path="/careers" element={<StaticMarketingPage page="careers" />} />
+						<Route path="/press" element={<StaticMarketingPage page="press" />} />
+						<Route path="/partners" element={<StaticMarketingPage page="partners" />} />
+						<Route path="/community" element={<StaticMarketingPage page="community" />} />
+						<Route path="/api" element={<StaticMarketingPage page="api" />} />
+						<Route path="/privacy" element={<StaticMarketingPage page="privacy" />} />
+						<Route path="/terms" element={<StaticMarketingPage page="terms" />} />
+						<Route path="/cookies" element={<StaticMarketingPage page="cookie" />} />
+						<Route path="/dmca" element={<StaticMarketingPage page="dmca" />} />
 						<Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
 						<Route path="/dashboard/*" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
 						<Route path="/p/:username" element={<PortfolioHomePage />} />

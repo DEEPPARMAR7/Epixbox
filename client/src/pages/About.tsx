@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { ArrowRight, Camera, Heart, Globe, Users, Zap, Shield } from "lucide-react";
+import { ArrowRight, Camera, Heart, Globe, Users, Zap, Shield, LayoutGrid, Sparkles, Smartphone } from "lucide-react";
 
 const values = [
   {
@@ -49,6 +49,12 @@ const team = [
   { name: "Kartik Rathod", role: "Head of Product", bio: "Former photo editor at a major magazine. Brings a deep understanding of how photographers actually work." },
 ];
 
+const publicHighlights = [
+  { title: "Features", desc: "Browse uploads, proofing, sharing, sales, and branding.", href: "/features", icon: LayoutGrid },
+  { title: "Pricing", desc: "Compare plans before signup and see what each tier includes.", href: "/pricing", icon: Sparkles },
+  { title: "Apps", desc: "Explore mobile and desktop workflows built for photographers.", href: "/apps", icon: Smartphone },
+]
+
 const AboutPage = () => {
   return (
     <div className="min-h-screen bg-background">
@@ -56,12 +62,27 @@ const AboutPage = () => {
 
       {/* Hero */}
       <section className="section-padding text-center">
+        <p className="font-heading text-xs uppercase tracking-[0.28em] text-muted-foreground mb-3">Why the public site exists</p>
         <h1 className="heading-xl text-foreground mb-6">
           About EpixBox
         </h1>
         <p className="body-lg max-w-2xl mx-auto">
           EpixBox is the all-in-one platform photographers use to store, share, and sell their work — built by photographers, for photographers.
         </p>
+      </section>
+
+      <section className="section-padding pt-0">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+          {publicHighlights.map((item) => (
+            <Link key={item.title} to={item.href} className="group border-2 border-border bg-card p-6 hover:border-foreground transition-colors">
+              <div className="w-12 h-12 bg-accent flex items-center justify-center mb-4 group-hover:bg-foreground transition-colors">
+                <item.icon size={22} className="text-accent-foreground group-hover:text-primary-foreground transition-colors" />
+              </div>
+              <h3 className="font-heading font-bold text-sm uppercase tracking-wider text-foreground mb-2">{item.title}</h3>
+              <p className="font-body text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* Mission */}
@@ -139,11 +160,16 @@ const AboutPage = () => {
       <section className="section-padding text-center">
         <h2 className="heading-md text-foreground mb-4">Join thousands of photographers.</h2>
         <p className="body-lg max-w-xl mx-auto mb-8">
-          Start your free trial today — no credit card required.
+          Start your free trial today - no credit card required.
         </p>
-        <Link to="/signup" className="btn-cta">
-          Get Started Free <ArrowRight size={18} />
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link to="/signup" className="btn-cta">
+            Get Started Free <ArrowRight size={18} />
+          </Link>
+          <Link to="/p/demo" className="btn-outline-cta">
+            View Sample Portfolio <ArrowRight size={18} />
+          </Link>
+        </div>
       </section>
 
       <Footer />

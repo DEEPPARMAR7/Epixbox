@@ -9,6 +9,13 @@ import { formatCurrency } from '../../utils/formatters'
 import { PRODUCT_CATEGORIES } from '../../utils/constants'
 import toast from 'react-hot-toast'
 
+const DEMO_PRODUCTS = [
+  { id: 'demo-print-1', category: 'prints', size: '8x10', paper_type: 'Lustre', price_cents: 1800 },
+  { id: 'demo-print-2', category: 'prints', size: '11x14', paper_type: 'Fine Art', price_cents: 3200 },
+  { id: 'demo-digital-1', category: 'digital', size: 'Web Download', paper_type: '', price_cents: 2500 },
+  { id: 'demo-album-1', category: 'albums', size: '10x10 Album', paper_type: 'Premium Layflat', price_cents: 7500 },
+]
+
 export default function ShopPage() {
   const { photoId } = useParams()
   const location = useLocation()
@@ -20,6 +27,13 @@ export default function ShopPage() {
   const { addItem } = useCart()
 
   useEffect(() => {
+    if (String(photoId || '').startsWith('demo-')) {
+      setProducts(DEMO_PRODUCTS)
+      setSelectedCategory(DEMO_PRODUCTS[0].category)
+      setLoading(false)
+      return
+    }
+
     getPricingForPhoto(photoId)
       .then((prods) => {
         setProducts(prods)
@@ -33,6 +47,11 @@ export default function ShopPage() {
   const filteredProducts = products.filter((p) => p.category === selectedCategory)
 
   const handleAddToCart = () => {
+    if (String(photoId || '').startsWith('demo-')) {
+      toast('This is a preview store. Start a trial to activate real selling.', { icon: '✨' })
+      return
+    }
+
     if (!selectedProduct) return
     addItem({
       id: `${selectedProduct.id}-${photoId}`,
@@ -73,7 +92,15 @@ export default function ShopPage() {
 
           {/* Product Selector */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Order a Print</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">
+              {String(photoId || '').startsWith('demo-') ? 'Shop Preview' : 'Order a Print'}
+            </h1>
+
+            {String(photoId || '').startsWith('demo-') && (
+              <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900">
+                This preview shows how print sales look before signup. Create an account to activate real products, checkout, and fulfillment.
+              </div>
+            )}
 
             {products.length === 0 ? (
               <p className="text-gray-500">No products available for this photo.</p>
@@ -134,10 +161,18 @@ export default function ShopPage() {
                   disabled={!selectedProduct}
                   className="w-full bg-indigo-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
-                  {selectedProduct
-                    ? `Add to Cart — ${formatCurrency(selectedProduct.price_cents)}`
-                    : 'Select a product'}
+                  {String(photoId || '').startsWith('demo-')
+                    ? 'Start Free Trial to Sell Prints'
+                    : selectedProduct
+                      ? `Add to Cart — ${formatCurrency(selectedProduct.price_cents)}`
+                      : 'Select a product'}
                 </button>
+
+                {String(photoId || '').startsWith('demo-') && (
+                  <Link to="/signup" className="block text-center mt-3 text-sm text-indigo-600 hover:underline">
+                    Start Free Trial
+                  </Link>
+                )}
 
                 <Link to="/cart" className="block text-center mt-3 text-sm text-indigo-600 hover:underline">
                   View Cart

@@ -19,6 +19,31 @@ const SAMPLE_PHOTOS = [
   'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=600&q=80',
 ]
 
+const DEMO_PHOTOS = [
+  { id: 'demo-photo-1', title: 'Golden Hour Ceremony', thumb_url: SAMPLE_PHOTOS[0], medium_url: SAMPLE_PHOTOS[0] },
+  { id: 'demo-photo-2', title: 'City Portrait Session', thumb_url: SAMPLE_PHOTOS[1], medium_url: SAMPLE_PHOTOS[1] },
+  { id: 'demo-photo-3', title: 'Editorial Travel Frame', thumb_url: SAMPLE_PHOTOS[2], medium_url: SAMPLE_PHOTOS[2] },
+  { id: 'demo-photo-4', title: 'Studio Branding', thumb_url: SAMPLE_PHOTOS[3], medium_url: SAMPLE_PHOTOS[3] },
+  { id: 'demo-photo-5', title: 'Reception Details', thumb_url: SAMPLE_PHOTOS[4], medium_url: SAMPLE_PHOTOS[4] },
+  { id: 'demo-photo-6', title: 'Landscape Story', thumb_url: SAMPLE_PHOTOS[5], medium_url: SAMPLE_PHOTOS[5] },
+  { id: 'demo-photo-7', title: 'Couple Portrait', thumb_url: SAMPLE_PHOTOS[6], medium_url: SAMPLE_PHOTOS[6] },
+  { id: 'demo-photo-8', title: 'Brand Lifestyle', thumb_url: SAMPLE_PHOTOS[7], medium_url: SAMPLE_PHOTOS[7] },
+  { id: 'demo-photo-9', title: 'Detail Study', thumb_url: SAMPLE_PHOTOS[8], medium_url: SAMPLE_PHOTOS[8] },
+]
+
+const DEMO_GALLERY = {
+  title: 'Weddings Collection',
+  description: 'A sample client gallery that shows password protection, browse controls, and purchase entry points.',
+}
+
+const DEMO_PHOTOGRAPHER = {
+  username: 'demo',
+  first_name: 'Avery',
+  last_name: 'Stone',
+  brand_name: 'Avery Stone Photo',
+  avatar_url: SAMPLE_PHOTOS[9],
+}
+
 function Lightbox({ photo, index, total, onClose, onPrev, onNext }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -123,6 +148,18 @@ export default function PortfolioGalleryPage() {
     const load = async () => {
       setLoading(true)
       setError(null)
+
+      if (username === 'demo') {
+        if (cancelled) return
+        setPhotographer(DEMO_PHOTOGRAPHER)
+        setGallery(DEMO_GALLERY)
+        setPhotos(DEMO_PHOTOS)
+        setPasswordRequired(false)
+        setUnlockError('')
+        setLoading(false)
+        return
+      }
+
       try {
         const [p, galleryData] = await Promise.all([
           getPhotographerProfile(username),

@@ -18,6 +18,24 @@ const COVER_IMAGES = [
 
 const HERO_BG = 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1920&q=80'
 
+const DEMO_PHOTOGRAPHER = {
+  username: 'demo',
+  first_name: 'Avery',
+  last_name: 'Stone',
+  brand_name: 'Avery Stone Photo',
+  bio: 'A polished public portfolio that shows how clients browse galleries before they sign up.',
+  avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&q=80',
+  website_url: 'https://example.com',
+  brand_color: '#0f172a',
+}
+
+const DEMO_GALLERIES = [
+  { id: 'demo-weddings', slug: 'weddings', title: 'Weddings', photos_count: 24, cover_url: COVER_IMAGES[0] },
+  { id: 'demo-portraits', slug: 'portraits', title: 'Portraits', photos_count: 18, cover_url: COVER_IMAGES[1] },
+  { id: 'demo-travel', slug: 'travel', title: 'Travel Stories', photos_count: 31, cover_url: COVER_IMAGES[2] },
+  { id: 'demo-brand', slug: 'brand-sessions', title: 'Brand Sessions', photos_count: 12, cover_url: COVER_IMAGES[3] },
+]
+
 export default function PortfolioHomePage() {
   const { username } = useParams()
   const [photographer, setPhotographer] = useState(null)
@@ -27,6 +45,13 @@ export default function PortfolioHomePage() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
+    if (username === 'demo') {
+      setPhotographer(DEMO_PHOTOGRAPHER)
+      setGalleries(DEMO_GALLERIES)
+      setLoading(false)
+      return
+    }
+
     Promise.all([getPhotographerProfile(username), getPublicGalleries(username)])
       .then(([p, g]) => { setPhotographer(p); setGalleries(g) })
       .catch(() => setError('Photographer not found'))
@@ -81,7 +106,7 @@ export default function PortfolioHomePage() {
           </div>
           <h1 className="hidden lg:block text-base font-semibold tracking-wide text-white truncate px-4">{displayName}</h1>
           <div className="flex items-center gap-2">
-            {photographer?.website_url && (
+            {photographer?.website_url && photographer.website_url !== 'https://example.com' && (
               <a href={photographer.website_url} target="_blank" rel="noopener noreferrer" className="text-xs text-white/60 hover:text-white transition">Website</a>
             )}
             <a
@@ -133,7 +158,7 @@ export default function PortfolioHomePage() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
                 {galleries.map((g, i) => (
-                  <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block bg-zinc-900">
+                    <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block bg-zinc-900">
                     <img src={g.cover_url || COVER_IMAGES[i % COVER_IMAGES.length]} alt={g.title} className="w-full h-full object-cover transition duration-700 group-hover:scale-105 group-hover:brightness-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-500" />

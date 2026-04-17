@@ -4,12 +4,12 @@ import { ArrowRight, BookOpen, Video, HelpCircle, MessageCircle, FileText, Users
 import { Link } from "react-router-dom";
 
 const resources = [
-  { icon: BookOpen, title: "Blog", desc: "Tips, tutorials, and inspiration for photographers at every level.", link: "#", count: "200+ articles" },
-  { icon: Video, title: "Webinars", desc: "Live and on-demand sessions with photography and business experts.", link: "#", count: "Weekly sessions" },
-  { icon: HelpCircle, title: "Help Center", desc: "Step-by-step guides and answers to common questions.", link: "#", count: "500+ articles" },
-  { icon: MessageCircle, title: "Community Forum", desc: "Connect with fellow photographers, share tips, and get feedback.", link: "#", count: "10K+ members" },
-  { icon: FileText, title: "API Documentation", desc: "Build custom integrations and extend EpixBox with our REST API.", link: "#", count: "Full API access" },
-  { icon: Users, title: "Partner Program", desc: "Earn commissions by referring photographers to EpixBox.", link: "#", count: "30% commission" },
+  { icon: BookOpen, title: "Blog", desc: "Tips, tutorials, and inspiration for photographers at every level.", link: "/blog", count: "200+ articles" },
+  { icon: Video, title: "Webinars", desc: "Live and on-demand sessions with photography and business experts.", link: "/support", count: "Weekly sessions" },
+  { icon: HelpCircle, title: "Help Center", desc: "Step-by-step guides and answers to common questions.", link: "/support", count: "500+ articles" },
+  { icon: MessageCircle, title: "Community Forum", desc: "Connect with fellow photographers, share tips, and get feedback.", link: "/community", count: "10K+ members" },
+  { icon: FileText, title: "API Documentation", desc: "Build custom integrations and extend EpixBox with our REST API.", link: "/api", count: "Full API access" },
+  { icon: Users, title: "Partner Program", desc: "Earn commissions by referring photographers to EpixBox.", link: "/partners", count: "30% commission" },
 ];
 
 const blogPosts = [
@@ -28,25 +28,66 @@ const ResourcesPage = () => {
 
       {/* Hero */}
       <section className="section-padding text-center">
-        <h1 className="heading-xl text-foreground mb-4">Resources</h1>
-        <p className="body-lg max-w-2xl mx-auto">
-          Everything you need to grow your photography business — tutorials, guides, community, and more.
+        <p className="font-heading text-xs uppercase tracking-[0.28em] text-muted-foreground mb-3">
+          Learn before you sign up
         </p>
+        <h1 className="heading-xl text-foreground mb-4">Resources</h1>
+        <p className="body-lg max-w-2xl mx-auto mb-8">
+          Everything you need to grow your photography business - tutorials, guides, community, and more.
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link to="/blog" className="btn-cta">
+            Read the Blog <ArrowRight size={18} />
+          </Link>
+          <Link to="/support" className="btn-outline-cta">
+            Get Help <ArrowRight size={18} />
+          </Link>
+        </div>
       </section>
 
       {/* Resource Cards */}
       <section className="section-padding pt-0">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {resources.map((r) => (
-            <a key={r.title} href={r.link} className="bg-card border-2 border-border p-8 hover:border-foreground transition-colors group">
+            <Link key={r.title} to={r.link} className="bg-card border-2 border-border p-8 hover:border-foreground transition-colors group block">
               <div className="w-12 h-12 bg-accent flex items-center justify-center mb-4 group-hover:bg-foreground transition-colors">
                 <r.icon size={24} className="text-accent-foreground group-hover:text-primary-foreground transition-colors" />
               </div>
               <h3 className="font-heading font-bold text-sm uppercase tracking-wider text-foreground mb-2">{r.title}</h3>
               <p className="font-body text-sm text-muted-foreground leading-relaxed mb-4">{r.desc}</p>
               <span className="font-heading text-xs text-accent-foreground uppercase tracking-wider">{r.count}</span>
-            </a>
+            </Link>
           ))}
+        </div>
+      </section>
+
+      {/* Public learning path */}
+      <section className="section-padding">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <p className="font-heading text-xs uppercase tracking-[0.28em] text-muted-foreground mb-3">Public learning path</p>
+            <h2 className="heading-lg text-foreground mb-4">See the product, then decide if it fits your business.</h2>
+            <p className="body-lg mb-8">
+              The site now guides photographers through features, pricing, apps, resources, and sample portfolios before signup.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link to="/features" className="btn-cta">
+                View Features <ArrowRight size={18} />
+              </Link>
+              <Link to="/p/demo" className="btn-outline-cta">
+                Explore Sample Portfolio <ArrowRight size={18} />
+              </Link>
+            </div>
+          </div>
+          <div className="bg-card border-2 border-border p-8">
+            <h3 className="font-heading font-bold text-sm uppercase tracking-wider text-foreground mb-4">Popular paths</h3>
+            <ul className="space-y-3 text-sm font-body text-muted-foreground">
+              <li>Browse sample portfolio galleries</li>
+              <li>Compare public pricing plans</li>
+              <li>Read guides and help content</li>
+              <li>Open a free trial when ready</li>
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -56,7 +97,7 @@ const ResourcesPage = () => {
           <h2 className="heading-lg text-foreground mb-10 text-center">Latest from the blog</h2>
           <div className="space-y-0 border-t-2 border-foreground">
             {blogPosts.map((post) => (
-              <a key={post.title} href="#" className="flex items-center justify-between py-5 border-b border-border hover:bg-background/50 px-4 -mx-4 transition-colors">
+              <Link key={post.title} to="/blog" className="flex items-center justify-between py-5 border-b border-border hover:bg-background/50 px-4 -mx-4 transition-colors">
                 <div>
                   <span className="font-heading text-xs uppercase tracking-wider text-accent-foreground mr-3">{post.category}</span>
                   <span className="font-body text-sm md:text-base text-foreground font-medium">{post.title}</span>
@@ -65,7 +106,7 @@ const ResourcesPage = () => {
                   <span className="font-body text-xs text-muted-foreground hidden md:block">{post.readTime}</span>
                   <ArrowRight size={16} className="text-muted-foreground" />
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>
