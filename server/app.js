@@ -11,7 +11,10 @@ const swaggerSpec = require('./docs/swagger');
 const { Sentry, sentryEnabled } = require('./config/sentry');
 const apiRouter = require('./routes/index');
 
+
 const app = express();
+// Trust proxy headers (fixes express-rate-limit 500 error on Render/Vercel)
+app.set('trust proxy', 1);
 
 function parseOrigins(value) {
   return String(value || '')
