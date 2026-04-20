@@ -84,21 +84,28 @@ router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
     if (requirePublicPortfolioEnabled(res, user)) return;
 
-    // Check if the request is authenticated and for the same user
+    // Determine if the request is from the portfolio owner
     let isOwner = false;
+    let authUsername = null;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       try {
         const jwt = require('jsonwebtoken');
         const token = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET || 'dev_access_secret_change_me');
-        if (decoded && decoded.id && decoded.username && decoded.username.toLowerCase() === user.username.toLowerCase()) {
-          isOwner = true;
+        if (decoded && decoded.username) {
+          authUsername = decoded.username.toLowerCase();
+          if (authUsername === user.username.toLowerCase()) {
+            isOwner = true;
+          }
         }
       } catch (e) {}
     }
 
+    // If owner, show all galleries. Otherwise, only public.
     const where = { user_id: user.id };
-    if (!isOwner) where.visibility = 'public';
+    if (!isOwner) {
+      where.visibility = 'public';
+    }
 
     const galleries = await Gallery.findAll({
       where,
@@ -109,8 +116,9 @@ router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
       order: [['sort_order', 'ASC'], ['created_at', 'DESC']],
     });
 
+    // For owner: show all, including expired. For others: filter out expired.
     const visibleGalleries = galleries
-      .filter((gallery) => !isGalleryExpired(gallery.GalleryExpiry))
+      .filter((gallery) => isOwner || !isGalleryExpired(gallery.GalleryExpiry))
       .map(withGalleryUrls);
 
     res.json(visibleGalleries);
