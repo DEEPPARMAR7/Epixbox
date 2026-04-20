@@ -3,7 +3,6 @@ import { BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import toast from 'react-hot-toast'
 import { getCustomerInsights, getRevenueSummary } from '../../api/analyticsApi'
-import { getSubscriptionAnalytics } from '../../api/subscriptionsApi'
 import { formatCurrency } from '../../utils/formatters'
 import IllustratedEmptyState from '../../components/common/IllustratedEmptyState'
 import {
@@ -18,14 +17,13 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [revenue, setRevenue] = useState(null)
   const [customerInsights, setCustomerInsights] = useState(null)
-  const [subs, setSubs] = useState(null)
+
 
   useEffect(() => {
-    Promise.all([getRevenueSummary(), getCustomerInsights(), getSubscriptionAnalytics()])
-      .then(([r, c, s]) => {
+    Promise.all([getRevenueSummary(), getCustomerInsights()])
+      .then(([r, c]) => {
         setRevenue(r)
         setCustomerInsights(c)
-        setSubs(s)
       })
       .catch((err) => toast.error(err?.response?.data?.error || 'Failed to load analytics'))
       .finally(() => setLoading(false))
@@ -39,15 +37,9 @@ export default function AnalyticsPage() {
     }))
   }, [customerInsights])
 
-  const churnData = useMemo(() => {
-    const churn = Number(subs?.churn_rate_30d || 0)
-    return [
-      { name: 'Churn', value: churn },
-      { name: 'Retained', value: Math.max(0, 100 - churn) },
-    ]
-  }, [subs])
 
-  const hasData = (revenue?.order_count || 0) > 0 || (subs?.totals?.active || 0) > 0
+
+  const hasData = (revenue?.order_count || 0) > 0
 
   if (loading) {
     return (
