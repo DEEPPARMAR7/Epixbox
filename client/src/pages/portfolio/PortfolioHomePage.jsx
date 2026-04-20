@@ -1,3 +1,4 @@
+import useAuthStore from '../../store/authStore'
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
@@ -38,6 +39,8 @@ const DEMO_GALLERIES = [
 
 export default function PortfolioHomePage() {
   const { username } = useParams()
+  const authUser = useAuthStore(s => s.user)
+  const token = useAuthStore(s => s.token)
   const [photographer, setPhotographer] = useState(null)
   const [galleries, setGalleries] = useState([])
   const [loading, setLoading] = useState(true)
@@ -62,9 +65,10 @@ export default function PortfolioHomePage() {
       return
     }
 
+    const isOwner = authUser && authUser.username && authUser.username.toLowerCase() === normalizedUsername
     Promise.allSettled([
       getPhotographerProfile(normalizedUsername),
-      getPublicGalleries(normalizedUsername),
+      getPublicGalleries(normalizedUsername, isOwner ? token : undefined),
     ])
       .then(([profileResult, galleriesResult]) => {
         if (profileResult.status === 'rejected') {
