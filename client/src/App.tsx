@@ -53,7 +53,6 @@ const App = () => (
 						<Route path="/" element={<Index />} />
 						<Route path="/features" element={<FeaturesPage />} />
 						<Route path="/pricing" element={<PricingPage />} />
-						<Route path="/subscriptions" element={<SubscriptionsPage />} />
 						<Route path="/apps" element={<StaticMarketingPage page="apps" />} />
 						<Route path="/login" element={<LoginPage />} />
 						<Route path="/signup" element={<SignupPage />} />
@@ -84,9 +83,6 @@ const App = () => (
 						<Route path="/order-success" element={<OrderSuccessPage />} />
 						<Route path="/order-status" element={<OrderStatusPage />} />
 						<Route path="/proof/:token" element={<ClientProofingPage />} />
-						<Route path="/subscribe/:username" element={<SubscribePage />} />
-						<Route path="/subscribe/:username/manage" element={<ManageSubscriptionPage />} />
-						<Route path="/subscribe/:username/success" element={<SubscriptionSuccessPage />} />
 						<Route path="*" element={<NotFound />} />
 					</Routes>
 				</BrowserRouter>

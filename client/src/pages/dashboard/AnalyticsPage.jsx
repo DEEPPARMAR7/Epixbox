@@ -82,64 +82,10 @@ export default function AnalyticsPage() {
             <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Orders</p>
             <p className="mt-2 text-2xl font-black text-white">{revenue?.order_count || 0}</p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.15em] text-slate-500">MRR</p>
-            <p className="mt-2 text-2xl font-black text-white">{formatCurrency(subs?.mrr_cents || 0)}</p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Churn (30d)</p>
-            <p className="mt-2 text-2xl font-black text-white">{subs?.churn_rate_30d || 0}%</p>
-          </div>
+          {/* Subscription analytics removed */}
         </div>
 
-        {hasData ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-slate-400">Top Customer LTV</h2>
-              <div className="mt-4 h-64 sm:h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={customerChartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="name" stroke="#94a3b8" />
-                    <YAxis stroke="#94a3b8" />
-                    <Tooltip
-                      contentStyle={{ background: '#020617', border: '1px solid #334155', color: '#fff' }}
-                      formatter={(value) => [`$${Number(value).toFixed(2)}`, 'LTV']}
-                    />
-                    <Bar dataKey="value" fill="#60a5fa" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-slate-400">Subscriber Retention Mix</h2>
-              <div className="mt-4 h-64 sm:h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={churnData} dataKey="value" nameKey="name" outerRadius={110} label>
-                      {churnData.map((entry, index) => (
-                        <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ background: '#020617', border: '1px solid #334155', color: '#fff' }}
-                      formatter={(value) => [`${Number(value).toFixed(2)}%`, 'Share']}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <IllustratedEmptyState
-            variant="analytics"
-            title="Analytics appear after your first activity"
-            description="As soon as paid orders or subscriptions arrive, MRR, churn, and customer value charts will populate here."
-            actionLabel="Open Pricing"
-            actionTo="/dashboard/pricing"
-          />
-        )}
+        {/* Subscription analytics UI removed */}
       </div>
     </DashboardLayout>
   )
