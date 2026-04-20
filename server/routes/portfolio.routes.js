@@ -39,16 +39,8 @@ function requireGalleryPasswordAccess(req, res, gallery) {
   return true;
 }
 
+// Portfolios are always public now
 function requirePublicPortfolioEnabled(res, user) {
-  const limits = getTierLimits(user?.plan);
-  if (limits.tier === 'free') {
-    res.status(402).json({
-      error: 'Public portfolio is available on paid plans only.',
-      code: 'PORTFOLIO_REQUIRES_PAID_PLAN',
-      upgrade_path: '/pricing',
-    });
-    return true;
-  }
   return false;
 }
 
