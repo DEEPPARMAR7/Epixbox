@@ -185,7 +185,7 @@ export default function PortfolioHomePage() {
               {warning}
             </div>
           )}
-          {galleries.length === 0 ? (
+          {(galleries.length === 0 ? DEMO_GALLERIES : galleries).length === 0 ? (
             <div className="text-center py-20 text-white/30">
               <div className="text-6xl mb-4">🖼️</div>
               <p className="text-lg">No galleries published yet.</p>
@@ -193,11 +193,11 @@ export default function PortfolioHomePage() {
           ) : (
             <>
               <p className="text-white/30 tracking-[0.3em] uppercase text-xs text-center mb-12">
-                {galleries.length} {galleries.length === 1 ? 'Collection' : 'Collections'}
+                {(galleries.length === 0 ? DEMO_GALLERIES : galleries).length} Collections
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
-                {galleries.map((g, i) => (
-                    <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block bg-zinc-900">
+                {(galleries.length === 0 ? DEMO_GALLERIES : galleries).map((g, i) => (
+                  <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block bg-zinc-900">
                     <img src={g.cover_url || COVER_IMAGES[i % COVER_IMAGES.length]} alt={g.title} className="w-full h-full object-cover transition duration-700 group-hover:scale-105 group-hover:brightness-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-500" />
