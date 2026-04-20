@@ -1,3 +1,4 @@
+require('dotenv').config();
 // Run this script with: node make-all-galleries-public.js
 // This will set all galleries to public visibility (like SmugMug)
 
