@@ -84,8 +84,24 @@ router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
     if (requirePublicPortfolioEnabled(res, user)) return;
 
+    // Check if the request is authenticated and for the same user
+    let isOwner = false;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET || 'dev_access_secret_change_me');
+        if (decoded && decoded.id && decoded.username && decoded.username.toLowerCase() === user.username.toLowerCase()) {
+          isOwner = true;
+        }
+      } catch (e) {}
+    }
+
+    const where = { user_id: user.id };
+    if (!isOwner) where.visibility = 'public';
+
     const galleries = await Gallery.findAll({
-      where: { user_id: user.id, visibility: 'public' },
+      where,
       include: [
         { model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb', 's3_key_medium'], required: false },
         { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
