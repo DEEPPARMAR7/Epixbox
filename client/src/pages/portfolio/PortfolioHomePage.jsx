@@ -185,18 +185,45 @@ export default function PortfolioHomePage() {
               {warning}
             </div>
           )}
-          {(galleries.length === 0 ? DEMO_GALLERIES : galleries).length === 0 ? (
-            <div className="text-center py-20 text-white/30">
-              <div className="text-6xl mb-4">🖼️</div>
-              <p className="text-lg">No galleries published yet.</p>
-            </div>
+          {galleries.length === 0 ? (
+            username === 'demo' ? (
+              <>
+                <p className="text-white/30 tracking-[0.3em] uppercase text-xs text-center mb-12">
+                  {DEMO_GALLERIES.length} Collections
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
+                  {DEMO_GALLERIES.map((g, i) => (
+                    <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block bg-zinc-900">
+                      <img src={g.cover_url || COVER_IMAGES[i % COVER_IMAGES.length]} alt={g.title} className="w-full h-full object-cover transition duration-700 group-hover:scale-105 group-hover:brightness-110" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-500" />
+                      <div className="absolute bottom-0 inset-x-0 p-6 translate-y-1 group-hover:translate-y-0 transition duration-300">
+                        <h3 className="text-xl font-bold text-white mb-1">{g.title}</h3>
+                        <p className="text-white/50 text-sm">{g.photos_count || 0} photos</p>
+                        <div className="mt-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition duration-300 text-white/70 text-xs font-medium tracking-widest uppercase">
+                          View Gallery
+                          <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-20 text-white/30">
+                <div className="text-6xl mb-4">🖼️</div>
+                <p className="text-lg">No galleries published yet.</p>
+              </div>
+            )
           ) : (
             <>
               <p className="text-white/30 tracking-[0.3em] uppercase text-xs text-center mb-12">
-                {(galleries.length === 0 ? DEMO_GALLERIES : galleries).length} Collections
+                {galleries.length} Collections
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
-                {(galleries.length === 0 ? DEMO_GALLERIES : galleries).map((g, i) => (
+                {galleries.map((g, i) => (
                   <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block bg-zinc-900">
                     <img src={g.cover_url || COVER_IMAGES[i % COVER_IMAGES.length]} alt={g.title} className="w-full h-full object-cover transition duration-700 group-hover:scale-105 group-hover:brightness-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
