@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import Spinner from "../components/Spinner";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "../hooks/use-auth";
@@ -41,12 +42,24 @@ const LoginPage = () => {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
-
+    let timeoutId: NodeJS.Timeout | null = null;
+    let finished = false;
     try {
-      await login(email, password);
+      await Promise.race([
+        login(email, password),
+        new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            if (!finished) reject(new Error("Login timed out. Please try again."));
+          }, 10000);
+        })
+      ]);
+      finished = true;
+      if (timeoutId) clearTimeout(timeoutId);
       toast.success("Welcome back");
       navigate("/dashboard");
     } catch (err) {
+      finished = true;
+      if (timeoutId) clearTimeout(timeoutId);
       const message = err instanceof Error ? err.message : "Login failed";
       toast.error(message);
     } finally {
@@ -133,6 +146,11 @@ const LoginPage = () => {
           </div>
 
           <form className="space-y-6" onSubmit={onSubmit}>
+            {submitting && (
+              <div className="flex justify-center mb-4">
+                <Spinner size="lg" />
+              </div>
+            )}
             <div>
               <label className="font-heading text-sm font-semibold uppercase tracking-wider text-foreground block mb-2.5">
                 Email
