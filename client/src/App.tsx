@@ -23,10 +23,9 @@ import CartPage from "./pages/shop/CartPage.jsx";
 import CheckoutPage from "./pages/shop/CheckoutPage.jsx";
 import OrderSuccessPage from "./pages/shop/OrderSuccessPage.jsx";
 import OrderStatusPage from "./pages/shop/OrderStatusPage.jsx";
-import SubscriptionsPage from "./pages/subscriptions/SubscriptionsPage.jsx";
-import SubscribePage from "./pages/subscriptions/SubscribePage.jsx";
-import ManageSubscriptionPage from "./pages/subscriptions/ManageSubscriptionPage.jsx";
-import SubscriptionSuccessPage from "./pages/subscriptions/SubscriptionSuccessPage.jsx";
+import SubscriptionsPage from "./pages/SubscriptionsPage.jsx";
+import ManageSubscriptionPage from "./pages/ManageSubscriptionPage.jsx";
+import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +81,9 @@ const App = () => (
 						<Route path="/checkout" element={<CheckoutPage />} />
 						<Route path="/order-success" element={<OrderSuccessPage />} />
 						<Route path="/order-status" element={<OrderStatusPage />} />
+						<Route path="/subscriptions" element={<SubscriptionsPage />} />
+						<Route path="/manage-subscription" element={<ProtectedRoute><ManageSubscriptionPage /></ProtectedRoute>} />
+						<Route path="/subscription-success" element={<ProtectedRoute><SubscriptionSuccessPage /></ProtectedRoute>} />
 						<Route path="/proof/:token" element={<ClientProofingPage />} />
 						<Route path="*" element={<NotFound />} />
 					</Routes>

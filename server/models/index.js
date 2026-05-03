@@ -46,6 +46,7 @@ const GalleryExpiry = loadModel(require('./GalleryExpiry'));
 // Phase 8: Advanced E-Commerce
 const ApiKey = loadModel(require('./ApiKey'));
 const GiftCard = loadModel(require('./GiftCard'));
+const Coupon = loadModel(require('./Coupon'));
 const SubscriptionPlan = loadModel(require('./SubscriptionPlan'));
 const Subscription = loadModel(require('./Subscription'));
 const SavedPaymentMethod = loadModel(require('./SavedPaymentMethod'));
@@ -142,10 +143,12 @@ User.hasMany(SavedPaymentMethod, { foreignKey: 'user_id', onDelete: 'CASCADE' })
 Order.hasMany(Refund, { foreignKey: 'order_id', onDelete: 'CASCADE' });
 
 // Sync database
-sequelize
-  .sync({ alter: process.env.NODE_ENV === 'development' })
-  .then(() => console.log('Database synced'))
-  .catch((err) => console.error('Database sync error:', err));
+// NOTE: Using migrations ONLY for schema management.
+// DO NOT use sequelize.sync() in production - it can silently modify schema without audit trail
+// sequelize
+//   .sync({ alter: process.env.NODE_ENV === 'development' })
+//   .then(() => console.log('Database synced'))
+//   .catch((err) => console.error('Database sync error:', err));
 
 module.exports = {
   sequelize,
@@ -180,6 +183,7 @@ module.exports = {
   // Phase 8
   ApiKey,
   GiftCard,
+  Coupon,
   SubscriptionPlan,
   Subscription,
   SavedPaymentMethod,

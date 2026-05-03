@@ -5,6 +5,7 @@ const { execSync } = require('child_process');
 const app = require('./app');
 const { sequelize } = require('./models/index');
 const { initSocket } = require('./socket');
+const { validateAllStartupChecks } = require('./utils/validateDb');
 
 const PORT = process.env.PORT || 4000;
 const server = http.createServer(app);
@@ -32,6 +33,13 @@ async function runMigrations() {
 
 async function startServer() {
   try {
+    // Validate environment variables
+    const startupValid = await validateAllStartupChecks();
+    if (!startupValid) {
+      console.error('❌ Server startup validation failed. Exiting.');
+      process.exit(1);
+    }
+
     // Test database connection
     await sequelize.authenticate();
     console.log('✓ Database connection established');
