@@ -1,0 +1,71 @@
+services:
+  - type: web
+    name: epixbox-api
+    env: node
+    region: ohio
+    plan: free
+
+    # Build Command - Install deps and run migrations
+    buildCommand: npm install --production && npx sequelize-cli db:migrate
+
+    # Start Command
+    startCommand: node server/server.js
+
+    # Root directory for the service
+    rootDir: server
+
+    # Environment Variables (will be prompted on first deploy)
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 4000
+
+      - key: DATABASE_URL
+        scope: secret
+        # User must provide this
+
+      - key: JWT_ACCESS_SECRET
+        scope: secret
+        # User must provide this - change it!
+
+      - key: JWT_REFRESH_SECRET
+        scope: secret
+        # User must provide this - change it!
+
+      - key: STRIPE_SECRET_KEY
+        scope: secret
+        # Optional - for Stripe integration
+
+      - key: STRIPE_PUBLISHABLE_KEY
+        scope: secret
+        # Optional
+
+      - key: STRIPE_WEBHOOK_SECRET
+        scope: secret
+        # Optional
+
+      - key: AWS_ACCESS_KEY_ID
+        scope: secret
+        # Optional - for S3 uploads
+
+      - key: AWS_SECRET_ACCESS_KEY
+        scope: secret
+        # Optional
+
+      - key: S3_BUCKET_NAME
+        scope: secret
+        # Optional
+
+      - key: SMTP_HOST
+        scope: secret
+        # Optional - for email
+
+      - key: SMTP_USER
+        scope: secret
+        # Optional
+
+      - key: SMTP_PASS
+        scope: secret
+        # Optional
