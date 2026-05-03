@@ -45,7 +45,8 @@ async function startServer() {
     console.log('✓ Database connection established');
 
     // Run migrations if auto-migrate is enabled (default: true)
-    if (process.env.AUTO_MIGRATE !== 'false') {
+    const autoMigrate = process.env.AUTO_MIGRATE !== 'false'; // Default is TRUE
+    if (autoMigrate) {
       await runMigrations();
     }
 

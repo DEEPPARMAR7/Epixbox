@@ -60,17 +60,7 @@ async function validateDatabaseMigrations() {
  * @returns {{valid: boolean, missing: string[]}}
  */
 function validateEnvironmentVariables() {
-  const required = [
-    'NODE_ENV',
-    'PORT',
-    'DB_HOST',
-    'DB_PORT',
-    'DB_NAME',
-    'DB_USER',
-    'DB_PASSWORD',
-    'JWT_ACCESS_SECRET',
-    'JWT_REFRESH_SECRET',
-  ];
+  const required = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
 
   const optional = [
     'AWS_ACCESS_KEY_ID',
@@ -93,6 +83,13 @@ function validateEnvironmentVariables() {
       missing.push(varName);
     }
   });
+
+  // Accept either DATABASE_URL or DB_* credentials.
+  const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
+  const hasDbParts = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].every((key) => Boolean(process.env[key]));
+  if (!hasDatabaseUrl && !hasDbParts) {
+    missing.push('DATABASE_URL or DB_HOST/DB_NAME/DB_USER/DB_PASSWORD');
+  }
 
   // Check optional vars and warn
   optional.forEach((varName) => {
@@ -129,13 +126,22 @@ async function validateAllStartupChecks() {
   }
   console.log('✓ All required environment variables are set');
 
-  // Check database migrations
+  // Check database migrations. If AUTO_MIGRATE is enabled, allow startup to continue
+  // when migrations are pending so server.js can run migrations immediately after connect.
   const dbValidation = await validateDatabaseMigrations();
   if (!dbValidation.valid) {
-    console.error(`❌ ${dbValidation.message}`);
-    return false;
+    if (process.env.AUTO_MIGRATE !== 'false') {
+      console.warn(`⚠ ${dbValidation.message}`);
+      console.warn('⚠ AUTO_MIGRATE is enabled, server will attempt migrations on startup.');
+      return true; // Allow startup to continue - server.js will run migrations
+    } else {
+      console.error(`❌ ${dbValidation.message}`);
+      return false;
+    }
   }
-  console.log(`✓ ${dbValidation.message}`);
+  if (dbValidation.valid) {
+    console.log(`✓ ${dbValidation.message}`);
+  }
 
   console.log('\n✅ All startup checks passed!\n');
   return true;
