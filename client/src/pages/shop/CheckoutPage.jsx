@@ -195,16 +195,9 @@ export default function CheckoutPage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Complete your order</h1>
 
             <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Payment Options</p>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {["Card", "Apple Pay", "Google Pay", "Link"].map((method) => (
-                  <div key={method} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-center text-xs font-semibold text-gray-700">
-                    {method}
-                  </div>
-                ))}
-              </div>
-              <p className="mt-3 text-xs text-gray-500">
-                Available methods depend on your device, browser, and Stripe account settings.
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Secure checkout</p>
+              <p className="mt-3 text-sm text-gray-600">
+                Payments are processed securely through Stripe. Available methods depend on your device, browser, and Stripe account settings.
               </p>
             </div>
 

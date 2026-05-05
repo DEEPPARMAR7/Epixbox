@@ -210,7 +210,7 @@ router.get('/mine', requireAuth, async (req, res, next) => {
     const orders = await Order.findAll({
       where: { photographer_id: req.user.id },
       include: [{ model: OrderItem }],
-      order: [['created_at', 'DESC']],
+      order: [['createdAt', 'DESC']],
     });
     res.json(orders);
   } catch (err) { next(err); }
