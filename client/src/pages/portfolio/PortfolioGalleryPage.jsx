@@ -65,12 +65,12 @@ function Lightbox({ photo, index, total, onClose, onPrev, onNext }) {
   return (
     <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={onClose}>
       {/* Close */}
-      <button onClick={onClose} className="absolute top-5 right-6 text-white/60 hover:text-white text-4xl leading-none z-10 transition">
+      <button onClick={onClose} className="absolute top-5 right-6 rounded-full bg-black/30 px-3 py-1 text-white/70 hover:text-white text-3xl leading-none z-10 transition backdrop-blur-sm">
         &times;
       </button>
 
       {/* Counter */}
-      <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/40 text-sm tracking-widest">
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-white/60 text-xs tracking-[0.22em] uppercase backdrop-blur-sm">
         {index + 1} / {total}
       </div>
 
@@ -99,7 +99,7 @@ function Lightbox({ photo, index, total, onClose, onPrev, onNext }) {
         <img
           src={photoUrl}
           alt={photo.title || ''}
-          className="max-w-full max-h-[85vh] object-contain rounded shadow-2xl"
+          className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl ring-1 ring-white/10"
         />
         {photo.title && (
           <div className="absolute bottom-0 inset-x-0 text-center pb-3">
@@ -114,7 +114,7 @@ function Lightbox({ photo, index, total, onClose, onPrev, onNext }) {
           to={`/shop/${photo.id}`}
           state={{ photoTitle: photo.title }}
           onClick={e => e.stopPropagation()}
-          className="bg-white text-black text-xs font-bold px-4 py-2 rounded-lg hover:bg-gray-100 transition shadow-lg"
+          className="bg-white text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-gray-100 transition shadow-lg"
         >
           Buy Print
         </Link>
@@ -381,20 +381,20 @@ export default function PortfolioGalleryPage() {
       {/* Masonry grid */}
       <div id="grid" className="px-2 pb-20 max-w-7xl mx-auto">
         {photos.length === 0 ? (
-          <div className="text-center py-20 text-white/30">
+          <div className="text-center py-24 text-white/30">
             <div className="text-6xl mb-4">📷</div>
             <p>No photos in this gallery yet.</p>
           </div>
         ) : layoutMode === 'masonry' ? (
           <Masonry
             breakpointCols={BREAKPOINTS}
-            className="flex -ml-2 w-auto"
+            className="flex -ml-4 w-auto"
             columnClassName="pl-2 bg-clip-padding"
           >
             {photos.map((photo, idx) => (
               <div
                 key={photo.id}
-                className="mb-2 group relative cursor-pointer overflow-hidden bg-zinc-900 rounded-sm"
+                className="mb-4 group relative cursor-pointer overflow-hidden bg-zinc-900 rounded-2xl ring-1 ring-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.18)]"
                 onClick={() => setLightboxIdx(idx)}
               >
                 <img
@@ -428,11 +428,11 @@ export default function PortfolioGalleryPage() {
             ))}
           </Masonry>
         ) : (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {photos.map((photo, idx) => (
               <div
                 key={photo.id}
-                className="group relative aspect-square cursor-pointer overflow-hidden rounded-sm bg-zinc-900"
+                className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl bg-zinc-900 ring-1 ring-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.18)]"
                 onClick={() => setLightboxIdx(idx)}
               >
                 <img
@@ -449,7 +449,7 @@ export default function PortfolioGalleryPage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-10 text-center">
+      <footer className="border-t border-white/10 py-10 text-center bg-black/95">
         <Link to={`/p/${username}`} className="text-white/30 text-sm hover:text-white/60 transition">
           ← Back to {displayName}'s Portfolio
         </Link>

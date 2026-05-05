@@ -94,7 +94,7 @@ export default function PortfolioHomePage() {
         }
       })
       .finally(() => setLoading(false))
-  }, [username])
+  }, [username, authUser, token])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -131,7 +131,7 @@ export default function PortfolioHomePage() {
       </Helmet>
 
       <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-black/90 backdrop-blur-md border-b border-white/10' : 'bg-transparent'
+        scrolled ? 'bg-black/88 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)]' : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6 min-w-0">
@@ -157,19 +157,19 @@ export default function PortfolioHomePage() {
         </div>
       </nav>
 
-      <section id="top" className="relative h-screen flex items-end justify-center overflow-hidden">
+      <section id="top" className="relative min-h-screen flex items-end justify-center overflow-hidden">
         <img src={photographer?.avatar_url || HERO_BG} alt={displayName} className="absolute inset-0 w-full h-full object-cover scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/30" />
-        <div className="relative z-10 text-center pb-24 px-4">
+        <div className="relative z-10 text-center pb-24 pt-32 px-6 max-w-4xl mx-auto">
           <div
-            className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center text-white text-3xl font-bold uppercase border-2 border-white/30 shadow-2xl"
+            className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center text-white text-3xl font-bold uppercase border-2 border-white/30 shadow-2xl ring-8 ring-black/10"
             style={{ backgroundColor: brandColor }}
           >
             {photographer?.first_name?.[0] || photographer?.username?.[0] || 'P'}
           </div>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-4">{displayName}</h1>
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-5 drop-shadow-[0_6px_24px_rgba(0,0,0,0.35)]">{displayName}</h1>
           {photographer?.bio && (
-            <p className="text-white/60 text-lg max-w-xl mx-auto leading-relaxed">{photographer.bio}</p>
+            <p className="text-white/70 text-lg max-w-2xl mx-auto leading-relaxed">{photographer.bio}</p>
           )}
           <div className="mt-6 flex justify-center">
             <ShareBar url={window.location.href} title={`${displayName} — Photography Portfolio`} />
@@ -195,9 +195,9 @@ export default function PortfolioHomePage() {
                 <p className="text-white/30 tracking-[0.3em] uppercase text-xs text-center mb-12">
                   {DEMO_GALLERIES.length} Collections
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {DEMO_GALLERIES.map((g, i) => (
-                    <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block bg-zinc-900">
+                    <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block rounded-2xl bg-zinc-900 shadow-[0_20px_50px_rgba(0,0,0,0.22)] ring-1 ring-white/10">
                       <img src={g.cover_url || COVER_IMAGES[i % COVER_IMAGES.length]} alt={g.title} className="w-full h-full object-cover transition duration-700 group-hover:scale-105 group-hover:brightness-110" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-500" />
@@ -226,9 +226,9 @@ export default function PortfolioHomePage() {
               <p className="text-white/30 tracking-[0.3em] uppercase text-xs text-center mb-12">
                 {galleries.length} Collections
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {galleries.map((g, i) => (
-                  <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block bg-zinc-900">
+                  <Link key={g.id} to={`/p/${username}/${g.slug}`} className="group relative aspect-[3/2] overflow-hidden block rounded-2xl bg-zinc-900 shadow-[0_20px_50px_rgba(0,0,0,0.22)] ring-1 ring-white/10">
                     <img src={g.cover_url || COVER_IMAGES[i % COVER_IMAGES.length]} alt={g.title} className="w-full h-full object-cover transition duration-700 group-hover:scale-105 group-hover:brightness-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-500" />
@@ -250,7 +250,7 @@ export default function PortfolioHomePage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/10 py-10 text-center">
+      <footer className="border-t border-white/10 py-10 text-center bg-black/95">
         <p className="text-white/20 text-xs tracking-widest uppercase">
           Powered by <Link to="/" className="hover:text-white/50 transition">EpicBox</Link>
         </p>

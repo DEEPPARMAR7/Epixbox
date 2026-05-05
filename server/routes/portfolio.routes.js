@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const jwt = require('jsonwebtoken');
 const { User, Gallery, Photo, Tag, GalleryExpiry, GalleryPassword, GallerySetting } = require('../models/index');
 const { getPublicUrl } = require('../services/s3.service');
 const { Op } = require('sequelize');
@@ -86,15 +87,13 @@ router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
 
     // Determine if the request is from the portfolio owner
     let isOwner = false;
-    let authUsername = null;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       try {
-        const jwt = require('jsonwebtoken');
         const token = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET || 'dev_access_secret_change_me');
-        if (decoded && decoded.username) {
-          authUsername = decoded.username.toLowerCase();
-          if (authUsername === user.username.toLowerCase()) {
+        if (decoded?.id) {
+          const authenticatedUser = await User.findByPk(decoded.id, { attributes: ['id', 'username'] });
+          if (authenticatedUser && authenticatedUser.username.toLowerCase() === user.username.toLowerCase()) {
             isOwner = true;
           }
         }
@@ -113,7 +112,7 @@ router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
         { model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb', 's3_key_medium'], required: false },
         { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
       ],
-      order: [['sort_order', 'ASC'], ['created_at', 'DESC']],
+      order: [['sort_order', 'ASC'], ['createdAt', 'DESC']],
     });
 
     // For owner: show all, including expired. For others: filter out expired.
@@ -155,7 +154,7 @@ router.get('/:username/galleries/:slug', setPublicCache, async (req, res, next) 
     const photos = await Photo.findAll({
       where: { gallery_id: gallery.id },
       include: [{ model: Tag, through: { attributes: [] } }],
-      order: [['sort_order', 'ASC'], ['created_at', 'DESC']],
+      order: [['sort_order', 'ASC'], ['createdAt', 'DESC']],
     });
     res.json({ gallery, photos: photos.map(withPhotoUrls) });
   } catch (err) {
