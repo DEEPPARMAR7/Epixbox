@@ -132,42 +132,48 @@ const PricingPage = () => {
         </p>
 
         {/* Toggle */}
-        <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card/70 p-2 mb-12 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setIsYearly(false)}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${!isYearly ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            aria-pressed={!isYearly}
-          >
-            <CalendarDays size={14} className={!isYearly ? "text-primary-foreground" : "text-muted-foreground"} />
-            Monthly
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsYearly(!isYearly)}
-            className={`relative h-9 w-16 rounded-full border border-foreground/20 transition-colors ${
-              isYearly ? "bg-accent" : "bg-secondary"
-            }`}
-            aria-label={isYearly ? "Switch to monthly billing" : "Switch to yearly billing"}
-          >
-            <span
-              className={`absolute top-1 bottom-1 w-7 rounded-full bg-foreground shadow-md transition-transform ${
-                isYearly ? "translate-x-8" : "translate-x-1"
+        <div className="mb-12 flex flex-col items-center gap-4">
+          <div className="inline-flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setIsYearly(false)}
+              className={`inline-flex items-center gap-2 text-sm font-semibold transition ${!isYearly ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              aria-pressed={!isYearly}
+            >
+              <CalendarDays size={14} className={!isYearly ? "text-foreground" : "text-muted-foreground"} />
+              Monthly
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsYearly(!isYearly)}
+              className={`relative h-9 w-20 rounded-full border-2 border-foreground/80 transition-colors ${
+                isYearly ? "bg-accent/90" : "bg-background"
               }`}
-            />
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsYearly(true)}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${isYearly ? "bg-foreground text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            aria-pressed={isYearly}
-          >
-            <Sparkles size={14} className={isYearly ? "text-primary-foreground" : "text-muted-foreground"} />
-            Yearly
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] ${isYearly ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
-              SAVE 30%
-            </span>
-          </button>
+              aria-label={isYearly ? "Switch to monthly billing" : "Switch to yearly billing"}
+              aria-pressed={isYearly}
+            >
+              <span
+                className={`absolute top-1 bottom-1 left-1 w-8 rounded-full bg-foreground shadow-[0_6px_16px_rgba(0,0,0,0.2)] transition-transform duration-200 ${
+                  isYearly ? "translate-x-10" : "translate-x-0"
+                }`}
+              />
+              <span className="sr-only">Toggle billing period</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsYearly(true)}
+              className={`inline-flex items-center gap-2 text-sm font-semibold transition ${isYearly ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              aria-pressed={isYearly}
+            >
+              <Sparkles size={14} className={isYearly ? "text-foreground" : "text-muted-foreground"} />
+              Yearly
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] ${isYearly ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+                SAVE 30%
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Plan Cards */}
