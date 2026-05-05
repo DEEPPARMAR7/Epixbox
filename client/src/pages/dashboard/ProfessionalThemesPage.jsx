@@ -270,7 +270,7 @@ export default function ProfessionalThemesPage() {
       </section>
 
       <section className="mt-6 rounded-2xl border border-white/10 bg-[#0f172a] p-6">
-        <h2 className="text-xl font-black text-white">SmugMug-Style Experience Targets</h2>
+        <h2 className="text-xl font-black text-white">EpixBox Experience Targets</h2>
         <ul className="mt-3 space-y-2 text-sm text-slate-300">
           <li>Professional template depth with clear premium differentiation.</li>
           <li>Paid plan unlock for public portfolio visibility.</li>

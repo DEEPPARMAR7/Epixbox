@@ -175,7 +175,7 @@ export default function LandingPage() {
       <section className="py-20 px-4 bg-black">
         <div className="max-w-7xl mx-auto">
           <p className="text-center text-white/40 tracking-widest uppercase text-sm mb-4">What you can do</p>
-          <h2 className="text-4xl font-bold text-center text-white mb-12">SmugMug-style platform, your way</h2>
+          <h2 className="text-4xl font-bold text-center text-white mb-12">EpixBox platform, your way</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10">
               <span className="text-4xl mb-4">🖼️</span>

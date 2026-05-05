@@ -158,7 +158,7 @@ const FeaturesPage = () => {
             <p className="font-heading text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">
               Subscriber Options
             </p>
-            <h2 className="heading-lg text-foreground mb-3">Choose a plan like SmugMug-style memberships</h2>
+            <h2 className="heading-lg text-foreground mb-3">Choose the plan that fits your studio</h2>
             <p className="body-lg max-w-2xl mx-auto">
               Start with a 14-day free trial, then upgrade as your photography business grows.
             </p>

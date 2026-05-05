@@ -53,7 +53,7 @@ const DiscoverySection = () => {
               The public site should answer every question before signup.
             </h2>
             <p className="body-lg">
-              SmugMug works because the marketing site feels complete. This homepage now gives photographers a place to explore the product before they commit.
+              EpixBox gives photographers a place to explore the product before they commit.
             </p>
           </div>
           <Link to="/pricing" className="btn-outline-cta self-start">

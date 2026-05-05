@@ -57,7 +57,7 @@ const PricingSection = () => {
     <section className="section-padding bg-card" id="pricing">
       <div className="text-center mb-16">
         <p className="font-heading text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">
-          SmugMug-style memberships
+          EpixBox memberships
         </p>
         <h2 className="heading-lg text-foreground mb-4">
           Professional plans for every stage.

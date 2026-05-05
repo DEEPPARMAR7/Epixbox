@@ -27,7 +27,7 @@ const HeroSection = () => {
           Public experience first
         </p>
         <h2 className="heading-lg text-foreground mb-4">
-          A SmugMug-style home for portfolios, proofing, and sales.
+          An EpixBox home for portfolios, proofing, and sales.
         </h2>
         <p className="body-lg mb-8">
           Browse features, pricing, apps, resources, and support up front. Then jump into your trial when you're ready.
