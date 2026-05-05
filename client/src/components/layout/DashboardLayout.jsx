@@ -13,7 +13,6 @@ const navItems = [
   { to: '/dashboard/galleries', label: 'Library', icon: '🖼️' },
   { to: '/dashboard/organize', label: 'Organize', icon: '🧭' },
   { to: '/dashboard/analytics', label: 'Analytics', icon: '📈' },
-  { to: '/dashboard/payments', label: 'Payments', icon: '💳' },
   { to: '/dashboard/settings', label: 'My Site', icon: '🌐' },
   { to: '/dashboard/themes', label: 'Themes', icon: '🎨' },
   { to: '/dashboard/pricing', label: 'Selling Tools', icon: '💰' },
@@ -162,13 +161,6 @@ export default function DashboardLayout({ children }) {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard/pricing')}
-              className="hidden sm:inline-flex items-center rounded-full bg-blue-600 px-4 py-1.5 text-xs font-extrabold uppercase tracking-wide text-white hover:bg-blue-700 transition"
-            >
-              Subscribe
-            </button>
             <a
               href={publicSiteUrl}
               target="_blank"
@@ -210,7 +202,6 @@ export default function DashboardLayout({ children }) {
                       <span className="rounded-full bg-blue-600/30 px-2 py-0.5 text-[10px] font-semibold text-blue-300">NEW</span>
                     </button>
                     {isOwner && <button onClick={() => goTo('/dashboard/admin')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Admin Panel</button>}
-                    <button onClick={() => goTo('/dashboard/payments')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Payments</button>
                     <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Edit My Profile</button>
                     <button onClick={() => goTo('/dashboard/settings?category=site&tab=branding')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Edit Site Profile</button>
                     <button onClick={() => goTo('/dashboard/settings?category=site&tab=general')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Site Settings</button>
@@ -273,8 +264,6 @@ export default function DashboardLayout({ children }) {
                     ? Compass
                     : item.to === '/dashboard/analytics'
                       ? LayoutDashboard
-                    : item.to === '/dashboard/payments'
-                      ? CreditCard
                     : item.to === '/dashboard/pricing'
                       ? CreditCard
                       : Globe
