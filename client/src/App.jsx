@@ -17,6 +17,7 @@ import PricingEditorPage from './pages/dashboard/PricingEditorPage'
 import AccountSettingsPage from './pages/dashboard/AccountSettingsPage'
 import AdminPanelPage from './pages/dashboard/AdminPanelPage'
 import PaymentsPage from './pages/dashboard/PaymentsPage'
+import StaticMarketingPage from './pages/marketing/StaticMarketingPage'
 
 // Portfolio pages
 import PortfolioHomePage from './pages/portfolio/PortfolioHomePage'
@@ -60,6 +61,9 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/signup" element={<RegisterPage />} />
+
+      <Route path="/company" element={<StaticMarketingPage page="company" />} />
+      <Route path="/webinars" element={<StaticMarketingPage page="webinars" />} />
 
       {/* Protected Dashboard */}
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />

@@ -37,6 +37,38 @@ const PAGE_CONFIG = {
       { title: 'Fresh updates', body: 'We publish feature notes and practical photography advice so the platform feels current and useful.' },
     ],
   },
+  company: {
+    title: 'Company',
+    subtitle: 'Learn about the team, mission, and direction behind EpixBox.',
+    hero: 'A photography platform built by people who care about photographers.',
+    actionLabel: 'About EpixBox',
+    actionHref: '/about',
+    cards: [
+      { icon: Building2, title: 'About', desc: 'Read the company story and mission.' },
+      { icon: Users, title: 'Careers', desc: 'See how the team grows and what roles are open.' },
+      { icon: Globe, title: 'Partners', desc: 'Explore how we work with studios, labs, and service partners.' },
+    ],
+    sections: [
+      { title: 'What we build', body: 'Tools for gallery hosting, proofing, commerce, and portfolio presentation.' },
+      { title: 'How we work', body: 'We ship practical improvements quickly and keep photographers at the center of decisions.' },
+    ],
+  },
+  webinars: {
+    title: 'Webinars',
+    subtitle: 'Live and recorded product walkthroughs, workflow demos, and photography business sessions.',
+    hero: 'Watch how other photographers use EpixBox.',
+    actionLabel: 'Browse Resources',
+    actionHref: '/resources',
+    cards: [
+      { icon: CalendarDays, title: 'Live sessions', desc: 'Product walkthroughs and training for new features.' },
+      { icon: BookOpen, title: 'Recorded demos', desc: 'Replays for onboarding, workflow tips, and feature releases.' },
+      { icon: Users, title: 'Ask questions', desc: 'Bring your setup questions and get practical answers.' },
+    ],
+    sections: [
+      { title: 'What to expect', body: 'Short, actionable sessions focused on photographer workflows and platform capabilities.' },
+      { title: 'Where to find them', body: 'We surface webinar announcements through the resources area and product updates.' },
+    ],
+  },
   support: {
     title: 'Support',
     subtitle: 'Get help with setup, billing, galleries, proofing, uploads, and account settings.',

@@ -15,10 +15,11 @@ const footerLinks: Record<string, FooterLink[]> = {
     { label: "Blog", href: "/blog" },
     { label: "Help Center", href: "/support" },
     { label: "Community", href: "/community" },
-    { label: "Webinars", href: "/support" },
+    { label: "Webinars", href: "/webinars" },
     { label: "API", href: "/api" },
   ],
   Company: [
+    { label: "Company", href: "/company" },
     { label: "About", href: "/about" },
     { label: "Careers", href: "/careers" },
     { label: "Press", href: "/press" },
