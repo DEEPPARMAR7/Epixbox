@@ -209,10 +209,15 @@ router.get('/mine', requireAuth, async (req, res, next) => {
   try {
     const orders = await Order.findAll({
       where: { photographer_id: req.user.id },
-      include: [{ model: OrderItem }],
-      order: [['createdAt', 'DESC']],
     });
-    res.json(orders);
+    const sortedOrders = orders
+      .map((order) => (order.toJSON ? order.toJSON() : order))
+      .sort((a, b) => {
+        const aTime = new Date(a.created_at || a.createdAt || 0).getTime();
+        const bTime = new Date(b.created_at || b.createdAt || 0).getTime();
+        return bTime - aTime;
+      });
+    res.json(sortedOrders);
   } catch (err) { next(err); }
 });
 
