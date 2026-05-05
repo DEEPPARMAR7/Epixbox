@@ -122,8 +122,8 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-700/50 bg-slate-920/95 backdrop-blur-xl">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+      <header className="shrink-0 border-b border-slate-700/50 bg-slate-920/95 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <Link to="/dashboard" className="text-2xl font-black tracking-tight text-white">
@@ -320,7 +320,7 @@ export default function DashboardLayout({ children }) {
         onScroll={() => {
           if (profileMenuOpen) setProfileMenuOpen(false)
         }}
-        className="h-[calc(100vh-64px)] overflow-y-auto bg-[radial-gradient(circle_at_8%_0%,rgba(39,209,190,0.13),transparent_35%),radial-gradient(circle_at_90%_0%,rgba(59,130,246,0.12),transparent_30%),#05070d] p-4 sm:p-6"
+        className="flex-1 min-h-0 overflow-y-auto bg-[radial-gradient(circle_at_8%_0%,rgba(39,209,190,0.13),transparent_35%),radial-gradient(circle_at_90%_0%,rgba(59,130,246,0.12),transparent_30%),#05070d] p-4 sm:p-6"
       >
         <div className="mx-auto w-full max-w-[1280px]">
           {children}
