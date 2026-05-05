@@ -9,13 +9,13 @@ const footerLinks: Record<string, FooterLink[]> = {
     { label: "Pricing", href: "/pricing" },
     { label: "Apps", href: "/apps" },
     { label: "Portfolio Sites", href: "/p/demo" },
-    { label: "Client Galleries", href: "/resources" },
+    { label: "Client Galleries", href: "/p/demo/weddings" },
   ],
   Resources: [
     { label: "Blog", href: "/blog" },
     { label: "Help Center", href: "/support" },
     { label: "Community", href: "/community" },
-    { label: "Webinars", href: "/resources" },
+    { label: "Webinars", href: "/support" },
     { label: "API", href: "/api" },
   ],
   Company: [
