@@ -142,13 +142,8 @@ User.hasMany(SubscriptionPlan, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 User.hasMany(SavedPaymentMethod, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 Order.hasMany(Refund, { foreignKey: 'order_id', onDelete: 'CASCADE' });
 
-// Sync database
-// NOTE: Using migrations ONLY for schema management.
+// Sync database via migrations only - see server/database/migrations/
 // DO NOT use sequelize.sync() in production - it can silently modify schema without audit trail
-// sequelize
-//   .sync({ alter: process.env.NODE_ENV === 'development' })
-//   .then(() => console.log('Database synced'))
-//   .catch((err) => console.error('Database sync error:', err));
 
 module.exports = {
   sequelize,

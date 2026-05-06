@@ -11,3 +11,6 @@ tmpclaude-*
 skills-lock.json
 .agents/
 .claude/
+server/logs/*
+!server/logs/.gitkeep
+
