@@ -39,7 +39,7 @@ app.use(helmet({
 }));
 
 // CORS
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
     // Allow configured production origins and localhost/LAN origins during development.
     const allowedOrigins = [
@@ -61,9 +61,11 @@ app.use(cors({
   },
   credentials: true,
   optionsSuccessStatus: 204,
-}));
+};
 
-app.options('*', cors());
+app.use(cors(corsOptions));
+
+app.options('*', cors(corsOptions));
 
 // Raw body for Stripe webhook
 app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
