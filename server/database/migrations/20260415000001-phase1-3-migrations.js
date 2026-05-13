@@ -126,23 +126,6 @@ module.exports = {
       } catch (err) {
         // Table may already exist
       }
-          type: Sequelize.BOOLEAN,
-          defaultValue: true,
-        },
-        createdAt: {
-          type: Sequelize.DATE,
-          defaultValue: Sequelize.NOW,
-        },
-        updatedAt: {
-          type: Sequelize.DATE,
-          defaultValue: Sequelize.NOW,
-        },
-      }, { transaction });
-
-      await queryInterface.addIndex('Coupons', ['is_active'], {
-        name: 'idx_coupons_active',
-        transaction,
-      });
 
       // Add photo indexes for performance (if Photos table exists)
       try {
