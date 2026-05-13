@@ -137,6 +137,25 @@ app.use('/api', (req, res, next) => {
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Serve static client files (if built)
+const clientPath = require('path').join(__dirname, '../client/dist');
+try {
+  const fs = require('fs');
+  if (fs.existsSync(clientPath)) {
+    app.use(express.static(clientPath, {
+      maxAge: '1d',
+      etag: false,
+    }));
+    // SPA fallback - serve index.html for all non-API routes
+    app.get('/*', (req, res) => {
+      res.sendFile(require('path').join(clientPath, 'index.html'));
+    });
+  }
+} catch (err) {
+  // Client not built - that's OK in development
+  console.log('ℹ Client files not found - API-only mode');
+}
+
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
