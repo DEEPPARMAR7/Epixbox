@@ -5,8 +5,8 @@ services:
     region: ohio
     plan: free
 
-    # Build Command - Install deps and run migrations
-    buildCommand: npm install --production && npx sequelize-cli db:migrate
+    # Build Command - Install production dependencies only
+    buildCommand: npm install --production
 
     # Start Command
     startCommand: node server.js
