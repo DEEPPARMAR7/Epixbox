@@ -32,28 +32,51 @@ const configuredOrigins = Array.from(
   ])
 );
 
+function isAllowedOrigin(origin) {
+  const allowedOrigins = [
+    ...(configuredOrigins.length ? configuredOrigins : ['http://localhost:5173']),
+    /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
+    /^http:\/\/localhost:\d+$/,
+    /^http:\/\/127\.0\.0\.1:\d+$/,
+    /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
+    /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
+    /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:\d+$/,
+  ];
+
+  return allowedOrigins.some((allowed) => (
+    typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+  ));
+}
+
 // Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   crossOriginOpenerPolicy: false, // Allow OAuth popups to postMessage back
 }));
 
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (origin && isAllowedOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token');
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
 // CORS
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow configured production origins and localhost/LAN origins during development.
-    const allowedOrigins = [
-      ...(configuredOrigins.length ? configuredOrigins : ['http://localhost:5173']),
-      /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
-      /^http:\/\/localhost:\d+$/,
-      /^http:\/\/127\.0\.0\.1:\d+$/,
-      /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
-      /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
-      /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:\d+$/,
-    ];
-    if (!origin || allowedOrigins.some(allowed => 
-      typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
-    )) {
+    if (!origin || isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
