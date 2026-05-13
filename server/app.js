@@ -28,6 +28,7 @@ const configuredOrigins = Array.from(
     ...parseOrigins(process.env.CLIENT_URL),
     ...parseOrigins(process.env.FRONTEND_URL),
     ...parseOrigins(process.env.CORS_ORIGINS),
+    'https://epixbox.vercel.app',
   ])
 );
 
@@ -43,6 +44,7 @@ app.use(cors({
     // Allow configured production origins and localhost/LAN origins during development.
     const allowedOrigins = [
       ...(configuredOrigins.length ? configuredOrigins : ['http://localhost:5173']),
+      /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
       /^http:\/\/localhost:\d+$/,
       /^http:\/\/127\.0\.0\.1:\d+$/,
       /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
@@ -58,7 +60,10 @@ app.use(cors({
     }
   },
   credentials: true,
+  optionsSuccessStatus: 204,
 }));
+
+app.options('*', cors());
 
 // Raw body for Stripe webhook
 app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
