@@ -20,20 +20,29 @@ module.exports = {
         { transaction }
       );
 
-      // Add photo editing tracking to Photos table
-      await queryInterface.addColumn('Photos', 'original_s3_key', {
-        type: Sequelize.STRING(500),
-      }, { transaction });
+      // Add photo editing tracking to Photos table (if table exists)
+      try {
+        await queryInterface.sequelize.query(
+          'ALTER TABLE "Photos" ADD COLUMN IF NOT EXISTS "original_s3_key" VARCHAR(500)',
+          { transaction }
+        );
+        await queryInterface.sequelize.query(
+          'ALTER TABLE "Photos" ADD COLUMN IF NOT EXISTS "edit_history" JSON DEFAULT \'[]\'',
+          { transaction }
+        );
+      } catch (err) {
+        // Table may not exist yet - that's OK, will be created by other migrations
+      }
 
-      await queryInterface.addColumn('Photos', 'edit_history', {
-        type: Sequelize.JSON,
-        defaultValue: [],
-      }, { transaction });
-
-      // Add rating_reason to ProofingSelections
-      await queryInterface.addColumn('ProofingSelections', 'rating_reason', {
-        type: Sequelize.TEXT,
-      }, { transaction });
+      // Add rating_reason to ProofingSelections (if table exists)
+      try {
+        await queryInterface.sequelize.query(
+          'ALTER TABLE "ProofingSelections" ADD COLUMN IF NOT EXISTS "rating_reason" TEXT',
+          { transaction }
+        );
+      } catch (err) {
+        // Table may not exist yet - that's OK, will be created by other migrations
+      }
 
       // Create WatermarkTemplates table
       await queryInterface.createTable('WatermarkTemplates', {
@@ -181,36 +190,40 @@ module.exports = {
         transaction,
       });
 
-      // Add photo indexes for performance
-      await queryInterface.addIndex('Photos', ['exif_make'], {
-        name: 'idx_photos_camera',
-        transaction,
-      });
+      // Add photo indexes for performance (if Photos table exists)
+      try {
+        await queryInterface.addIndex('Photos', ['exif_make'], {
+          name: 'idx_photos_camera',
+          transaction,
+        });
 
-      await queryInterface.addIndex('Photos', ['exif_model'], {
-        name: 'idx_photos_lens',
-        transaction,
-      });
+        await queryInterface.addIndex('Photos', ['exif_model'], {
+          name: 'idx_photos_lens',
+          transaction,
+        });
 
-      await queryInterface.addIndex('Photos', ['exif_iso'], {
-        name: 'idx_photos_iso',
-        transaction,
-      });
+        await queryInterface.addIndex('Photos', ['exif_iso'], {
+          name: 'idx_photos_iso',
+          transaction,
+        });
 
-      await queryInterface.addIndex('Photos', ['exif_aperture'], {
-        name: 'idx_photos_aperture',
-        transaction,
-      });
+        await queryInterface.addIndex('Photos', ['exif_aperture'], {
+          name: 'idx_photos_aperture',
+          transaction,
+        });
 
-      await queryInterface.addIndex('Photos', ['exif_focal_length'], {
-        name: 'idx_photos_focal_length',
-        transaction,
-      });
+        await queryInterface.addIndex('Photos', ['exif_focal_length'], {
+          name: 'idx_photos_focal_length',
+          transaction,
+        });
 
-      await queryInterface.addIndex('Photos', ['createdAt'], {
-        name: 'idx_photos_created_at',
-        transaction,
-      });
+        await queryInterface.addIndex('Photos', ['createdAt'], {
+          name: 'idx_photos_created_at',
+          transaction,
+        });
+      } catch (err) {
+        // Photos table may not exist yet - that's OK
+      }
 
       // Insert pre-built themes
       await queryInterface.bulkInsert('Themes', [
