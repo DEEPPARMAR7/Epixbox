@@ -34,7 +34,7 @@ const configuredOrigins = Array.from(
 // Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  crossOriginOpenerPolicy: false, // Allow OAuth popups to postMessage back
 }));
 
 // CORS
