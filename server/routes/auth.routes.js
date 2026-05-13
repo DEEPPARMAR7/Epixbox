@@ -12,6 +12,47 @@ const { audit } = require('../middleware/audit.middleware');
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'dev_access_secret_change_me';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret_change_me';
 
+function parseOrigins(value) {
+  return String(value || '')
+    .split(/[\s,]+/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+const allowedAuthOrigins = new Set([
+  ...parseOrigins(process.env.CLIENT_URL),
+  ...parseOrigins(process.env.FRONTEND_URL),
+  ...parseOrigins(process.env.CORS_ORIGINS),
+  'https://epixbox.vercel.app',
+]);
+
+function isAllowedOrigin(origin) {
+  return (
+    allowedAuthOrigins.has(origin)
+    || /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin || '')
+    || /^http:\/\/localhost:\d+$/.test(origin || '')
+    || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin || '')
+  );
+}
+
+router.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (origin && isAllowedOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token');
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
 function collectGoogleClientIds() {
   const raw = [
     process.env.GOOGLE_CLIENT_ID,
