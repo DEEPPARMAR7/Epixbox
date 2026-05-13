@@ -9,7 +9,7 @@ services:
     buildCommand: npm install --production && npx sequelize-cli db:migrate
 
     # Start Command
-    startCommand: node server/server.js
+    startCommand: node server.js
 
     # Root directory for the service
     rootDir: server
@@ -57,6 +57,12 @@ services:
       - key: S3_BUCKET_NAME
         scope: secret
         # Optional
+
+      - key: CORS_ORIGINS
+        value: https://epixbox.vercel.app
+
+      - key: CLIENT_URL
+        value: https://epixbox.vercel.app
 
       - key: SMTP_HOST
         scope: secret
