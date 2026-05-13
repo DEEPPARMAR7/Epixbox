@@ -16,9 +16,15 @@ type AuthContextValue = {
 
 const STORAGE_KEY = "epixbox-auth";
 
+function base64UrlDecode(input: string) {
+  const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = "=".repeat((4 - (normalized.length % 4)) % 4);
+  return atob(normalized + padding);
+}
+
 function isTokenExpired(token: string) {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const payload = JSON.parse(base64UrlDecode(token.split('.')[1] || ""));
     if (!payload?.exp) return false;
     return Date.now() >= payload.exp * 1000;
   } catch {
