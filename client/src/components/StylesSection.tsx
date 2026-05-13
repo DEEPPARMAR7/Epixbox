@@ -4,10 +4,12 @@ import featuresImg from "../assets/features-hero.jpg";
 const StylesSection = () => {
   return (
     <section className="section-padding">
-      <div className="grid lg:grid-cols-2 gap-12 items-center">
-        {/* Content */}
+      <div className="grid items-center gap-12 lg:grid-cols-2">
         <div>
-          <h2 className="heading-lg text-foreground mb-6">
+          <p className="font-heading text-[11px] uppercase tracking-[0.32em] text-muted-foreground mb-3">
+            Styles
+          </p>
+          <h2 className="heading-lg text-foreground mb-6 max-w-xl">
             Built for every style, subject, and client workflow.
           </h2>
           <p className="body-lg mb-8">
@@ -18,12 +20,11 @@ const StylesSection = () => {
           </a>
         </div>
 
-        {/* Image */}
-        <div>
+        <div className="overflow-hidden rounded-[32px] premium-card p-3 md:p-4">
           <img
             src={featuresImg}
             alt="Surfer at sunset, representing diverse photography styles"
-            className="w-full h-[350px] md:h-[500px] object-cover"
+            className="h-[350px] w-full object-cover rounded-[24px] md:h-[520px]"
             loading="lazy"
             width={1200}
             height={800}

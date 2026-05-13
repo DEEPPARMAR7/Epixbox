@@ -56,37 +56,37 @@ function CheckoutForm({ totalCents, onSuccess }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
         <input
           type="text"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Jane Smith"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="w-full rounded-2xl border border-border/70 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-foreground focus:ring-2 focus:ring-foreground/10"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="jane@example.com"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="w-full rounded-2xl border border-border/70 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-foreground focus:ring-2 focus:ring-foreground/10"
         />
       </div>
 
       <div className="pt-2">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Payment</label>
-        <div className="border border-gray-200 rounded-lg p-3">
+        <label className="block text-sm font-medium text-slate-700 mb-2">Payment</label>
+        <div className="rounded-2xl border border-border/70 bg-white p-4 shadow-sm">
           <PaymentElement />
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -94,13 +94,13 @@ function CheckoutForm({ totalCents, onSuccess }) {
       <button
         type="submit"
         disabled={submitting || !stripe || !elements}
-        className="w-full bg-indigo-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+        className="btn-cta w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {submitting && <Spinner size="sm" />}
         {submitting ? 'Processing...' : `Pay ${formatCurrency(totalCents)}`}
       </button>
 
-      <p className="text-center text-xs text-gray-400">
+      <p className="text-center text-xs text-slate-500">
         🔒 Secured by Stripe. We never store your card details.
       </p>
     </form>
@@ -161,60 +161,74 @@ export default function CheckoutPage() {
         <title>Checkout</title>
       </Helmet>
 
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Order Summary */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
-            <div className="space-y-3 mb-6">
-              {items.map((item) => (
-                <div
-                  key={`${item.productId}-${item.photoId}`}
-                  className="flex justify-between items-center text-sm"
-                >
-                  <div>
-                    <p className="font-medium text-gray-800">{item.photoTitle}</p>
-                    <p className="text-gray-500">
-                      {item.productName} × {item.quantity}
-                    </p>
-                  </div>
-                  <span className="font-medium text-gray-900">
-                    {formatCurrency(item.price_cents * item.quantity)}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="border-t border-gray-200 pt-4 flex justify-between font-semibold text-gray-900">
-              <span>Total</span>
-              <span>{formatCurrency(totalCents)}</span>
-            </div>
+      <div className="relative overflow-hidden px-4 py-12">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_hsl(var(--accent)/0.12),_transparent_30%),radial-gradient(circle_at_bottom_right,_hsl(205_70%_50%/0.08),_transparent_28%)]" />
+
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-8 max-w-3xl">
+            <p className="font-heading text-[11px] uppercase tracking-[0.32em] text-muted-foreground mb-3">
+              Checkout
+            </p>
+            <h1 className="heading-lg text-foreground max-w-2xl">
+              Secure payment with Stripe, styled to feel like part of the product.
+            </h1>
           </div>
 
-          {/* Payment Form */}
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Complete your order</h1>
-
-            <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Secure checkout</p>
-              <p className="mt-3 text-sm text-gray-600">
-                Payments are processed securely through Stripe. Available methods depend on your device, browser, and Stripe account settings.
-              </p>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.95fr),minmax(420px,1.05fr)]">
+            <div className="premium-card p-5 md:p-6">
+              <h2 className="text-lg font-black text-foreground mb-4">Order Summary</h2>
+              <div className="space-y-3 mb-6">
+                {items.map((item) => (
+                  <div
+                    key={`${item.productId}-${item.photoId}`}
+                    className="flex justify-between items-center gap-4 text-sm rounded-2xl border border-border/60 bg-background/80 p-4"
+                  >
+                    <div>
+                      <p className="font-semibold text-foreground">{item.photoTitle}</p>
+                      <p className="text-muted-foreground">
+                        {item.productName} × {item.quantity}
+                      </p>
+                    </div>
+                    <span className="font-black text-foreground">
+                      {formatCurrency(item.price_cents * item.quantity)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-border/70 pt-4 flex justify-between font-semibold text-foreground">
+                <span>Total</span>
+                <span>{formatCurrency(totalCents)}</span>
+              </div>
             </div>
 
-            {stripeKeyMissing ? (
-              <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-                Stripe is not configured. Set <code className="font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> in your environment file and restart the client.
+            <div className="premium-card p-5 md:p-6">
+              <h1 className="text-2xl font-black text-foreground mb-3">Complete your order</h1>
+              <p className="text-sm text-muted-foreground mb-6 max-w-xl">
+                Your card details are handled directly by Stripe. We only receive the payment confirmation and order status.
+              </p>
+
+              <div className="mb-5 rounded-2xl border border-border/70 bg-background/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Secure checkout</p>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Payments are processed securely through Stripe. Available methods depend on your device, browser, and Stripe account settings.
+                </p>
               </div>
-            ) : clientSecret ? (
-              <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
-                <CheckoutForm
-                  totalCents={totalCents}
-                  onSuccess={handleSuccess}
-                />
-              </Elements>
-            ) : (
-              <p className="text-red-500 text-sm">Unable to initialize payment. Please try again.</p>
-            )}
+
+              {stripeKeyMissing ? (
+                <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                  Stripe is not configured. Set <code className="font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> in your environment file and restart the client.
+                </div>
+              ) : clientSecret ? (
+                <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+                  <CheckoutForm
+                    totalCents={totalCents}
+                    onSuccess={handleSuccess}
+                  />
+                </Elements>
+              ) : (
+                <p className="text-sm text-red-500">Unable to initialize payment. Please try again.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>

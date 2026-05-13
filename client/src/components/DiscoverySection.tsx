@@ -43,13 +43,13 @@ const discoverItems = [
 const DiscoverySection = () => {
   return (
     <section className="section-padding" id="browse">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="font-heading text-xs uppercase tracking-[0.28em] text-muted-foreground mb-3">
+            <p className="font-heading text-[11px] uppercase tracking-[0.32em] text-muted-foreground mb-3">
               Browse first
             </p>
-            <h2 className="heading-lg text-foreground mb-4">
+            <h2 className="heading-lg max-w-xl text-foreground mb-4">
               The public site should answer every question before signup.
             </h2>
             <p className="body-lg">
@@ -61,23 +61,23 @@ const DiscoverySection = () => {
           </Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {discoverItems.map((item) => (
             <Link
               key={item.title}
               to={item.href}
-              className="group border-2 border-border bg-card p-6 transition-colors hover:border-foreground"
+              className="group premium-card p-6 transition-all hover:-translate-y-1 hover:border-foreground/40"
             >
-              <div className="w-12 h-12 bg-accent flex items-center justify-center mb-5 group-hover:bg-foreground transition-colors">
+              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
                 <item.icon size={22} className="text-accent-foreground group-hover:text-primary-foreground transition-colors" />
               </div>
-              <h3 className="font-heading font-bold text-sm uppercase tracking-wider text-foreground mb-2">
+              <h3 className="font-heading font-bold text-sm uppercase tracking-[0.22em] text-foreground mb-2">
                 {item.title}
               </h3>
               <p className="font-body text-sm text-muted-foreground leading-relaxed mb-4">
                 {item.description}
               </p>
-              <span className="font-heading text-xs uppercase tracking-wider text-foreground inline-flex items-center gap-2">
+              <span className="font-heading text-xs uppercase tracking-[0.22em] text-foreground inline-flex items-center gap-2">
                 Explore
                 <ArrowRight size={14} />
               </span>
@@ -85,20 +85,20 @@ const DiscoverySection = () => {
           ))}
         </div>
 
-        <div className="mt-8 grid md:grid-cols-3 gap-4">
-          <div className="border-2 border-border bg-background p-5">
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="premium-card p-5">
             <ShieldCheck size={20} className="text-foreground mb-3" />
-            <p className="font-heading text-xs uppercase tracking-wider text-foreground mb-2">Protected galleries</p>
+            <p className="font-heading text-xs uppercase tracking-[0.22em] text-foreground mb-2">Protected galleries</p>
             <p className="font-body text-sm text-muted-foreground">Password protection, expiring links, comments, favorites, and download control.</p>
           </div>
-          <div className="border-2 border-border bg-background p-5">
+          <div className="premium-card p-5">
             <LayoutGrid size={20} className="text-foreground mb-3" />
-            <p className="font-heading text-xs uppercase tracking-wider text-foreground mb-2">Business tools</p>
+            <p className="font-heading text-xs uppercase tracking-[0.22em] text-foreground mb-2">Business tools</p>
             <p className="font-body text-sm text-muted-foreground">Pricing, subscriptions, sales, proofing, and portfolio management from one account.</p>
           </div>
-          <div className="border-2 border-border bg-background p-5">
+          <div className="premium-card p-5">
             <Sparkles size={20} className="text-foreground mb-3" />
-            <p className="font-heading text-xs uppercase tracking-wider text-foreground mb-2">Ready for trial</p>
+            <p className="font-heading text-xs uppercase tracking-[0.22em] text-foreground mb-2">Ready for trial</p>
             <p className="font-body text-sm text-muted-foreground">A clear next step when users are ready to create an account.</p>
           </div>
         </div>

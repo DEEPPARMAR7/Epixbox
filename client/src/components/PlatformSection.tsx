@@ -4,18 +4,17 @@ import platformImg from "../assets/platform-showcase.jpg";
 const PlatformSection = () => {
   return (
     <section className="section-padding" id="features">
-      <div className="grid lg:grid-cols-2 gap-12 items-center">
-        {/* Image */}
-        <div className="relative">
+      <div className="grid items-center gap-12 lg:grid-cols-2">
+        <div className="relative overflow-hidden rounded-[32px] premium-card p-3 md:p-4">
           <img
             src={platformImg}
             alt="Stunning landscape photography showcase"
-            className="w-full h-[350px] md:h-[500px] object-cover"
+            className="h-[350px] w-full object-cover md:h-[520px] rounded-[24px]"
             loading="lazy"
             width={1200}
             height={800}
           />
-          <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-background/90 backdrop-blur-sm px-4 py-2">
+          <div className="absolute bottom-7 left-7 flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-white backdrop-blur-md">
             <Mountain size={16} className="text-foreground" />
             <span className="font-body text-sm text-muted-foreground">
               Photo by <span className="text-foreground font-medium">David Sauza</span>
@@ -23,9 +22,11 @@ const PlatformSection = () => {
           </div>
         </div>
 
-        {/* Content */}
         <div>
-          <h2 className="heading-lg text-foreground mb-6">
+          <p className="font-heading text-[11px] uppercase tracking-[0.32em] text-muted-foreground mb-3">
+            Platform
+          </p>
+          <h2 className="heading-lg text-foreground mb-6 max-w-xl">
             Everything you need to run a photography business.
           </h2>
           <p className="body-lg mb-8">

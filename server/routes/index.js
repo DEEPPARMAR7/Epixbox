@@ -38,5 +38,6 @@ router.use('/gift-cards', require('./gift-cards.routes'));
 router.use('/subscriptions', require('./subscriptions.routes'));
 router.use('/payment-methods', require('./payment-methods.routes'));
 router.use('/refunds', require('./refunds.routes'));
+router.use('/checkout', require('./checkout.routes'));
 
 module.exports = router;

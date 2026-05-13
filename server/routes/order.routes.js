@@ -201,6 +201,21 @@ router.post('/webhook', async (req, res, next) => {
       try { await sendOrderConfirmation({ to: order.buyer_email, order }); } catch {}
     }
   }
+
+  // Handle Checkout Session completion (for hosted Checkout)
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    // Log successful checkout session
+    console.log('Checkout session completed:', {
+      sessionId: session.id,
+      customer: session.customer,
+      payment_status: session.payment_status,
+      metadata: session.metadata,
+    });
+    // Future: match session to order using metadata and mark as paid
+    // For now, acknowledgment is sufficient; client handles redirect on success
+  }
+
   res.json({ received: true });
 });
 

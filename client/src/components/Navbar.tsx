@@ -30,21 +30,21 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="flex items-center justify-between px-6 md:px-12 lg:px-20 h-16 md:h-20">
+    <nav className="sticky top-0 z-50 px-3 pt-3 sm:px-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-border/70 bg-background/80 px-5 md:px-7 h-16 md:h-18 shadow-[0_16px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
         <Link to="/" aria-label="EpixBox home" className="text-foreground">
-          <BrandLogo textClassName="text-xl md:text-2xl" />
+          <BrandLogo textClassName="text-lg md:text-xl" />
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-7">
           {links.map((link) => (
             <Link
               key={link.label}
               to={link.href}
-              className={`font-heading text-sm tracking-wide transition-colors ${
+              className={`font-heading text-[11px] uppercase tracking-[0.24em] transition-colors ${
                 location.pathname === link.href
-                  ? "text-accent-foreground underline underline-offset-4"
-                  : "text-foreground hover:text-muted-foreground"
+                  ? "text-accent-foreground"
+                  : "text-foreground/70 hover:text-foreground"
               }`}
             >
               {link.label}
@@ -54,7 +54,7 @@ const Navbar = () => {
           {/* Dark Mode Toggle */}
           <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-md hover:bg-muted transition-colors"
+            className="rounded-full border border-border/70 p-2.5 transition-colors hover:bg-muted"
             aria-label="Toggle dark mode"
           >
             {theme === 'dark' ? (
@@ -76,7 +76,7 @@ const Navbar = () => {
         </div>
 
         <button
-          className="md:hidden text-foreground"
+          className="md:hidden rounded-full border border-border/70 p-2.5 text-foreground"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
@@ -85,12 +85,12 @@ const Navbar = () => {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-background border-t border-border px-6 py-6 space-y-4">
+        <div className="mx-auto mt-2 max-w-7xl rounded-[28px] border border-border/70 bg-background/95 px-6 py-6 space-y-4 shadow-[0_18px_60px_rgba(15,23,42,0.10)] backdrop-blur-xl md:hidden">
           {links.map((link) => (
             <Link
               key={link.label}
               to={link.href}
-              className="block font-heading text-sm tracking-wide text-foreground"
+              className="block font-heading text-sm tracking-[0.2em] text-foreground uppercase"
               onClick={() => setMobileOpen(false)}
             >
               {link.label}

@@ -174,28 +174,30 @@ export default function PaymentsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-5 sm:space-y-6">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Payments</p>
-          <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">Payment Gateway and Billing</h1>
-          <p className="mt-2 text-sm text-slate-400">Stripe checkout is active for orders, and billing is managed through Stripe customer portal.</p>
+        <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 sm:p-6 shadow-[0_24px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Payments</p>
+          <h1 className="mt-2 text-2xl font-black text-white sm:text-4xl">Payment Gateway and Billing</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+            Stripe checkout is active for orders, billing is managed through the Stripe customer portal, and refunds are handled from the admin console.
+          </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
             <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Total Orders</p>
             <p className="mt-2 text-2xl font-black text-white">{orders.length}</p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
             <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Paid Orders</p>
             <p className="mt-2 text-2xl font-black text-white">{paid.length}</p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
             <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Revenue</p>
             <p className="mt-2 text-2xl font-black text-white">{formatCurrency(revenue)}</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-white">Current Plan: <span className="text-emerald-300 uppercase">{billing?.plan || 'free'}</span></p>
@@ -205,7 +207,7 @@ export default function PaymentsPage() {
               type="button"
               onClick={openPortal}
               disabled={openingPortal}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:opacity-60"
             >
               {openingPortal ? 'Opening...' : 'Open Stripe Billing Portal'}
             </button>
@@ -213,7 +215,7 @@ export default function PaymentsPage() {
         </div>
 
         {orders.length > 0 ? (
-          <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
+          <div className="overflow-x-auto rounded-[28px] border border-white/10 bg-white/5 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
             <table className="w-full text-sm">
               <thead className="bg-white/5 text-left">
                 <tr>
@@ -256,7 +258,7 @@ export default function PaymentsPage() {
         )}
 
         {activeOrderId && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5 space-y-4">
+          <div className="rounded-[28px] border border-white/10 bg-white/5 p-4 sm:p-5 space-y-4 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Order Lifecycle</p>
@@ -265,7 +267,7 @@ export default function PaymentsPage() {
               <button
                 type="button"
                 onClick={() => setActiveOrderId(null)}
-                className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10"
+                className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10"
               >
                 Close
               </button>
@@ -275,7 +277,7 @@ export default function PaymentsPage() {
               <div className="text-sm text-slate-400">Loading order details...</div>
             ) : (
               <>
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
                   <label className="block text-xs uppercase tracking-[0.15em] text-slate-500 mb-2">Update Status</label>
                   <div className="flex flex-wrap items-center gap-2">
                     {STATUS_OPTIONS.map((status) => (
@@ -284,7 +286,7 @@ export default function PaymentsPage() {
                         type="button"
                         disabled={updatingStatus}
                         onClick={() => handleStatusUpdate(activeOrderId, status)}
-                        className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-60"
+                        className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-60"
                       >
                         {status}
                       </button>
@@ -292,7 +294,7 @@ export default function PaymentsPage() {
                   </div>
                 </div>
 
-                <form onSubmit={handleShippingSave} className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-3">
+                <form onSubmit={handleShippingSave} className="rounded-2xl border border-white/10 bg-black/20 p-3 space-y-3">
                   <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Shipping Details</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <input
@@ -336,7 +338,7 @@ export default function PaymentsPage() {
                   )}
                 </form>
 
-                <form onSubmit={handleCreateRefund} className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-3">
+                <form onSubmit={handleCreateRefund} className="rounded-2xl border border-white/10 bg-black/20 p-3 space-y-3">
                   <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Issue Refund</p>
                   <p className="text-xs text-slate-400">
                     Refunded: {formatCurrency(refundSummary.refunded_total_cents)} · Remaining: {formatCurrency(refundSummary.refundable_remaining_cents)}
