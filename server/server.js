@@ -40,9 +40,17 @@ async function startServer() {
       process.exit(1);
     }
 
-    // Test database connection
-    await sequelize.authenticate();
-    console.log('✓ Database connection established');
+    // Test database connection (non-blocking on timeout)
+    try {
+      await Promise.race([
+        sequelize.authenticate(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 10000))
+      ]);
+      console.log('✓ Database connection established');
+    } catch (dbErr) {
+      console.warn('⚠ Database connection delayed - starting server anyway. Requests will fail until DB is ready.');
+      console.warn('  Error:', dbErr.message);
+    }
 
     // Run migrations if auto-migrate is enabled (default: true)
     const autoMigrate = process.env.AUTO_MIGRATE !== 'false'; // Default is TRUE

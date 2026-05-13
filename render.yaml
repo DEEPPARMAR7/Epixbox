@@ -19,6 +19,9 @@ services:
       - key: NODE_ENV
         value: production
 
+      - key: AUTO_MIGRATE
+        value: "false"
+
       - key: PORT
         value: 4000
 
