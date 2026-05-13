@@ -6,7 +6,7 @@ services:
     plan: free
 
     # Build Command - Install dependencies and build client
-    buildCommand: npm install && npm run --prefix client build
+    buildCommand: npm install && npm run --prefix ../client build
 
     # Start Command
     startCommand: npm start
