@@ -5,11 +5,11 @@ services:
     region: ohio
     plan: free
 
-    # Build Command - Install production dependencies only
-    buildCommand: npm install --production
+    # Build Command - Install dependencies for the workspace
+    buildCommand: npm install
 
     # Start Command
-    startCommand: node server.js
+    startCommand: npm start
 
     # Root directory for the service
     rootDir: server
