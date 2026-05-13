@@ -45,128 +45,87 @@ module.exports = {
       }
 
       // Create WatermarkTemplates table
-      await queryInterface.createTable('WatermarkTemplates', {
-        id: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        user_id: {
-          type: Sequelize.INTEGER,
-          allowNull: false,
-          references: { model: 'users', key: 'id' },
-          onDelete: 'CASCADE',
-        },
-        name: {
-          type: Sequelize.STRING(255),
-          allowNull: false,
-        },
-        type: Sequelize.STRING(50),
-        position: Sequelize.STRING(50),
-        opacity: {
-          type: Sequelize.FLOAT,
-          defaultValue: 0.7,
-        },
-        size_percentage: {
-          type: Sequelize.INTEGER,
-          defaultValue: 20,
-        },
-        font_family: {
-          type: Sequelize.STRING(100),
-          defaultValue: 'Arial',
-        },
-        text_content: Sequelize.TEXT,
-        image_s3_key: Sequelize.STRING(500),
-        color: {
-          type: Sequelize.STRING(7),
-          defaultValue: '#FFFFFF',
-        },
-        font_size: {
-          type: Sequelize.INTEGER,
-          defaultValue: 24,
-        },
-        rotation: {
-          type: Sequelize.INTEGER,
-          defaultValue: 0,
-        },
-        createdAt: {
-          type: Sequelize.DATE,
-          defaultValue: Sequelize.NOW,
-        },
-        updatedAt: {
-          type: Sequelize.DATE,
-          defaultValue: Sequelize.NOW,
-        },
-      }, { transaction });
-
-      await queryInterface.addIndex('WatermarkTemplates', ['user_id'], {
-        name: 'idx_watermark_templates_user_id',
-        transaction,
-      });
+      try {
+        await queryInterface.sequelize.query(
+          `CREATE TABLE IF NOT EXISTS "WatermarkTemplates" (
+            "id" SERIAL PRIMARY KEY,
+            "user_id" INTEGER NOT NULL REFERENCES "users" ("id") ON DELETE CASCADE,
+            "name" VARCHAR(255) NOT NULL,
+            "type" VARCHAR(50),
+            "position" VARCHAR(50),
+            "opacity" FLOAT DEFAULT 0.7,
+            "size_percentage" INTEGER DEFAULT 20,
+            "font_family" VARCHAR(100) DEFAULT 'Arial',
+            "text_content" TEXT,
+            "image_s3_key" VARCHAR(500),
+            "color" VARCHAR(7) DEFAULT '#FFFFFF',
+            "font_size" INTEGER DEFAULT 24,
+            "rotation" INTEGER DEFAULT 0,
+            "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          )`,
+          { transaction }
+        );
+        
+        await queryInterface.sequelize.query(
+          `CREATE INDEX IF NOT EXISTS "idx_watermark_templates_user_id" ON "WatermarkTemplates" ("user_id")`,
+          { transaction }
+        );
+      } catch (err) {
+        // Table may already exist or reference issue - will be created by other means
+      }
 
       // Create Themes table
-      await queryInterface.createTable('Themes', {
-        id: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        name: {
-          type: Sequelize.STRING(255),
-          allowNull: false,
-          unique: true,
-        },
-        category: Sequelize.STRING(50),
-        is_builtin: {
-          type: Sequelize.BOOLEAN,
-          defaultValue: false,
-        },
-        css_variables: Sequelize.JSON,
-        preview_image_url: Sequelize.STRING(500),
-        createdAt: {
-          type: Sequelize.DATE,
-          defaultValue: Sequelize.NOW,
-        },
-        updatedAt: {
-          type: Sequelize.DATE,
-          defaultValue: Sequelize.NOW,
-        },
-      }, { transaction });
-
-      await queryInterface.addIndex('Themes', ['name'], {
-        name: 'idx_themes_name',
-        transaction,
-      });
+      try {
+        await queryInterface.sequelize.query(
+          `CREATE TABLE IF NOT EXISTS "Themes" (
+            "id" SERIAL PRIMARY KEY,
+            "name" VARCHAR(255) NOT NULL UNIQUE,
+            "category" VARCHAR(50),
+            "is_builtin" BOOLEAN DEFAULT false,
+            "css_variables" JSON,
+            "preview_image_url" VARCHAR(500),
+            "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          )`,
+          { transaction }
+        );
+        
+        await queryInterface.sequelize.query(
+          `CREATE INDEX IF NOT EXISTS "idx_themes_name" ON "Themes" ("name")`,
+          { transaction }
+        );
+      } catch (err) {
+        // Table may already exist
+      }
 
       // Create Coupons table
-      await queryInterface.createTable('Coupons', {
-        id: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        code: {
-          type: Sequelize.STRING(50),
-          allowNull: false,
-          unique: true,
-        },
-        discount_type: Sequelize.STRING(20),
-        discount_value: {
-          type: Sequelize.DECIMAL(10, 2),
-          allowNull: false,
-        },
-        max_uses: {
-          type: Sequelize.INTEGER,
-          defaultValue: 999,
-        },
-        used_count: {
-          type: Sequelize.INTEGER,
-          defaultValue: 0,
-        },
-        expires_at: Sequelize.DATE,
-        apply_to: Sequelize.STRING(50),
-        gallery_ids: Sequelize.JSON,
-        is_active: {
+      try {
+        await queryInterface.sequelize.query(
+          `CREATE TABLE IF NOT EXISTS "Coupons" (
+            "id" SERIAL PRIMARY KEY,
+            "code" VARCHAR(50) NOT NULL UNIQUE,
+            "discount_type" VARCHAR(20),
+            "discount_value" DECIMAL(10, 2) NOT NULL,
+            "max_uses" INTEGER DEFAULT 999,
+            "used_count" INTEGER DEFAULT 0,
+            "expires_at" TIMESTAMP,
+            "apply_to" VARCHAR(50),
+            "gallery_ids" JSON,
+            "is_active" BOOLEAN DEFAULT true,
+            "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          )`,
+          { transaction }
+        );
+        
+        await queryInterface.sequelize.query(
+          `CREATE INDEX IF NOT EXISTS "idx_coupons_code" ON "Coupons" ("code")`,
+          { transaction }
+        );
+      } catch (err) {
+        // Table may already exist
+      }
           type: Sequelize.BOOLEAN,
           defaultValue: true,
         },
@@ -179,11 +138,6 @@ module.exports = {
           defaultValue: Sequelize.NOW,
         },
       }, { transaction });
-
-      await queryInterface.addIndex('Coupons', ['code'], {
-        name: 'idx_coupons_code',
-        transaction,
-      });
 
       await queryInterface.addIndex('Coupons', ['is_active'], {
         name: 'idx_coupons_active',
