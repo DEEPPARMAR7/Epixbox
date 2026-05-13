@@ -14,7 +14,7 @@ module.exports = {
         user_id: {
           type: Sequelize.INTEGER,
           allowNull: false,
-          references: { model: 'Users', key: 'id' },
+          references: { model: 'users', key: 'id' },
           onDelete: 'CASCADE',
         },
         key_hash: {
@@ -67,7 +67,7 @@ module.exports = {
         user_id: {
           type: Sequelize.INTEGER,
           allowNull: false,
-          references: { model: 'Users', key: 'id' },
+          references: { model: 'users', key: 'id' },
           onDelete: 'CASCADE',
         },
         code: {
@@ -132,7 +132,7 @@ module.exports = {
           user_id: {
             type: Sequelize.INTEGER,
             allowNull: false,
-            references: { model: 'Users', key: 'id' },
+            references: { model: 'users', key: 'id' },
             onDelete: 'CASCADE',
           },
           stripe_price_id: {
@@ -264,7 +264,7 @@ module.exports = {
         user_id: {
           type: Sequelize.INTEGER,
           allowNull: false,
-          references: { model: 'Users', key: 'id' },
+          references: { model: 'users', key: 'id' },
           onDelete: 'CASCADE',
         },
         stripe_payment_method_id: {
@@ -346,7 +346,7 @@ module.exports = {
         },
         created_by_user_id: {
           type: Sequelize.INTEGER,
-          references: { model: 'Users', key: 'id' },
+          references: { model: 'users', key: 'id' },
         },
         processed_at: Sequelize.DATE,
         createdAt: {

@@ -31,7 +31,7 @@ module.exports = {
         { transaction }
       );
       await queryInterface.sequelize.query(
-        'UPDATE "ApiKeys" SET id_new = gen_random_uuid(), user_id_new = (SELECT id FROM "Users" LIMIT 1)',
+        'UPDATE "ApiKeys" SET id_new = gen_random_uuid(), user_id_new = (SELECT id FROM "users" LIMIT 1)',
         { transaction }
       );
       await queryInterface.removeColumn('ApiKeys', 'id', { transaction });
@@ -58,7 +58,7 @@ module.exports = {
       );
       // Map user_ids (this needs more careful handling in production)
       await queryInterface.sequelize.query(
-        `UPDATE "GiftCards" gc SET user_id_new = u.id FROM "Users" u WHERE gc.user_id = u.id::INTEGER LIMIT 1`,
+        `UPDATE "GiftCards" gc SET user_id_new = u.id FROM "users" u WHERE gc.user_id = u.id::INTEGER LIMIT 1`,
         { transaction, raw: true }
       );
       await queryInterface.removeConstraint('GiftCards', 'GiftCards_user_id_fkey', { transaction });
@@ -70,7 +70,7 @@ module.exports = {
         fields: ['user_id'],
         type: 'foreign key',
         name: 'GiftCards_user_id_fkey',
-        references: { table: 'Users', field: 'id' },
+        references: { table: 'users', field: 'id' },
         onDelete: 'CASCADE',
         transaction,
       });
