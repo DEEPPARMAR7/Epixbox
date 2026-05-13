@@ -5,18 +5,20 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
     try {
       // Add 2FA columns to Users table
-      await queryInterface.addColumn('Users', 'two_factor_enabled', {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
-      }, { transaction });
+      await queryInterface.sequelize.query(
+        'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "two_factor_enabled" BOOLEAN DEFAULT false',
+        { transaction }
+      );
 
-      await queryInterface.addColumn('Users', 'two_fa_secret', {
-        type: Sequelize.STRING(255),
-      }, { transaction });
+      await queryInterface.sequelize.query(
+        'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "two_fa_secret" VARCHAR(255)',
+        { transaction }
+      );
 
-      await queryInterface.addColumn('Users', 'two_fa_backup_codes', {
-        type: Sequelize.TEXT,
-      }, { transaction });
+      await queryInterface.sequelize.query(
+        'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "two_fa_backup_codes" TEXT',
+        { transaction }
+      );
 
       // Add photo editing tracking to Photos table
       await queryInterface.addColumn('Photos', 'original_s3_key', {
@@ -43,7 +45,7 @@ module.exports = {
         user_id: {
           type: Sequelize.INTEGER,
           allowNull: false,
-          references: { model: 'Users', key: 'id' },
+          references: { model: 'users', key: 'id' },
           onDelete: 'CASCADE',
         },
         name: {
@@ -271,9 +273,9 @@ module.exports = {
       await queryInterface.removeColumn('ProofingSelections', 'rating_reason', { transaction });
       await queryInterface.removeColumn('Photos', 'edit_history', { transaction });
       await queryInterface.removeColumn('Photos', 'original_s3_key', { transaction });
-      await queryInterface.removeColumn('Users', 'two_fa_backup_codes', { transaction });
-      await queryInterface.removeColumn('Users', 'two_fa_secret', { transaction });
-      await queryInterface.removeColumn('Users', 'two_factor_enabled', { transaction });
+      await queryInterface.removeColumn('users', 'two_fa_backup_codes', { transaction });
+      await queryInterface.removeColumn('users', 'two_fa_secret', { transaction });
+      await queryInterface.removeColumn('users', 'two_factor_enabled', { transaction });
 
       await transaction.commit();
     } catch (error) {
