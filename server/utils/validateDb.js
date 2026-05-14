@@ -5,6 +5,8 @@
 
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Check if migrations table exists and all pending migrations are applied
@@ -41,6 +43,22 @@ async function validateDatabaseMigrations() {
     // Log migration status for debugging
     console.log(`✓ Database migrations: ${appliedMigrations.length} applied`);
     console.log(`  Latest migration: ${appliedMigrations[appliedMigrations.length - 1].name}`);
+
+    // Compare filesystem migrations against applied migrations to detect pending files.
+    const migrationDir = path.join(__dirname, '..', 'database', 'migrations');
+    const migrationFiles = fs
+      .readdirSync(migrationDir)
+      .filter((name) => /\.js$/i.test(name))
+      .sort();
+    const appliedNames = new Set(appliedMigrations.map((m) => m.name));
+    const pending = migrationFiles.filter((name) => !appliedNames.has(name));
+
+    if (pending.length > 0) {
+      return {
+        valid: false,
+        message: `Pending migrations detected: ${pending.join(', ')}. Run migrations with: npm run db:migrate`,
+      };
+    }
 
     return {
       valid: true,

@@ -20,7 +20,7 @@ services:
         value: production
 
       - key: AUTO_MIGRATE
-        value: "false"
+        value: "true"
 
       - key: PORT
         value: 4000
