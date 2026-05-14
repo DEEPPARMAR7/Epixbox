@@ -10,6 +10,10 @@ import {
 } from '@stripe/react-stripe-js'
 import PublicLayout from '../../components/layout/PublicLayout'
 import Spinner from '../../components/common/Spinner'
+import PayPalPaymentButton from '../../components/PayPalPaymentButton'
+import ApplePayButton from '../../components/ApplePayButton'
+import GooglePayButton from '../../components/GooglePayButton'
+import PaymentMethodSelector from '../../components/PaymentMethodSelector'
 import { useCart } from '../../hooks/useCart'
 import { createOrder } from '../../api/orderApi'
 import { formatCurrency } from '../../utils/formatters'
@@ -18,6 +22,9 @@ import toast from 'react-hot-toast'
 
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || import.meta.env.STRIPE_PUBLISHABLE_KEY
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null
+
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
+const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
 
 function StripeCheckoutForm({ totalCents, onSuccess }) {
   const stripe = useStripe()
@@ -114,6 +121,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true)
   const [orderId, setOrderId] = useState(null)
   const [trackingToken, setTrackingToken] = useState(null)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('stripe')
 
   useEffect(() => {
     // Allow viewing payment methods in development/test mode
@@ -218,25 +226,60 @@ export default function CheckoutPage() {
               <div>
                 <h1 className="text-2xl font-black text-foreground mb-3">Complete your order</h1>
                 <p className="text-sm text-muted-foreground max-w-xl">
-                  Checkout is secured by Stripe and supports cards and wallets through Stripe Payment Element.
+                  Choose your preferred payment method and complete checkout securely.
                 </p>
               </div>
 
+              {/* Payment Method Selector */}
+              <PaymentMethodSelector onSelect={setSelectedPaymentMethod} selectedMethod={selectedPaymentMethod} />
+
               {/* Payment Method Forms */}
               <div className="pt-4 border-t border-border/70">
-                {stripeKeyMissing ? (
-                  <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-                    Stripe is not configured. Set <code className="font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> in your environment file.
-                  </div>
-                ) : clientSecret ? (
-                  <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
-                    <StripeCheckoutForm
-                      totalCents={totalCents}
-                      onSuccess={handlePaymentSuccess}
-                    />
-                  </Elements>
-                ) : (
-                  <p className="text-sm text-red-500">Unable to initialize Stripe. Please try again.</p>
+                {selectedPaymentMethod === 'stripe' && (
+                  <>
+                    {stripeKeyMissing ? (
+                      <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                        Stripe is not configured. Set <code className="font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> in your environment file.
+                      </div>
+                    ) : clientSecret ? (
+                      <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+                        <StripeCheckoutForm
+                          totalCents={totalCents}
+                          onSuccess={handlePaymentSuccess}
+                        />
+                      </Elements>
+                    ) : (
+                      <p className="text-sm text-red-500">Unable to initialize Stripe. Please try again.</p>
+                    )}
+                  </>
+                )}
+
+                {selectedPaymentMethod === 'paypal' && (
+                  <PayPalPaymentButton
+                    amount={totalCents}
+                    items={items}
+                    onSuccess={handlePaymentSuccess}
+                    onError={(err) => toast.error('PayPal payment failed: ' + err.message)}
+                    onCancel={() => toast.info('Payment cancelled')}
+                  />
+                )}
+
+                {selectedPaymentMethod === 'apple' && (
+                  <ApplePayButton
+                    amount={totalCents}
+                    items={items}
+                    onSuccess={handlePaymentSuccess}
+                    onError={(err) => toast.error('Apple Pay failed: ' + err.message)}
+                  />
+                )}
+
+                {selectedPaymentMethod === 'google' && (
+                  <GooglePayButton
+                    amount={totalCents}
+                    items={items}
+                    onSuccess={handlePaymentSuccess}
+                    onError={(err) => toast.error('Google Pay failed: ' + err.message)}
+                  />
                 )}
               </div>
 

@@ -1,8 +1,6 @@
 import axios from 'axios'
 import useAuthStore from '../store/authStore'
 
-const AUTH_STORAGE_KEY = 'epixbox-auth'
-const AUTH_NO_TOKEN_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/forgot-password', '/auth/reset-password']
 const AUTH_NO_REFRESH_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/forgot-password', '/auth/reset-password']
 
 const getRequestPath = (config) => {
@@ -19,26 +17,6 @@ const isAuthPath = (config, paths) => {
   return paths.some((path) => requestPath.endsWith(path))
 }
 
-const readPersistedAuth = () => {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(AUTH_STORAGE_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
-const writePersistedAuth = (auth) => {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth))
-}
-
-const clearPersistedAuth = () => {
-  if (typeof window === 'undefined') return
-  window.localStorage.removeItem(AUTH_STORAGE_KEY)
-}
-
 const getDefaultApiBase = () => {
   if (typeof window === 'undefined') return 'http://localhost:4000/api'
   const protocol = window.location.protocol
@@ -47,15 +25,7 @@ const getDefaultApiBase = () => {
 }
 
 const BASE = import.meta.env.VITE_API_BASE_URL || getDefaultApiBase()
-const axiosClient = axios.create({ baseURL: BASE, timeout: 30000 })
-
-axiosClient.interceptors.request.use((config) => {
-  if (!isAuthPath(config, AUTH_NO_TOKEN_PATHS)) {
-    const token = useAuthStore.getState().token || readPersistedAuth()?.accessToken
-    if (token) config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
+const axiosClient = axios.create({ baseURL: BASE, timeout: 30000, withCredentials: true })
 
 axiosClient.interceptors.response.use(
   (res) => res,
@@ -63,7 +33,6 @@ axiosClient.interceptors.response.use(
     const original = error.config
     if (error.response?.status === 401 && original && isAuthPath(original, ['/auth/me'])) {
       useAuthStore.getState().logout()
-      clearPersistedAuth()
       window.location.href = '/login'
       return Promise.reject(error)
     }
@@ -71,31 +40,10 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401 && original && !original._retry && !isAuthPath(original, AUTH_NO_REFRESH_PATHS)) {
       original._retry = true
       try {
-        const storeState = useAuthStore.getState()
-        const persistedAuth = readPersistedAuth()
-        const refreshToken = storeState.refreshToken || persistedAuth?.refreshToken
-        if (!refreshToken) throw new Error('Missing refresh token')
-
-        const { data } = await axios.post(`${BASE}/auth/refresh`, { refreshToken })
-        const nextRefresh = data.refreshToken || refreshToken
-
-        if (storeState.user) {
-          useAuthStore.getState().login(storeState.user, data.accessToken, nextRefresh)
-        }
-
-        if (persistedAuth?.user) {
-          writePersistedAuth({
-            user: persistedAuth.user,
-            accessToken: data.accessToken,
-            refreshToken: nextRefresh,
-          })
-        }
-
-        original.headers.Authorization = `Bearer ${data.accessToken}`
+        await axios.post(`${BASE}/auth/refresh`, {}, { withCredentials: true })
         return axiosClient(original)
       } catch {
         useAuthStore.getState().logout()
-        clearPersistedAuth()
         window.location.href = '/login'
       }
     }

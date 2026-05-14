@@ -24,8 +24,24 @@ module.exports = (sequelize, DataTypes) => {
       },
       stripe_customer_id: {
         type: DataTypes.STRING(255),
-        allowNull: false,
+        allowNull: true,
         comment: 'Stripe Customer ID',
+      },
+      gateway_type: {
+        type: DataTypes.ENUM('stripe', 'paypal', 'apple_pay', 'google_pay'),
+        allowNull: false,
+        defaultValue: 'stripe',
+        comment: 'Payment gateway provider (stripe, paypal, apple_pay, google_pay)',
+      },
+      gateway_customer_id: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Gateway-specific customer ID',
+      },
+      gateway_payment_method_id: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Gateway-specific payment method ID',
       },
       nickname: {
         type: DataTypes.STRING(255),

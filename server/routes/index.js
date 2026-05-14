@@ -39,5 +39,6 @@ router.use('/subscriptions', require('./subscriptions.routes'));
 router.use('/payment-methods', require('./payment-methods.routes'));
 router.use('/refunds', require('./refunds.routes'));
 router.use('/checkout', require('./checkout.routes'));
+router.use('/paypal', require('./paypal.routes'));
 
 module.exports = router;
