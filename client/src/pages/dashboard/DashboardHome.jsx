@@ -67,6 +67,13 @@ const STARTER_CARDS = [
     to: '/dashboard/pricing',
     icon: '💰',
   },
+  {
+    title: 'Payments & Billing',
+    description: 'Open payment tools, billing, refunds, and order management in one place.',
+    action: 'Open Payments',
+    to: '/dashboard/payments',
+    icon: '💳',
+  },
 ]
 
 function StarterCard({ title, description, action, to, icon, onAction }) {

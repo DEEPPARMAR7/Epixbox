@@ -13,6 +13,7 @@ const navItems = [
   { to: '/dashboard/galleries', label: 'Library', icon: '🖼️' },
   { to: '/dashboard/organize', label: 'Organize', icon: '🧭' },
   { to: '/dashboard/analytics', label: 'Analytics', icon: '📈' },
+  { to: '/dashboard/payments', label: 'Payments', icon: '💳' },
   { to: '/dashboard/settings', label: 'My Site', icon: '🌐' },
   { to: '/dashboard/themes', label: 'Themes', icon: '🎨' },
 ]
@@ -267,7 +268,11 @@ export default function DashboardLayout({ children }) {
                     ? Compass
                     : item.to === '/dashboard/analytics'
                       ? LayoutDashboard
-                      : Globe
+                      : item.to === '/dashboard/payments'
+                        ? Globe
+                        : item.to === '/dashboard/settings'
+                          ? Globe
+                          : Globe
               const isActive = item.exact
                 ? location.pathname === item.to
                 : location.pathname.startsWith(item.to)

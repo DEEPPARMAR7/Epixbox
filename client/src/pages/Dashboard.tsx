@@ -25,7 +25,7 @@ const DashboardPage = () => {
       <Route path="photos/:id" element={<PhotoDetailsPage />} />
       <Route path="proofing" element={<ClientProofingAdminPage />} />
       <Route path="pricing" element={<PricingEditorPage />} />
-      <Route path="payments" element={<Navigate to="/dashboard" replace />} />
+      <Route path="payments" element={<PaymentsPage />} />
       <Route path="analytics" element={<AnalyticsPage />} />
       <Route path="themes" element={<ProfessionalThemesPage />} />
       <Route path="settings" element={<AccountSettingsPage />} />
