@@ -96,11 +96,25 @@ router.get('/billing', async (req, res, next) => {
 // POST /api/settings/billing/portal
 router.post('/billing/portal', async (req, res, next) => {
   try {
-    if (!req.user.stripe_customer_id) {
-      return res.status(400).json({ error: 'No billing account found. Please contact support.' });
+    let stripeCustomerId = req.user.stripe_customer_id;
+
+    if (!stripeCustomerId) {
+      const customer = await stripe.customers.create({
+        email: req.user.email,
+        name: [req.user.first_name, req.user.last_name].filter(Boolean).join(' ').trim() || undefined,
+        metadata: {
+          user_id: String(req.user.id),
+          username: req.user.username || '',
+          created_from: 'billing_portal',
+        },
+      });
+
+      stripeCustomerId = customer.id;
+      await req.user.update({ stripe_customer_id: stripeCustomerId });
     }
+
     const session = await stripe.billingPortal.sessions.create({
-      customer: req.user.stripe_customer_id,
+      customer: stripeCustomerId,
       return_url: `${process.env.CLIENT_URL}/dashboard/settings`,
     });
     res.json({ url: session.url });
