@@ -5,7 +5,7 @@ import { logout as apiLogout } from '../../api/authApi'
 import { getGalleries } from '../../api/galleryApi'
 import clsx from 'clsx'
 import toast from 'react-hot-toast'
-import { MoreVertical, Upload, LayoutDashboard, Images, Compass, Globe, User, LogOut } from 'lucide-react'
+import { Menu, Upload, LayoutDashboard, Images, Compass, Globe, User, LogOut } from 'lucide-react'
 import BottomSheet from '../common/BottomSheet'
 
 const navItems = [
@@ -160,10 +160,10 @@ export default function DashboardLayout({ children }) {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-700/50 bg-slate-900/50 px-3 text-sm font-semibold text-white transition hover:border-slate-500/60 hover:bg-slate-800 md:hidden"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-cyan-400/25 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-4 text-[11px] font-extrabold uppercase tracking-[0.28em] text-cyan-100 shadow-[0_10px_28px_rgba(34,211,238,0.10)] transition hover:border-cyan-300/40 hover:from-cyan-500/20 hover:to-blue-500/20 md:hidden"
               aria-label="Open dashboard menu"
             >
-              <MoreVertical size={18} />
+              <Menu size={18} />
               <span>Menu</span>
             </button>
             <div className="relative" ref={profileMenuRef}>
@@ -227,9 +227,9 @@ export default function DashboardLayout({ children }) {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-700/50 bg-slate-900/50 px-4 py-3 text-sm font-bold text-slate-100 transition hover:border-slate-500/60 hover:bg-slate-800"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/25 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-4 py-3 text-sm font-extrabold text-cyan-100 transition hover:border-cyan-300/40 hover:from-cyan-500/20 hover:to-blue-500/20"
           >
-            <MoreVertical size={16} />
+            <Menu size={16} />
             More
           </button>
         </div>
