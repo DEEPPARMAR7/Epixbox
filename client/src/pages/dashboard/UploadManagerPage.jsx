@@ -139,6 +139,11 @@ export default function UploadManagerPage() {
         pending.find(p => p.id === item.id) ? { ...item, status: 'error' } : item
       ))
 
+      if (err?.code === 'ECONNABORTED') {
+        toast.error('Upload request timed out while processing. Refresh the gallery in a moment; files may still complete.')
+        return
+      }
+
       const payload = err?.response?.data || {}
       if (payload.code === 'GALLERY_ACCOUNT_MISMATCH' && payload.firstGalleryId) {
         toast('You switched accounts. Redirecting to your gallery upload screen...')
