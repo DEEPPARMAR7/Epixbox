@@ -7,9 +7,15 @@ export default defineConfig(() => ({
   envPrefix: ["VITE_", "NEXT_PUBLIC_"],
   server: {
     host: "0.0.0.0",
-    port: 8080,
+    port: 5173,
     hmr: {
       overlay: false,
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
     },
   },
   plugins: [react()],
