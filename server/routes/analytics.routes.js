@@ -25,7 +25,12 @@ router.get('/revenue-summary', async (req, res, next) => {
       };
     }
 
-    const orders = await Order.findAll({ where });
+    const orders = await Order.findAll({
+      where,
+      // Select only fields needed for this aggregate to avoid failures when
+      // deployments are temporarily behind on non-essential Order columns.
+      attributes: ['id', 'total_cents'],
+    });
 
     const totalRevenue = orders.reduce((sum, order) => sum + (order.total_cents || 0), 0);
     const count = orders.length;
@@ -46,21 +51,26 @@ router.get('/customer-insights', async (req, res, next) => {
   try {
     const orders = await Order.findAll({
       where: { photographer_id: req.user.id, status: 'paid' },
+      // Keep this query resilient when optional Order columns differ by env.
+      attributes: ['id', 'buyer_email', 'total_cents'],
     });
 
     // Group by customer email
     const customerMap = {};
     orders.forEach((order) => {
-      if (!customerMap[order.buyer_email]) {
-        customerMap[order.buyer_email] = {
-          email: order.buyer_email,
-          name: order.buyer_name,
+      const email = String(order.buyer_email || '').trim().toLowerCase();
+      if (!email) return;
+
+      if (!customerMap[email]) {
+        customerMap[email] = {
+          email,
+          name: null,
           orders: [],
           total_spent_cents: 0,
         };
       }
-      customerMap[order.buyer_email].orders.push(order);
-      customerMap[order.buyer_email].total_spent_cents += order.total_cents || 0;
+      customerMap[email].orders.push(order);
+      customerMap[email].total_spent_cents += Number(order.total_cents || 0);
     });
 
     const customers = Object.values(customerMap).map((c) => ({
