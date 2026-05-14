@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Button from '../../components/common/Button'
 import { uploadPhotos } from '../../api/uploadApi'
+import { getBilling } from '../../api/settingsApi'
 import { formatFileSize } from '../../utils/formatters'
 
 function FileItem({ file, progress, status }) {
@@ -44,16 +45,59 @@ export default function UploadManagerPage() {
   const { id: galleryId } = useParams()
   const [queue, setQueue] = useState([]) // { file, id, progress, status }
   const [uploading, setUploading] = useState(false)
+  const [planLimits, setPlanLimits] = useState({ maxUploadFileSizeMb: 50, maxUploadBatch: 50 })
 
-  const onDrop = useCallback((acceptedFiles) => {
+  useEffect(() => {
+    let cancelled = false
+
+    const loadLimits = async () => {
+      try {
+        const data = await getBilling()
+        const tierLimits = data?.tier_limits
+        if (!cancelled && tierLimits) {
+          setPlanLimits({
+            maxUploadFileSizeMb: Number(tierLimits.maxUploadFileSizeMb || 50),
+            maxUploadBatch: Number(tierLimits.maxUploadBatch || 50),
+          })
+        }
+      } catch {
+        // Keep safe defaults when billing endpoint is unavailable.
+      }
+    }
+
+    loadLimits()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const onDrop = useCallback((acceptedFiles, fileRejections) => {
+    if (fileRejections?.length) {
+      const firstReason = fileRejections[0]?.errors?.[0]?.message
+      toast.error(firstReason || 'Some files were rejected. Please check file type and size limits.')
+    }
+
+    if (!acceptedFiles?.length) return
+
+    const remainingSlots = Math.max(0, planLimits.maxUploadBatch - queue.length)
+    if (remainingSlots <= 0) {
+      toast.error(`Queue is full. Your plan allows up to ${planLimits.maxUploadBatch} files per upload.`)
+      return
+    }
+
+    const trimmed = acceptedFiles.slice(0, remainingSlots)
+    if (trimmed.length < acceptedFiles.length) {
+      toast.error(`Only ${remainingSlots} more file${remainingSlots === 1 ? '' : 's'} can be queued in this upload.`)
+    }
+
     const newItems = acceptedFiles.map(file => ({
       file,
       id: `${file.name}-${Date.now()}`,
       progress: 0,
       status: 'queued',
     }))
-    setQueue(prev => [...prev, ...newItems])
-  }, [])
+    setQueue(prev => [...prev, ...newItems.slice(0, remainingSlots)])
+  }, [planLimits.maxUploadBatch, queue.length])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -61,6 +105,7 @@ export default function UploadManagerPage() {
       'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.heic', '.heif'],
       'video/*': ['.mp4', '.mov', '.m4v', '.webm'],
     },
+    maxSize: planLimits.maxUploadFileSizeMb * 1024 * 1024,
     multiple: true,
   })
 
@@ -107,7 +152,8 @@ export default function UploadManagerPage() {
         return
       }
 
-      toast.error(err.response?.data?.error || 'Upload failed')
+      const fallbackMessage = err?.message || 'Upload failed'
+      toast.error(err?.response?.data?.error || fallbackMessage)
     } finally {
       setUploading(false)
     }
@@ -135,7 +181,9 @@ export default function UploadManagerPage() {
         <p className="text-base font-semibold text-white">
           {isDragActive ? 'Drop your files here!' : 'Drag & drop photos or videos here'}
         </p>
-        <p className="text-sm text-slate-400 mt-1">or click to browse — JPG, PNG, WEBP, TIFF, HEIC, MP4, MOV, M4V, WEBM up to 50MB each</p>
+        <p className="text-sm text-slate-400 mt-1">
+          or click to browse — JPG, PNG, WEBP, TIFF, HEIC, MP4, MOV, M4V, WEBM up to {planLimits.maxUploadFileSizeMb}MB each
+        </p>
       </div>
 
       {/* Queue */}

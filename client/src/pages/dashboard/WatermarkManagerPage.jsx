@@ -23,7 +23,15 @@ const axiosClient = axios.create({ baseURL: API_BASE });
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('epixbox-auth');
   if (token) {
-    config.headers.Authorization = `Bearer ${JSON.parse(token).token}`;
+    try {
+      const parsed = JSON.parse(token);
+      const accessToken = parsed?.accessToken || parsed?.token;
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
+    } catch {
+      // Ignore malformed local storage payload and continue unauthenticated.
+    }
   }
   return config;
 });

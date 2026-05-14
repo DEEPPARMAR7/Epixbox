@@ -32,7 +32,32 @@ router.post('/photos', audit('upload.photos'), (req, res, next) => {
   });
 
   uploadPhotos(req, res, async (err) => {
-    if (err) return next(err);
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({
+          error: `File too large. Your ${limits.label} plan allows up to ${limits.maxUploadFileSizeMb}MB per file.`,
+          code: 'FILE_TOO_LARGE',
+          limits,
+        });
+      }
+
+      if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({
+          error: `Too many files. Your ${limits.label} plan allows up to ${limits.maxUploadBatch} files per upload.`,
+          code: 'TOO_MANY_FILES',
+          limits,
+        });
+      }
+
+      if (String(err.message || '').toLowerCase().includes('invalid file type')) {
+        return res.status(400).json({
+          error: err.message,
+          code: 'INVALID_FILE_TYPE',
+        });
+      }
+
+      return next(err);
+    }
     try {
       const { gallery_id } = req.body;
       if (!gallery_id) return res.status(400).json({ error: 'gallery_id is required' });
