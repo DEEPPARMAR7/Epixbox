@@ -104,13 +104,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .then((res) => {
         if (!cancelled) setUser(res.user);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!cancelled) {
-          setUser(null);
-          setAccessToken(null);
-          setRefreshToken(null);
-          localStorage.removeItem(STORAGE_KEY);
-          useAuthStore.getState().logout();
+          // Only logout if we get a 401/403 (unauthorized/forbidden)
+          // Don't logout on network errors or other temporary failures
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          const isAuthError = errorMessage.includes('401') || errorMessage.includes('403') || errorMessage.includes('Invalid or expired token');
+          
+          if (isAuthError) {
+            console.warn('Auth validation failed - clearing session:', errorMessage);
+            setUser(null);
+            setAccessToken(null);
+            setRefreshToken(null);
+            localStorage.removeItem(STORAGE_KEY);
+            useAuthStore.getState().logout();
+          } else {
+            // For network/server errors, just log but keep the session alive
+            console.warn('Auth validation error (keeping session):', errorMessage);
+          }
         }
       });
 

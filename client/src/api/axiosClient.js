@@ -27,6 +27,16 @@ const getDefaultApiBase = () => {
 const BASE = import.meta.env.VITE_API_BASE_URL || getDefaultApiBase()
 const axiosClient = axios.create({ baseURL: BASE, timeout: 30000, withCredentials: true })
 
+// Add Authorization header with token
+axiosClient.interceptors.request.use((config) => {
+  const auth = useAuthStore.getState()
+  const token = auth.token
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 axiosClient.interceptors.response.use(
   (res) => res,
   async (error) => {
