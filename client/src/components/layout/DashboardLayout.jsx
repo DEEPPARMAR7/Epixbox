@@ -108,21 +108,15 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
-      <header className="shrink-0 border-b border-slate-700/50 bg-slate-920/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link to="/dashboard" className="text-2xl font-black tracking-tight text-white">
+      <header className="shrink-0 border-b border-slate-700/50 bg-slate-950/92 backdrop-blur-2xl">
+        <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between gap-3 px-4 py-3 sm:h-16 sm:px-6 sm:py-0">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link to="/dashboard" className="min-w-0 text-xl font-black tracking-tight text-white sm:text-2xl">
               EpicBox
             </Link>
-            <button
-              type="button"
-              onClick={handleUploadClick}
-              className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wide text-white transition hover:bg-blue-700 sm:px-4 sm:text-xs"
-            >
-              <Upload size={14} />
-              <span className="sm:hidden">Upload</span>
-              <span className="hidden sm:inline">Upload</span>
-            </button>
+            <span className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-200 sm:inline-flex">
+              Dashboard
+            </span>
           </div>
 
           <nav className="hidden md:flex items-center gap-1 rounded-full border border-slate-700/50 bg-slate-900/40 p-1">
@@ -146,27 +140,36 @@ export default function DashboardLayout({ children }) {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={handleUploadClick}
+              className="hidden items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-2 text-xs font-bold uppercase tracking-wide text-emerald-100 transition hover:bg-emerald-400/15 sm:inline-flex"
+            >
+              <Upload size={14} />
+              Upload
+            </button>
             <a
               href={publicSiteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline text-xs font-semibold text-slate-300 hover:text-white"
+              className="hidden rounded-full border border-slate-700/40 bg-slate-900/40 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-slate-500/50 hover:text-white sm:inline-flex"
             >
               View Site
             </a>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/50 bg-slate-900/50 text-white transition hover:bg-slate-800 md:hidden"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-700/50 bg-slate-900/50 px-3 text-sm font-semibold text-white transition hover:border-slate-500/60 hover:bg-slate-800 md:hidden"
               aria-label="Open dashboard menu"
             >
               <MoreVertical size={18} />
+              <span>Menu</span>
             </button>
             <div className="relative" ref={profileMenuRef}>
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen((v) => !v)}
-                className="h-9 w-9 rounded-full bg-blue-600/20 text-blue-300 font-bold text-sm uppercase ring-1 ring-blue-600/50 transition hover:bg-blue-600/30"
+                className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500/30 to-cyan-400/20 text-blue-100 font-bold text-sm uppercase ring-1 ring-blue-400/30 shadow-[0_8px_24px_rgba(59,130,246,0.18)] transition hover:scale-[1.02] hover:bg-blue-500/35"
                 aria-haspopup="menu"
                 aria-expanded={profileMenuOpen}
                 aria-label="Open profile menu"
@@ -210,6 +213,25 @@ export default function DashboardLayout({ children }) {
             </div>
           </div>
         </div>
+
+        <div className="mx-auto grid w-full max-w-[1280px] grid-cols-2 gap-3 px-4 pb-3 sm:hidden">
+          <button
+            type="button"
+            onClick={handleUploadClick}
+            className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm font-bold text-emerald-100 transition hover:bg-emerald-400/15"
+          >
+            <Upload size={16} />
+            Upload
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-700/50 bg-slate-900/50 px-4 py-3 text-sm font-bold text-slate-100 transition hover:border-slate-500/60 hover:bg-slate-800"
+          >
+            <MoreVertical size={16} />
+            More
+          </button>
+        </div>
       </header>
 
       <BottomSheet
@@ -218,11 +240,16 @@ export default function DashboardLayout({ children }) {
         title="Dashboard Menu"
       >
         <div className="space-y-4">
+          <div className="rounded-2xl border border-slate-700/50 bg-slate-900/60 px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Quick Access</p>
+            <p className="mt-1 text-sm text-slate-300">Fast actions for galleries, uploads, and site settings.</p>
+          </div>
+
           <div className="grid grid-cols-1 gap-3">
             <button
               type="button"
               onClick={handleUploadClick}
-              className="flex items-center gap-3 rounded-2xl border border-blue-600/40 bg-blue-600/15 px-4 py-3 text-left font-semibold text-blue-300 transition hover:bg-blue-600/25"
+              className="flex items-center gap-3 rounded-2xl border border-blue-600/40 bg-gradient-to-r from-blue-600/20 to-cyan-500/10 px-4 py-3 text-left font-semibold text-blue-200 transition hover:from-blue-600/25 hover:to-cyan-500/15"
             >
               <Upload size={18} />
               Upload
@@ -251,11 +278,11 @@ export default function DashboardLayout({ children }) {
                   type="button"
                   onClick={() => goTo(item.to)}
                   className={clsx(
-                    'flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition',
-                    isActive
-                      ? 'border-blue-600/40 bg-blue-600/15 text-blue-300'
-                      : 'border-slate-700/40 bg-slate-700/15 text-slate-100 hover:bg-slate-700/25'
-                  )}
+                      'flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition',
+                      isActive
+                        ? 'border-blue-500/40 bg-gradient-to-r from-blue-600/20 to-cyan-500/10 text-blue-200 shadow-[0_8px_28px_rgba(37,99,235,0.10)]'
+                        : 'border-slate-700/40 bg-slate-700/15 text-slate-100 hover:border-slate-500/50 hover:bg-slate-700/25'
+                    )}
                 >
                   <Icon size={18} />
                   <span className="font-semibold">{item.label}</span>

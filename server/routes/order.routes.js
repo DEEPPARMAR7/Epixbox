@@ -7,6 +7,25 @@ const { sendOrderConfirmation } = require('../services/email.service');
 const { pushUserNotification } = require('../services/realtime.service');
 
 const ORDER_STATUSES = new Set(['pending', 'paid', 'processing', 'shipped', 'cancelled']);
+const ORDER_READ_ATTRIBUTES = [
+  'id',
+  'buyer_email',
+  'buyer_name',
+  'photographer_id',
+  'stripe_payment_intent_id',
+  'stripe_charge_id',
+  'status',
+  'subtotal_cents',
+  'tax_cents',
+  'total_cents',
+  'shipping_address',
+  'tracking_number',
+  'estimated_delivery',
+  'shipped_at',
+  'notes',
+  'created_at',
+  'updated_at',
+];
 
 function parseOrderMeta(order) {
   try {
@@ -177,7 +196,10 @@ router.post('/webhook', async (req, res, next) => {
 
   if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object;
-    const order = await Order.findOne({ where: { stripe_payment_intent_id: pi.id } });
+    const order = await Order.findOne({
+      where: { stripe_payment_intent_id: pi.id },
+      attributes: ORDER_READ_ATTRIBUTES,
+    });
     if (order) {
       const receiptEmail = pi.receipt_email || pi.charges?.data?.[0]?.billing_details?.email || null;
       const nextBuyerEmail = receiptEmail && String(order.buyer_email || '').endsWith('@epixbox.local')
@@ -217,11 +239,11 @@ router.post('/webhook', async (req, res, next) => {
       const orderIdFromMeta = session.metadata && session.metadata.orderId ? String(session.metadata.orderId) : null;
       let order = null;
       if (orderIdFromMeta) {
-        order = await Order.findByPk(orderIdFromMeta);
+        order = await Order.findByPk(orderIdFromMeta, { attributes: ORDER_READ_ATTRIBUTES });
       }
       if (!order) {
         // try matching by stored checkout_session_id
-        order = await Order.findOne({ where: { checkout_session_id: session.id } });
+        order = await Order.findOne({ where: { checkout_session_id: session.id }, attributes: ORDER_READ_ATTRIBUTES });
       }
 
       if (order) {
@@ -259,6 +281,7 @@ router.get('/mine', requireAuth, async (req, res, next) => {
   try {
     const orders = await Order.findAll({
       where: { photographer_id: req.user.id },
+      attributes: ORDER_READ_ATTRIBUTES,
     });
     const sortedOrders = orders
       .map((order) => (order.toJSON ? order.toJSON() : order))
@@ -276,6 +299,7 @@ router.get('/mine/:id', requireAuth, async (req, res, next) => {
   try {
     const order = await Order.findOne({
       where: { id: req.params.id, photographer_id: req.user.id },
+      attributes: ORDER_READ_ATTRIBUTES,
       include: [{ model: OrderItem, include: [{ model: Photo, attributes: ['id', 'title', 's3_key_thumb'] }] }],
     });
     if (!order) return res.status(404).json({ error: 'Order not found' });
@@ -286,7 +310,10 @@ router.get('/mine/:id', requireAuth, async (req, res, next) => {
 // PATCH /api/orders/mine/:id/status
 router.patch('/mine/:id/status', requireAuth, async (req, res, next) => {
   try {
-    const order = await Order.findOne({ where: { id: req.params.id, photographer_id: req.user.id } });
+    const order = await Order.findOne({
+      where: { id: req.params.id, photographer_id: req.user.id },
+      attributes: ORDER_READ_ATTRIBUTES,
+    });
     if (!order) return res.status(404).json({ error: 'Order not found' });
     const nextStatus = String(req.body.status || '').trim();
     if (!ORDER_STATUSES.has(nextStatus)) {
@@ -318,7 +345,10 @@ router.patch('/mine/:id/status', requireAuth, async (req, res, next) => {
 // PATCH /api/orders/mine/:id/shipping
 router.patch('/mine/:id/shipping', requireAuth, async (req, res, next) => {
   try {
-    const order = await Order.findOne({ where: { id: req.params.id, photographer_id: req.user.id } });
+    const order = await Order.findOne({
+      where: { id: req.params.id, photographer_id: req.user.id },
+      attributes: ORDER_READ_ATTRIBUTES,
+    });
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
     const shipping_carrier = req.body.shipping_carrier ? String(req.body.shipping_carrier).trim() : null;
@@ -361,7 +391,10 @@ router.patch('/mine/:id/shipping', requireAuth, async (req, res, next) => {
 // POST /api/orders/mine/:id/refunds
 router.post('/mine/:id/refunds', requireAuth, async (req, res, next) => {
   try {
-    const order = await Order.findOne({ where: { id: req.params.id, photographer_id: req.user.id } });
+    const order = await Order.findOne({
+      where: { id: req.params.id, photographer_id: req.user.id },
+      attributes: ORDER_READ_ATTRIBUTES,
+    });
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
     if (!['paid', 'processing', 'shipped', 'cancelled'].includes(order.status)) {
@@ -462,6 +495,7 @@ router.post('/mine/:id/refunds', requireAuth, async (req, res, next) => {
 router.get('/public/:id/status', async (req, res, next) => {
   try {
     const order = await Order.findByPk(req.params.id, {
+      attributes: ORDER_READ_ATTRIBUTES,
       include: [{ model: OrderItem, include: [{ model: Photo, attributes: ['id', 'title'] }] }],
     });
     if (!order) return res.status(404).json({ error: 'Order not found' });
@@ -505,7 +539,10 @@ router.get('/public/:id/status', async (req, res, next) => {
 // GET /api/orders/mine/:id/timeline
 router.get('/mine/:id/timeline', requireAuth, async (req, res, next) => {
   try {
-    const order = await Order.findOne({ where: { id: req.params.id, photographer_id: req.user.id } });
+    const order = await Order.findOne({
+      where: { id: req.params.id, photographer_id: req.user.id },
+      attributes: ORDER_READ_ATTRIBUTES,
+    });
     if (!order) return res.status(404).json({ error: 'Order not found' });
     res.json({
       order_id: order.id,
