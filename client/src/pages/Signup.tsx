@@ -46,6 +46,10 @@ const SignupPage = () => {
     (import.meta.env.VITE_GOOGLE_CLIENT_ID || import.meta.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) as
       | string
       | undefined;
+  const isSupportedGoogleOrigin = typeof window !== 'undefined'
+    && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(window.location.origin)
+      ? false
+      : Boolean(googleClientId);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -64,7 +68,7 @@ const SignupPage = () => {
   };
 
   useEffect(() => {
-    if (!googleClientId) return;
+    if (!isSupportedGoogleOrigin) return;
 
     const initGoogleButton = () => {
       if (!window.google?.accounts?.id || !googleButtonRef.current) return;
@@ -125,7 +129,7 @@ const SignupPage = () => {
     return () => {
       script.onload = null;
     };
-  }, [googleClientId, loginWithGoogle, navigate]);
+  }, [googleClientId, isSupportedGoogleOrigin, loginWithGoogle, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -245,16 +249,16 @@ const SignupPage = () => {
             </div>
 
             <div className="space-y-4">
-              {googleClientId ? (
+              {isSupportedGoogleOrigin ? (
                 <div className="w-full flex justify-center animate-fade-in">
                   <div ref={googleButtonRef} className="w-full max-w-xs" />
                 </div>
               ) : (
                 <p className="text-center font-body text-sm text-muted-foreground">
-                  Google signup is not configured yet. Add VITE_GOOGLE_CLIENT_ID in your env.
+                  Google signup is unavailable on this origin. Use email and password to create your account.
                 </p>
               )}
-              {!googleReady && googleClientId && (
+              {!googleReady && isSupportedGoogleOrigin && (
                 <p className="text-center font-body text-sm text-muted-foreground animate-pulse">Loading Google Sign-In...</p>
               )}
             </div>
