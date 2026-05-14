@@ -121,6 +121,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true)
   const [orderId, setOrderId] = useState(null)
   const [trackingToken, setTrackingToken] = useState(null)
+  const [hostedBuyerEmail, setHostedBuyerEmail] = useState('')
+  const [hostedBuyerName, setHostedBuyerName] = useState('')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('stripe')
 
   useEffect(() => {
@@ -133,30 +135,74 @@ export default function CheckoutPage() {
         navigate('/cart')
         return
       }
-      
-      // In test mode, continue with empty items to show payment methods
-      setLoading(false)
+
+      // In test mode, request a small test PaymentIntent so Stripe can initialize
+      (async () => {
+        try {
+          const resp = await fetch(apiUrl('/checkout/test-intent'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount_cents: 100 }),
+          })
+          if (resp.ok) {
+            const json = await resp.json()
+            setClientSecret(json.clientSecret)
+          } else {
+            console.error('Failed to create test intent', await resp.text())
+          }
+        } catch (err) {
+          console.error('Error creating test intent:', err)
+        } finally {
+          setLoading(false)
+        }
+      })()
+
       return
     }
-    
-    createOrder({
-      items: items.map((i) => ({
-        product_id: i.productId,
-        photo_id: i.photoId,
-        quantity: i.quantity,
-      })),
-    })
-      .then(({ clientSecret: cs, orderId: oid, trackingToken: tt }) => {
-        setClientSecret(cs)
-        setOrderId(oid)
-        setTrackingToken(tt || null)
-      })
-      .catch((err) => {
-        console.error(err)
-        toast.error(err?.response?.data?.error || 'Unable to start checkout. Please try again.')
-      })
-      .finally(() => setLoading(false))
+    // For non-empty carts we wait for user to choose hosted checkout or in-page Elements.
+    setLoading(false)
   }, [items, navigate])
+
+  const createHostedSession = async () => {
+    try {
+      setLoading(true)
+      const resp = await fetch(apiUrl('/checkout/create-session-from-items'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((i) => ({ product_id: i.productId, photo_id: i.photoId, quantity: i.quantity })),
+          buyer_email: hostedBuyerEmail,
+          buyer_name: hostedBuyerName,
+        }),
+      })
+      if (!resp.ok) throw new Error(await resp.text())
+      const json = await resp.json()
+      // Redirect to Stripe Checkout
+      window.location = json.url
+    } catch (err) {
+      console.error('Hosted checkout failed', err)
+      toast.error('Unable to start hosted Checkout: ' + (err.message || err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const startInPagePayment = async () => {
+    setLoading(true)
+    try {
+      const { clientSecret: cs, orderId: oid, trackingToken: tt } = await createOrder({
+        items: items.map((i) => ({ product_id: i.productId, photo_id: i.photoId, quantity: i.quantity })),
+      })
+      setClientSecret(cs)
+      setOrderId(oid)
+      setTrackingToken(tt || null)
+    } catch (err) {
+      console.error(err)
+      toast.error(err?.response?.data?.error || 'Unable to start checkout. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handlePaymentSuccess = () => {
     clearCart()
@@ -240,6 +286,48 @@ export default function CheckoutPage() {
                     {stripeKeyMissing ? (
                       <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
                         Stripe is not configured. Set <code className="font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> in your environment file.
+                      </div>
+                    ) : items.length > 0 ? (
+                      <div className="space-y-4">
+                        <div className="rounded-2xl border border-border/70 bg-background p-4">
+                          <p className="font-semibold mb-2">Hosted Checkout (recommended)</p>
+                          <p className="text-sm text-muted-foreground mb-3">Redirect to Stripe Checkout to complete your purchase. Supports cards and wallets when enabled.</p>
+                          <div className="grid gap-2">
+                            <input
+                              type="text"
+                              placeholder="Full name"
+                              value={hostedBuyerName}
+                              onChange={(e) => setHostedBuyerName(e.target.value)}
+                              className="w-full rounded-2xl border border-border/70 bg-white px-4 py-2 text-sm"
+                            />
+                            <input
+                              type="email"
+                              placeholder="Email address"
+                              value={hostedBuyerEmail}
+                              onChange={(e) => setHostedBuyerEmail(e.target.value)}
+                              className="w-full rounded-2xl border border-border/70 bg-white px-4 py-2 text-sm"
+                            />
+                            <button onClick={createHostedSession} className="btn-cta w-full">Pay ${formatCurrency(totalCents)}</button>
+                          </div>
+                        </div>
+
+                        <div className="text-center text-sm text-muted-foreground">or</div>
+
+                        <div className="rounded-2xl border border-border/70 bg-background p-4">
+                          <p className="font-semibold mb-2">Pay In-Page</p>
+                          <p className="text-sm text-muted-foreground mb-3">Use the embedded Payment Element in this page.</p>
+                          <button onClick={startInPagePayment} className="btn-outline w-full">Initialize Card Form</button>
+                          {clientSecret && (
+                            <div className="mt-4">
+                              <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+                                <StripeCheckoutForm
+                                  totalCents={totalCents}
+                                  onSuccess={handlePaymentSuccess}
+                                />
+                              </Elements>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ) : clientSecret ? (
                       <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>

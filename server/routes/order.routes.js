@@ -212,8 +212,43 @@ router.post('/webhook', async (req, res, next) => {
       payment_status: session.payment_status,
       metadata: session.metadata,
     });
-    // Future: match session to order using metadata and mark as paid
-    // For now, acknowledgment is sufficient; client handles redirect on success
+    // Try to match session to an Order and mark it as paid if applicable
+    try {
+      const orderIdFromMeta = session.metadata && session.metadata.orderId ? String(session.metadata.orderId) : null;
+      let order = null;
+      if (orderIdFromMeta) {
+        order = await Order.findByPk(orderIdFromMeta);
+      }
+      if (!order) {
+        // try matching by stored checkout_session_id
+        order = await Order.findOne({ where: { checkout_session_id: session.id } });
+      }
+
+      if (order) {
+        // If not already marked paid, mark as paid and log timeline
+        if (order.status !== 'paid') {
+          const paymentIntentId = session.payment_intent || null;
+          await order.update({ status: 'paid', stripe_payment_intent_id: paymentIntentId });
+          await appendOrderTimelineEvent(order, {
+            type: 'checkout_completed',
+            title: 'Checkout completed',
+            description: `Hosted Checkout session ${session.id} completed`,
+            status: 'paid',
+            checkout_session_id: session.id,
+            stripe_payment_intent_id: paymentIntentId,
+          });
+          pushUserNotification(order.photographer_id, {
+            type: 'order.paid',
+            title: 'Order Paid',
+            message: `Order ${order.id.slice(0,8)} has been paid via hosted Checkout`,
+            orderId: order.id,
+          });
+          try { await sendOrderConfirmation({ to: order.buyer_email, order }); } catch (e) { /* ignore */ }
+        }
+      }
+    } catch (err) {
+      console.error('Error reconciling checkout.session.completed -> order:', err?.message || err);
+    }
   }
 
   res.json({ received: true });

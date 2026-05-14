@@ -8,6 +8,8 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "oneclick": "powershell -ExecutionPolicy Bypass -File ./start-all.ps1 -OpenCheckout",
+    "oneclick:install": "powershell -ExecutionPolicy Bypass -File ./start-all.ps1 -InstallDeps -OpenCheckout",
     "build": "npm run build --workspace=client",
     "start": "npm run start --workspace=server",
     "install:all": "npm install && npm install --workspace=client && npm install --workspace=server"
