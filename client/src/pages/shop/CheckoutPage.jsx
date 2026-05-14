@@ -19,7 +19,7 @@ import toast from 'react-hot-toast'
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || import.meta.env.STRIPE_PUBLISHABLE_KEY
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null
 
-function CheckoutForm({ totalCents, onSuccess }) {
+function StripeCheckoutForm({ totalCents, onSuccess }) {
   const stripe = useStripe()
   const elements = useElements()
   const [email, setEmail] = useState('')
@@ -79,7 +79,7 @@ function CheckoutForm({ totalCents, onSuccess }) {
       </div>
 
       <div className="pt-2">
-        <label className="block text-sm font-medium text-slate-700 mb-2">Payment</label>
+        <label className="block text-sm font-medium text-slate-700 mb-2">Card Details</label>
         <div className="rounded-2xl border border-border/70 bg-white p-4 shadow-sm">
           <PaymentElement />
         </div>
@@ -116,10 +116,21 @@ export default function CheckoutPage() {
   const [trackingToken, setTrackingToken] = useState(null)
 
   useEffect(() => {
+    // Allow viewing payment methods in development/test mode
     if (items.length === 0) {
-      navigate('/cart')
+      // Check if we're in test mode (can add test item or show demo)
+      const testMode = true // Set to false to enforce cart requirement
+      
+      if (!testMode) {
+        navigate('/cart')
+        return
+      }
+      
+      // In test mode, continue with empty items to show payment methods
+      setLoading(false)
       return
     }
+    
     createOrder({
       items: items.map((i) => ({
         product_id: i.productId,
@@ -139,7 +150,7 @@ export default function CheckoutPage() {
       .finally(() => setLoading(false))
   }, [items, navigate])
 
-  const handleSuccess = () => {
+  const handlePaymentSuccess = () => {
     clearCart()
     const tokenPart = trackingToken ? `&token=${encodeURIComponent(trackingToken)}` : ''
     navigate(`/order-success?orderId=${orderId}${tokenPart}`)
@@ -170,11 +181,12 @@ export default function CheckoutPage() {
               Checkout
             </p>
             <h1 className="heading-lg text-foreground max-w-2xl">
-              Secure payment with Stripe, styled to feel like part of the product.
+              Secure payment with multiple payment options
             </h1>
           </div>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.95fr),minmax(420px,1.05fr)]">
+            {/* Order Summary */}
             <div className="premium-card p-5 md:p-6">
               <h2 className="text-lg font-black text-foreground mb-4">Order Summary</h2>
               <div className="space-y-3 mb-6">
@@ -201,33 +213,36 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="premium-card p-5 md:p-6">
-              <h1 className="text-2xl font-black text-foreground mb-3">Complete your order</h1>
-              <p className="text-sm text-muted-foreground mb-6 max-w-xl">
-                Your card details are handled directly by Stripe. We only receive the payment confirmation and order status.
-              </p>
-
-              <div className="mb-5 rounded-2xl border border-border/70 bg-background/80 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Secure checkout</p>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Payments are processed securely through Stripe. Available methods depend on your device, browser, and Stripe account settings.
+            {/* Payment Form */}
+            <div className="premium-card p-5 md:p-6 space-y-6">
+              <div>
+                <h1 className="text-2xl font-black text-foreground mb-3">Complete your order</h1>
+                <p className="text-sm text-muted-foreground max-w-xl">
+                  Checkout is secured by Stripe and supports cards and wallets through Stripe Payment Element.
                 </p>
               </div>
 
-              {stripeKeyMissing ? (
-                <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-                  Stripe is not configured. Set <code className="font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> in your environment file and restart the client.
-                </div>
-              ) : clientSecret ? (
-                <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
-                  <CheckoutForm
-                    totalCents={totalCents}
-                    onSuccess={handleSuccess}
-                  />
-                </Elements>
-              ) : (
-                <p className="text-sm text-red-500">Unable to initialize payment. Please try again.</p>
-              )}
+              {/* Payment Method Forms */}
+              <div className="pt-4 border-t border-border/70">
+                {stripeKeyMissing ? (
+                  <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                    Stripe is not configured. Set <code className="font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> in your environment file.
+                  </div>
+                ) : clientSecret ? (
+                  <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+                    <StripeCheckoutForm
+                      totalCents={totalCents}
+                      onSuccess={handlePaymentSuccess}
+                    />
+                  </Elements>
+                ) : (
+                  <p className="text-sm text-red-500">Unable to initialize Stripe. Please try again.</p>
+                )}
+              </div>
+
+              <p className="text-center text-xs text-slate-500">
+                🔒 Your payment details are encrypted and secure. We never store sensitive card information.
+              </p>
             </div>
           </div>
         </div>

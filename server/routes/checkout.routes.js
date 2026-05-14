@@ -100,4 +100,83 @@ router.post('/create-subscription-session', async (req, res) => {
   }
 });
 
+// Get available payment methods for checkout
+router.get('/payment-methods', async (req, res) => {
+  try {
+    const methods = [
+      {
+        id: 'stripe',
+        name: 'Credit/Debit Card',
+        description: 'Visa, Mastercard, Amex',
+        icon: 'credit-card',
+        enabled: true,
+      },
+    ];
+
+    res.json(methods);
+  } catch (error) {
+    console.error('Error fetching payment methods:', error.message);
+    res.status(500).json({ error: 'Failed to fetch payment methods' });
+  }
+});
+
+// Create checkout session with payment method selection
+router.post('/create-session', async (req, res) => {
+  try {
+    const { productId, paymentMethod = 'stripe', quantity = 1, variantId, buyerEmail, buyerName } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({ error: 'productId is required' });
+    }
+
+    if (!paymentMethod || paymentMethod !== 'stripe') {
+      return res.status(400).json({ error: 'Only Stripe checkout is enabled' });
+    }
+
+    const product = await Product.findByPk(productId);
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    return handleStripeCheckout(res, product, quantity, variantId, buyerEmail, buyerName);
+  } catch (error) {
+    console.error('Error creating checkout session:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Helper function for Stripe checkout
+async function handleStripeCheckout(res, product, quantity, variantId, buyerEmail, buyerName) {
+  const priceId = product.stripe_price_id || variantId;
+  if (!priceId) {
+    return res.status(400).json({ error: 'Product has no price configured for Stripe' });
+  }
+
+  const sessionParams = {
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price: priceId,
+        quantity: quantity,
+      },
+    ],
+    mode: 'payment',
+    success_url: `${process.env.FRONTEND_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}&method=stripe`,
+    cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel`,
+    metadata: {
+      productId: String(product.id),
+      quantity: String(quantity),
+      buyerEmail: String(buyerEmail || ''),
+      buyerName: String(buyerName || ''),
+    },
+  };
+
+  if (buyerEmail) {
+    sessionParams.customer_email = buyerEmail;
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionParams);
+  res.json({ url: session.url, sessionId: session.id, method: 'stripe' });
+}
+
 module.exports = router;

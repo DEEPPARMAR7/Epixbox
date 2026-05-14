@@ -5,7 +5,7 @@ import { logout as apiLogout } from '../../api/authApi'
 import { getGalleries } from '../../api/galleryApi'
 import clsx from 'clsx'
 import toast from 'react-hot-toast'
-import { MoreVertical, Upload, LayoutDashboard, Images, Compass, Globe, CreditCard, User, LogOut } from 'lucide-react'
+import { MoreVertical, Upload, LayoutDashboard, Images, Compass, Globe, User, LogOut } from 'lucide-react'
 import BottomSheet from '../common/BottomSheet'
 
 const navItems = [
@@ -15,7 +15,6 @@ const navItems = [
   { to: '/dashboard/analytics', label: 'Analytics', icon: '📈' },
   { to: '/dashboard/settings', label: 'My Site', icon: '🌐' },
   { to: '/dashboard/themes', label: 'Themes', icon: '🎨' },
-  { to: '/dashboard/pricing', label: 'Selling Tools', icon: '💰' },
 ]
 
 export default function DashboardLayout({ children }) {
@@ -31,20 +30,6 @@ export default function DashboardLayout({ children }) {
   const resolveUsername = () => {
     const currentUsername = user?.username
     if (currentUsername) return currentUsername.toLowerCase()
-
-    try {
-      const authV2 = JSON.parse(localStorage.getItem('epixbox-auth') || '{}')
-      if (authV2?.user?.username) return authV2.user.username.toLowerCase()
-    } catch (error) {
-      void error
-    }
-
-    try {
-      const authV1 = JSON.parse(localStorage.getItem('auth-storage') || '{}')
-      if (authV1?.state?.user?.username) return authV1.state.user.username.toLowerCase()
-    } catch (error) {
-      void error
-    }
 
     return ''
   }
@@ -209,7 +194,6 @@ export default function DashboardLayout({ children }) {
 
                   <div className="border-t border-slate-700/50 p-2">
                     <button onClick={() => goTo('/dashboard/proofing')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">Shared With Me</button>
-                    <button onClick={() => goTo('/dashboard/pricing')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">EpicBox Perks</button>
                     <button onClick={() => goTo('/dashboard/galleries')} className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800">EpicBox Apps</button>
                     <button
                       onClick={() => {
@@ -234,7 +218,7 @@ export default function DashboardLayout({ children }) {
         title="Dashboard Menu"
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <button
               type="button"
               onClick={handleUploadClick}
@@ -242,14 +226,6 @@ export default function DashboardLayout({ children }) {
             >
               <Upload size={18} />
               Upload
-            </button>
-            <button
-              type="button"
-              onClick={() => goTo('/dashboard/pricing')}
-              className="flex items-center gap-3 rounded-2xl border border-slate-700/40 bg-slate-700/15 px-4 py-3 text-left font-semibold text-slate-100 transition hover:bg-slate-700/25"
-            >
-              <CreditCard size={18} />
-              Pricing
             </button>
           </div>
 
@@ -264,8 +240,6 @@ export default function DashboardLayout({ children }) {
                     ? Compass
                     : item.to === '/dashboard/analytics'
                       ? LayoutDashboard
-                    : item.to === '/dashboard/pricing'
-                      ? CreditCard
                       : Globe
               const isActive = item.exact
                 ? location.pathname === item.to
