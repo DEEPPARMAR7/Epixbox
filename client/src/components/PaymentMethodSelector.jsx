@@ -4,7 +4,7 @@ import { CreditCard, DollarSign, Apple, Chrome } from 'lucide-react'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
 
-export default function PaymentMethodSelector({ onSelect, selectedMethod = 'stripe' }) {
+export default function PaymentMethodSelector({ onSelect, selectedMethod = 'stripe', onMethods }) {
   const [methods, setMethods] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -17,10 +17,11 @@ export default function PaymentMethodSelector({ onSelect, selectedMethod = 'stri
       const res = await fetch(apiUrl('/checkout/payment-methods'))
       const data = await res.json()
       setMethods(data)
+      onMethods?.(data)
     } catch (error) {
       console.error('Failed to fetch payment methods:', error)
       // Fallback to Stripe only
-      setMethods([
+      const fallbackMethods = [
         {
           id: 'stripe',
           name: 'Credit/Debit Card',
@@ -28,7 +29,9 @@ export default function PaymentMethodSelector({ onSelect, selectedMethod = 'stri
           icon: 'credit-card',
           enabled: true,
         },
-      ])
+      ]
+      setMethods(fallbackMethods)
+      onMethods?.(fallbackMethods)
     } finally {
       setLoading(false)
     }

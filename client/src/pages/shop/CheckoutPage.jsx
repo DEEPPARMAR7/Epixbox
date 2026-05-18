@@ -124,6 +124,15 @@ export default function CheckoutPage() {
   const [hostedBuyerEmail, setHostedBuyerEmail] = useState('')
   const [hostedBuyerName, setHostedBuyerName] = useState('')
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('stripe')
+  const [availableMethods, setAvailableMethods] = useState([])
+
+  useEffect(() => {
+    if (!availableMethods.length) return
+    const ids = availableMethods.map((m) => m.id)
+    if (!ids.includes(selectedPaymentMethod)) {
+      setSelectedPaymentMethod(ids[0])
+    }
+  }, [availableMethods, selectedPaymentMethod])
 
   useEffect(() => {
     // Allow viewing payment methods in development/test mode
@@ -277,7 +286,7 @@ export default function CheckoutPage() {
               </div>
 
               {/* Payment Method Selector */}
-              <PaymentMethodSelector onSelect={setSelectedPaymentMethod} selectedMethod={selectedPaymentMethod} />
+              <PaymentMethodSelector onSelect={setSelectedPaymentMethod} selectedMethod={selectedPaymentMethod} onMethods={setAvailableMethods} />
 
               {/* Payment Method Forms */}
               <div className="pt-4 border-t border-border/70">
