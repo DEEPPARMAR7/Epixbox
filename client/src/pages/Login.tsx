@@ -38,10 +38,7 @@ const LoginPage = () => {
     (import.meta.env.VITE_GOOGLE_CLIENT_ID || import.meta.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) as
       | string
       | undefined;
-  const isSupportedGoogleOrigin = typeof window !== 'undefined'
-    && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(window.location.origin)
-      ? false
-      : Boolean(googleClientId);
+  const isSupportedGoogleOrigin = Boolean(googleClientId);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -216,7 +213,7 @@ const LoginPage = () => {
               </div>
             ) : (
               <p className="text-center font-body text-sm text-muted-foreground">
-                Google login is unavailable on this origin. Use email and password to log in.
+                Google login is unavailable because the client ID is not configured. Set <code className="font-mono">VITE_GOOGLE_CLIENT_ID</code> in your environment to enable it.
               </p>
             )}
             {!googleReady && isSupportedGoogleOrigin && (

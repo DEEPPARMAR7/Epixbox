@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { Menu, Upload, LayoutDashboard, Images, Compass, Globe, User, LogOut } from 'lucide-react'
 import BottomSheet from '../common/BottomSheet'
 
-const navItems = [
+const baseNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: '📊', exact: true },
   { to: '/dashboard/galleries', label: 'Library', icon: '🖼️' },
   { to: '/dashboard/organize', label: 'Organize', icon: '🧭' },
@@ -27,6 +27,7 @@ export default function DashboardLayout({ children }) {
   const profileMenuRef = useRef(null)
   const ownerEmails = String(import.meta.env.VITE_OWNER_EMAILS || '').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean)
   const isOwner = ownerEmails.includes(String(user?.email || '').toLowerCase())
+  const navItems = isOwner ? [...baseNavItems, { to: '/dashboard/admin', label: 'Admin', icon: '🛠️' }] : baseNavItems
 
   const resolveUsername = () => {
     const currentUsername = user?.username

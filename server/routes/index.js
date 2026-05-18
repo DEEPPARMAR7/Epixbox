@@ -40,5 +40,7 @@ router.use('/payment-methods', require('./payment-methods.routes'));
 router.use('/refunds', require('./refunds.routes'));
 router.use('/checkout', require('./checkout.routes'));
 router.use('/paypal', require('./paypal.routes'));
+router.use('/apple-pay', require('./apple-pay.routes'));
+router.use('/google-pay', require('./google-pay.routes'));
 
 module.exports = router;

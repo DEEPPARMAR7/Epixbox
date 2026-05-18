@@ -118,7 +118,8 @@ router.get('/payment-methods', async (req, res) => {
 
     // Check PayPal availability
     const paypalClientId = process.env.PAYPAL_CLIENT_ID;
-    if (paypalClientId && !paypalClientId.includes('YOUR_PAYPAL')) {
+    const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
+    if (paypalClientId && paypalClientSecret && !paypalClientId.includes('YOUR_PAYPAL')) {
       methods.push({
         id: 'paypal',
         name: 'PayPal',
@@ -128,27 +129,9 @@ router.get('/payment-methods', async (req, res) => {
       });
     }
 
-    // Check Apple Pay availability
-    if (process.env.APPLE_PAY_ENABLED === 'true') {
-      methods.push({
-        id: 'apple',
-        name: 'Apple Pay',
-        description: 'Quick and secure',
-        icon: 'apple',
-        enabled: true,
-      });
-    }
-
-    // Check Google Pay availability
-    if (process.env.GOOGLE_PAY_ENABLED === 'true') {
-      methods.push({
-        id: 'google',
-        name: 'Google Pay',
-        description: 'Easy payment',
-        icon: 'google',
-        enabled: true,
-      });
-    }
+    // Apple Pay and Google Pay currently require additional server-side integration.
+    // Only support fully implemented payment gateways here to avoid broken checkout experiences.
+    // If you want to enable these later, implement server-side token processing for Apple Pay / Google Pay.
 
     res.json(methods);
   } catch (error) {
@@ -169,7 +152,7 @@ router.post('/create-session', async (req, res) => {
     // Validate payment method is supported
     const supportedMethods = [];
     if (process.env.STRIPE_PUBLISHABLE_KEY && process.env.STRIPE_SECRET_KEY) supportedMethods.push('stripe');
-    if (process.env.PAYPAL_CLIENT_ID && !process.env.PAYPAL_CLIENT_ID.includes('YOUR_PAYPAL')) supportedMethods.push('paypal');
+    if (process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET && !process.env.PAYPAL_CLIENT_ID.includes('YOUR_PAYPAL')) supportedMethods.push('paypal');
 
     if (!paymentMethod || !supportedMethods.includes(paymentMethod)) {
       return res.status(400).json({ error: `Payment method '${paymentMethod}' is not enabled. Available: ${supportedMethods.join(', ')}` });

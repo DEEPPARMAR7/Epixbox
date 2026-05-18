@@ -28,6 +28,12 @@ export default function GooglePayButton({ amount, items, onSuccess, onError }) {
   const initializeGooglePay = async () => {
     if (!window.google?.payments) return
 
+    const merchantId = import.meta.env.VITE_GOOGLE_PAY_MERCHANT_ID
+    if (!merchantId) {
+      console.error('Google Pay merchant ID is not configured')
+      return
+    }
+
     try {
       const client = new window.google.payments.api.PaymentsClient({
         environment: import.meta.env.PROD ? 'PRODUCTION' : 'TEST',
@@ -125,7 +131,11 @@ export default function GooglePayButton({ amount, items, onSuccess, onError }) {
   }
 
   if (!supported) {
-    return null
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+        Google Pay is not available in this browser or is not configured.
+      </div>
+    )
   }
 
   return (

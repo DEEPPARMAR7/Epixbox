@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Spinner from './common/Spinner'
 import toast from 'react-hot-toast'
 
+const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
 
@@ -10,9 +11,11 @@ export default function PayPalPaymentButton({ amount, items, onSuccess, onError,
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    if (!paypalClientId) return
+
     // Load PayPal script
     const script = document.createElement('script')
-    script.src = `https://www.paypal.com/sdk/js?client-id=${import.meta.env.VITE_PAYPAL_CLIENT_ID}`
+    script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}`
     script.async = true
     script.onload = initializePayPal
     document.body.appendChild(script)
@@ -97,6 +100,14 @@ export default function PayPalPaymentButton({ amount, items, onSuccess, onError,
         },
       })
       .render('#paypal-container')
+  }
+
+  if (!paypalClientId) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        PayPal is not configured. Set <code className="font-mono">VITE_PAYPAL_CLIENT_ID</code> in your environment.
+      </div>
+    )
   }
 
   return (

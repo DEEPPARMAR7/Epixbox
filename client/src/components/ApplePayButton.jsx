@@ -30,8 +30,8 @@ export default function ApplePayButton({ amount, items, onSuccess, onError }) {
           amount: (amount / 100).toFixed(2),
         },
         lineItems: items.map((item) => ({
-          label: item.name,
-          amount: (item.price * item.quantity).toFixed(2),
+          label: item.productName || item.photoTitle || 'Item',
+          amount: ((item.price_cents || item.price || 0) / 100).toFixed(2),
         })),
       }
 
@@ -96,7 +96,11 @@ export default function ApplePayButton({ amount, items, onSuccess, onError }) {
   }
 
   if (!supported) {
-    return null
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+        Apple Pay is not available in this browser or on this device.
+      </div>
+    )
   }
 
   return (

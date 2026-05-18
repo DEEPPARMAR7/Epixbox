@@ -7,6 +7,7 @@ import {
   DashboardStatsSkeleton,
   DashboardTableSkeleton,
 } from '../../components/common/DashboardSkeletons'
+import PaymentMethodsDashboard from '../../components/PaymentMethodsDashboard'
 import { createOrderRefund, getMyOrders, getOrderTimeline, updateOrderShipping, updateOrderStatus } from '../../api/orderApi'
 import { createBillingPortal, getBilling } from '../../api/settingsApi'
 import { formatCurrency } from '../../utils/formatters'
@@ -181,6 +182,8 @@ export default function PaymentsPage() {
             Stripe checkout is active for orders, billing is managed through the Stripe customer portal, and refunds are handled from the admin console.
           </p>
         </div>
+
+        <PaymentMethodsDashboard />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">

@@ -155,19 +155,36 @@ router.post('/login', authLimiter, audit('auth.login'), async (req, res, next) =
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
     const normalizedEmail = String(email).trim().toLowerCase();
+
+    // add non-sensitive debug logs to help diagnose login failures
+    const logger = require('../config/logger');
+    logger.info({ msg: 'auth.login attempt', email: normalizedEmail, ip: req.ip });
+
     const user = await User.findOne({ where: { email: normalizedEmail } });
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user) {
+      logger.info({ msg: 'auth.login failed - user not found', email: normalizedEmail });
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     // Accounts created with social login may not have a local password set.
     if (!user.password_hash) {
+      logger.info({ msg: 'auth.login failed - no password set for user', userId: user.id });
       return res.status(400).json({ error: 'This account uses social login. Please continue with Google or reset your password.' });
     }
 
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
-    if (!user.is_active) return res.status(403).json({ error: 'Account is deactivated' });
+    if (!valid) {
+      logger.info({ msg: 'auth.login failed - bad password', userId: user.id });
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (!user.is_active) {
+      logger.info({ msg: 'auth.login failed - account deactivated', userId: user.id });
+      return res.status(403).json({ error: 'Account is deactivated' });
+    }
 
     const { accessToken, refreshToken } = generateTokens(user.id);
+    logger.info({ msg: 'auth.login success', userId: user.id });
     res.json({
       user: {
         id: user.id,
