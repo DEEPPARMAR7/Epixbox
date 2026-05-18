@@ -51,7 +51,7 @@ export default function CartPage() {
                     <select
                       value={item.quantity}
                       onChange={(e) =>
-                        updateQuantity(item.id, Number(e.target.value))
+                        updateQuantity(item.id, Number(e.target.value), item.variant_id)
                       }
                       className="border border-gray-200 rounded-lg px-2 py-1 text-sm"
                     >
@@ -63,10 +63,10 @@ export default function CartPage() {
 
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">
-                      {formatCurrency(item.price_cents * item.quantity)}
+                      {formatCurrency((item.unit_price_cents || item.price_cents) * item.quantity)}
                     </p>
                     <button
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeItem(item.id, item.variant_id)}
                       className="text-xs text-red-400 hover:text-red-600 mt-1"
                     >
                       Remove

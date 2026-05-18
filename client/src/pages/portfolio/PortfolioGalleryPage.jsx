@@ -136,7 +136,10 @@ export default function PortfolioGalleryPage() {
   const [error, setError] = useState(null)
   const [lightboxIdx, setLightboxIdx] = useState(null)
   const [scrolled, setScrolled] = useState(false)
-  const [layoutMode, setLayoutMode] = useState('masonry')
+  const [layoutMode, setLayoutMode] = useState(() => {
+    const saved = localStorage.getItem(`gallery-layout:${normalizedUsername}:${normalizedSlug}`)
+    return saved || 'masonry'
+  })
   const [accessToken, setAccessToken] = useState(() => sessionStorage.getItem(`gallery-access:${normalizedUsername}:${normalizedSlug}`) || '')
   const [passwordRequired, setPasswordRequired] = useState(false)
   const [protectedGalleryId, setProtectedGalleryId] = useState(null)
@@ -148,6 +151,8 @@ export default function PortfolioGalleryPage() {
   const [customCss, setCustomCss] = useState('')
 
   useEffect(() => {
+    localStorage.setItem(`gallery-layout:${normalizedUsername}:${normalizedSlug}`, layoutMode)
+  }, [layoutMode, normalizedUsername, normalizedSlug])
     let cancelled = false
 
     const load = async () => {
@@ -375,6 +380,13 @@ export default function PortfolioGalleryPage() {
           >
             Grid
           </button>
+          <button
+            type="button"
+            onClick={() => setLayoutMode('slideshow')}
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition ${layoutMode === 'slideshow' ? 'bg-white text-black' : 'text-white/70 hover:text-white'}`}
+          >
+            Slideshow
+          </button>
         </div>
       </div>
 
@@ -427,7 +439,7 @@ export default function PortfolioGalleryPage() {
               </div>
             ))}
           </Masonry>
-        ) : (
+        ) : layoutMode === 'grid' ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {photos.map((photo, idx) => (
               <div
@@ -444,6 +456,15 @@ export default function PortfolioGalleryPage() {
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition duration-300" />
               </div>
             ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center min-h-96">
+            <div className="text-center">
+              <p className="text-white/60 text-sm mb-4">Slideshow Mode</p>
+              <button onClick={() => setLayoutMode('grid')} className="text-xs bg-white/10 text-white px-4 py-2 rounded-full hover:bg-white/20 transition">
+                Exit Slideshow
+              </button>
+            </div>
           </div>
         )}
       </div>

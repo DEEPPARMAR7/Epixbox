@@ -10,10 +10,20 @@ import { PRODUCT_CATEGORIES } from '../../utils/constants'
 import toast from 'react-hot-toast'
 
 const DEMO_PRODUCTS = [
-  { id: 'demo-print-1', category: 'prints', size: '8x10', paper_type: 'Lustre', price_cents: 1800 },
-  { id: 'demo-print-2', category: 'prints', size: '11x14', paper_type: 'Fine Art', price_cents: 3200 },
-  { id: 'demo-digital-1', category: 'digital', size: 'Web Download', paper_type: '', price_cents: 2500 },
-  { id: 'demo-album-1', category: 'albums', size: '10x10 Album', paper_type: 'Premium Layflat', price_cents: 7500 },
+  { id: 'demo-print-1', category: 'prints', size: '8x10', paper_type: 'Lustre', price_cents: 1800, variants: [
+    { id: 'var-1', name: '8x10 Lustre', price_multiplier: 1.0, specifications: { size: '8x10', finish: 'Lustre' } },
+    { id: 'var-2', name: '8x10 Matte', price_multiplier: 1.0, specifications: { size: '8x10', finish: 'Matte' } },
+  ] },
+  { id: 'demo-print-2', category: 'prints', size: '11x14', paper_type: 'Fine Art', price_cents: 3200, variants: [
+    { id: 'var-3', name: '11x14 Fine Art', price_multiplier: 1.0, specifications: { size: '11x14', finish: 'Fine Art' } },
+  ] },
+  { id: 'demo-digital-1', category: 'digital', size: 'Web Download', paper_type: '', price_cents: 2500, variants: [
+    { id: 'var-4', name: 'Full Resolution JPEG', price_multiplier: 1.0, specifications: { format: 'JPEG' } },
+    { id: 'var-5', name: 'Full Resolution RAW', price_multiplier: 1.5, specifications: { format: 'RAW' } },
+  ] },
+  { id: 'demo-album-1', category: 'albums', size: '10x10 Album', paper_type: 'Premium Layflat', price_cents: 7500, variants: [
+    { id: 'var-6', name: '10x10 Premium Layflat', price_multiplier: 1.0, specifications: { size: '10x10', binding: 'Layflat' } },
+  ] },
 ]
 
 export default function ShopPage() {
@@ -24,6 +34,7 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [selectedVariant, setSelectedVariant] = useState(null)
   const { addItem } = useCart()
   const [buyNowLoading, setBuyNowLoading] = useState(false)
 
@@ -47,6 +58,22 @@ export default function ShopPage() {
   const categories = [...new Set(products.map((p) => p.category))]
   const filteredProducts = products.filter((p) => p.category === selectedCategory)
 
+  const handleProductSelect = (product) => {
+    setSelectedProduct(product)
+    setSelectedVariant(null)
+    if (product.variants && product.variants.length > 0) {
+      setSelectedVariant(product.variants[0])
+    }
+  }
+
+  const getDisplayPrice = () => {
+    if (!selectedProduct) return 0
+    if (!selectedVariant) return selectedProduct.price_cents
+    const basePrice = selectedProduct.price_cents
+    const multiplier = selectedVariant.price_multiplier || 1.0
+    return Math.round(basePrice * multiplier)
+  }
+
   const handleAddToCart = () => {
     if (String(photoId || '').startsWith('demo-')) {
       toast('This is a preview store. Start a trial to activate real selling.', { icon: '✨' })
@@ -54,13 +81,16 @@ export default function ShopPage() {
     }
 
     if (!selectedProduct) return
+    const displayPrice = getDisplayPrice()
     addItem({
-      id: `${selectedProduct.id}-${photoId}`,
+      id: selectedVariant ? `${selectedProduct.id}-${selectedVariant.id}` : `${selectedProduct.id}-${photoId}`,
       productId: selectedProduct.id,
+      variant_id: selectedVariant?.id,
       photoId,
       photoTitle,
-      productName: `${selectedProduct.size} ${selectedProduct.category}`,
-      price_cents: selectedProduct.price_cents,
+      productName: selectedVariant?.name || `${selectedProduct.size} ${selectedProduct.category}`,
+      unit_price_cents: displayPrice,
+      price_cents: displayPrice,
       paperType: selectedProduct.paper_type,
       quantity: 1,
     })
@@ -82,6 +112,7 @@ export default function ShopPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productId: selectedProduct.id,
+          variantId: selectedVariant?.id,
           quantity: 1,
         }),
       })
@@ -102,6 +133,8 @@ export default function ShopPage() {
       setBuyNowLoading(false)
     }
   }
+
+  const displayPrice = getDisplayPrice()
 
   if (loading) {
     return (
@@ -169,7 +202,7 @@ export default function ShopPage() {
                     {categories.map((cat) => (
                       <button
                         key={cat}
-                        onClick={() => { setSelectedCategory(cat); setSelectedProduct(null) }}
+                        onClick={() => { setSelectedCategory(cat); setSelectedProduct(null); setSelectedVariant(null) }}
                         className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] transition ${
                           selectedCategory === cat
                             ? 'bg-foreground text-background'
@@ -181,7 +214,7 @@ export default function ShopPage() {
                     ))}
                   </div>
 
-                  <div className="space-y-3 mb-8">
+                  <div className="space-y-3 mb-6">
                     {filteredProducts.map((product) => (
                       <label
                         key={product.id}
@@ -196,7 +229,7 @@ export default function ShopPage() {
                             type="radio"
                             name="product"
                             checked={selectedProduct?.id === product.id}
-                            onChange={() => setSelectedProduct(product)}
+                            onChange={() => handleProductSelect(product)}
                             className="text-indigo-600"
                           />
                           <div>
@@ -213,6 +246,37 @@ export default function ShopPage() {
                     ))}
                   </div>
 
+                  {selectedProduct && selectedProduct.variants && selectedProduct.variants.length > 1 && (
+                    <div className="mb-6">
+                      <label className="text-sm font-semibold text-foreground mb-2 block">
+                        Options
+                      </label>
+                      <div className="space-y-2">
+                        {selectedProduct.variants.map((variant) => (
+                          <label key={variant.id} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
+                            selectedVariant?.id === variant.id
+                              ? 'border-foreground bg-foreground/5'
+                              : 'border-border/50 bg-background/50 hover:border-foreground/30'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="variant"
+                              checked={selectedVariant?.id === variant.id}
+                              onChange={() => setSelectedVariant(variant)}
+                              className="text-indigo-600"
+                            />
+                            <span className="flex-1 text-sm font-medium">{variant.name}</span>
+                            {variant.price_multiplier && variant.price_multiplier !== 1.0 && (
+                              <span className="text-xs text-muted-foreground">
+                                {variant.price_multiplier > 1 ? '+' : ''}{((variant.price_multiplier - 1) * 100).toFixed(0)}%
+                              </span>
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-3">
                     <button
                       onClick={handleBuyNow}
@@ -224,7 +288,7 @@ export default function ShopPage() {
                         : String(photoId || '').startsWith('demo-')
                           ? 'Start Free Trial to Sell Prints'
                           : selectedProduct
-                            ? `Buy Now — ${formatCurrency(selectedProduct.price_cents)}`
+                            ? `Buy Now — ${formatCurrency(displayPrice)}`
                             : 'Select a product'}
                     </button>
                     <button
@@ -233,7 +297,7 @@ export default function ShopPage() {
                       className="btn-secondary w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {selectedProduct
-                        ? `Add to Cart — ${formatCurrency(selectedProduct.price_cents)}`
+                        ? `Add to Cart — ${formatCurrency(displayPrice)}`
                         : 'Select a product'}
                     </button>
                   </div>

@@ -56,15 +56,16 @@ async function sendPasswordResetEmail({ to, resetLink }) {
     logger.warn('WARNING: sendPasswordResetEmail called with empty resetLink!', { to });
     throw new Error('Reset link is required');
   }
-  
+
   try {
     logger.info('Attempting to send password reset email', {
       to,
       resetLinkLength: resetLink.length,
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT,
+      from: process.env.EMAIL_FROM,
     });
-    
+
     const result = await transporter.sendMail({
       from: `"EpicBox" <${process.env.EMAIL_FROM || 'noreply@epicbox.app'}>`,
       to,
@@ -84,19 +85,24 @@ async function sendPasswordResetEmail({ to, resetLink }) {
         </div>
       `,
     });
-    
-    logger.info('✓ Password reset email sent successfully', {
+
+    logger.info('✅ Password reset email sent successfully', {
       to,
       messageId: result.messageId,
       response: result.response,
+      accepted: result.accepted,
     });
   } catch (err) {
-    logger.error('✗ Failed to send password reset email', {
+    logger.error('❌ Failed to send password reset email', {
       to,
       error: err.message,
       code: err.code,
+      command: err.command,
+      responseCode: err.responseCode,
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT,
+      from: process.env.EMAIL_FROM,
+      troubleshoot: `Gmail: Use App Password, not regular password. Check "Less secure app access" or enable 2FA and use app password. If SMTP_PASS contains special chars, URL-encode them.`,
     });
     throw err;
   }
