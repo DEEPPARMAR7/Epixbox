@@ -93,7 +93,6 @@ export default function PaymentMethodsDashboard() {
       } catch (err) {
         if (mounted) setMethods([
           { id: 'stripe', name: 'Stripe', description: 'Cards and wallets', icon: 'credit-card', enabled: true, accepted: 'Visa • Mastercard • Amex', fees: 'Stripe standard' },
-          { id: 'paypal', name: 'PayPal', description: 'PayPal checkout', icon: 'paypal', enabled: true, accepted: 'PayPal accounts', fees: 'PayPal standard' },
         ])
       } finally {
         if (mounted) setLoading(false)
