@@ -336,23 +336,29 @@ router.post('/forgot-password', authLimiter, audit('auth.forgot_password'), asyn
     const baseUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
     const resetLink = `${baseUrl.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
     
-    console.log('Password reset request:', {
+    const logger = require('../config/logger');
+    logger.info('Password reset requested', {
       email: normalizedEmail,
       baseUrl,
       resetLink,
-      hasFrontendUrl: !!process.env.FRONTEND_URL,
-      hasClientUrl: !!process.env.CLIENT_URL,
+      smtpHost: process.env.SMTP_HOST,
+      smtpPort: process.env.SMTP_PORT,
     });
     
     try {
       await sendPasswordResetEmail({ to: normalizedEmail, resetLink });
-      console.log('Password reset email sent successfully to:', normalizedEmail);
+      logger.info('✓ Password reset email sent successfully', { email: normalizedEmail });
+      res.json({ message: 'If that email exists, a reset link has been sent' });
     } catch (emailError) {
-      console.error('Failed to send password reset email:', emailError);
-      console.error('Reset link that was attempted:', resetLink);
+      logger.error('✗ Email sending failed', {
+        email: normalizedEmail,
+        error: emailError.message,
+        code: emailError.code,
+      });
+      // Still return success to user (don't reveal that email failed)
+      // But log the actual error for debugging
+      res.json({ message: 'If that email exists, a reset link has been sent' });
     }
-
-    res.json({ message: 'If that email exists, a reset link has been sent' });
   } catch (err) {
     next(err);
   }
