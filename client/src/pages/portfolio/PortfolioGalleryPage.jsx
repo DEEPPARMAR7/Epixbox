@@ -153,6 +153,8 @@ export default function PortfolioGalleryPage() {
   useEffect(() => {
     localStorage.setItem(`gallery-layout:${normalizedUsername}:${normalizedSlug}`, layoutMode)
   }, [layoutMode, normalizedUsername, normalizedSlug])
+
+  useEffect(() => {
     let cancelled = false
 
     const load = async () => {
