@@ -335,7 +335,14 @@ router.post('/forgot-password', authLimiter, audit('auth.forgot_password'), asyn
 
     const baseUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
     const resetLink = `${baseUrl.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
-    await sendPasswordResetEmail({ to: normalizedEmail, resetLink });
+    try {
+      await sendPasswordResetEmail({ to: normalizedEmail, resetLink });
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Password reset link:', resetLink);
+      }
+    }
 
     res.json({ message: 'If that email exists, a reset link has been sent' });
   } catch (err) {
