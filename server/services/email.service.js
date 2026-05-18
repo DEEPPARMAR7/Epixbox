@@ -39,6 +39,16 @@ async function sendOrderConfirmation({ to, order }) {
 }
 
 async function sendPasswordResetEmail({ to, resetLink }) {
+  if (!resetLink) {
+    console.warn('WARNING: sendPasswordResetEmail called with empty resetLink!', { to });
+  }
+  
+  console.log('Sending password reset email:', {
+    to,
+    hasResetLink: !!resetLink,
+    resetLinkLength: resetLink?.length || 0,
+  });
+  
   await transporter.sendMail({
     from: `"EpicBox" <${process.env.EMAIL_FROM || 'noreply@epicbox.app'}>`,
     to,

@@ -64,6 +64,9 @@ services:
       - key: CORS_ORIGINS
         value: https://epixbox.vercel.app
 
+      - key: FRONTEND_URL
+        value: https://epixbox.vercel.app
+
       - key: CLIENT_URL
         value: https://epixbox.vercel.app
 
