@@ -9,6 +9,9 @@ router.get('/health', (req, res) => {
   });
 });
 
+// Debug endpoints (protected by DEBUG_EMAIL_API_KEY)
+router.use('/debug', require('./debug.routes'));
+
 router.use('/auth', require('./auth.routes'));
 router.use('/admin', require('./admin.routes'));
 router.use('/notifications', require('./notifications.routes'));
