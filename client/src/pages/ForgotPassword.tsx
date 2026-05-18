@@ -69,7 +69,7 @@ const ForgotPasswordPage = () => {
               </div>
               <p className="font-body text-sm text-muted-foreground mb-6">
                 We sent a password reset link to <strong className="text-foreground">{email}</strong>.
-                Check your inbox and follow the instructions.
+                Check your Mailtrap inbox at <a href="https://mailtrap.io" target="_blank" rel="noopener noreferrer" className="text-foreground font-medium underline hover:opacity-80">mailtrap.io</a> for the reset email.
               </p>
             </div>
           )}
