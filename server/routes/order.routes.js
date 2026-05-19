@@ -279,6 +279,9 @@ router.post('/webhook', async (req, res, next) => {
 // GET /api/orders/mine
 router.get('/mine', requireAuth, async (req, res, next) => {
   try {
+    const logger = require('../config/logger');
+    logger.info({ msg: 'orders.mine fetch', userId: req.user.id });
+
     const orders = await Order.findAll({
       where: { photographer_id: req.user.id },
       attributes: ORDER_READ_ATTRIBUTES,
@@ -290,8 +293,13 @@ router.get('/mine', requireAuth, async (req, res, next) => {
         const bTime = new Date(b.created_at || b.createdAt || 0).getTime();
         return bTime - aTime;
       });
+    logger.info({ msg: 'orders.mine success', userId: req.user.id, count: sortedOrders.length });
     res.json(sortedOrders);
-  } catch (err) { next(err); }
+  } catch (err) {
+    const logger = require('../config/logger');
+    logger.error({ msg: 'orders.mine error', userId: req.user.id, error: err.message, stack: err.stack });
+    next(err);
+  }
 });
 
 // GET /api/orders/mine/:id

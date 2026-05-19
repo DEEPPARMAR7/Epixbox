@@ -161,11 +161,11 @@ export default function DashboardLayout({ children }) {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-cyan-400/25 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-4 text-[11px] font-extrabold uppercase tracking-[0.28em] text-cyan-100 shadow-[0_10px_28px_rgba(34,211,238,0.10)] transition hover:border-cyan-300/40 hover:from-cyan-500/20 hover:to-blue-500/20 md:hidden"
-              aria-label="Open dashboard menu"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-700/40 bg-slate-700/10 px-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-700/20 md:hidden"
+              aria-label="Open navigation menu"
             >
-              <Menu size={18} />
-              <span>Menu</span>
+              <Menu size={16} />
+              Menu
             </button>
             <div className="relative" ref={profileMenuRef}>
               <button
@@ -220,7 +220,7 @@ export default function DashboardLayout({ children }) {
           <button
             type="button"
             onClick={handleUploadClick}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm font-bold text-emerald-100 transition hover:bg-emerald-400/15"
+            className="flex items-center justify-center gap-2 rounded-lg border border-emerald-400/25 bg-emerald-400/10 px-4 py-2.5 text-sm font-bold text-emerald-100 transition hover:bg-emerald-400/15"
           >
             <Upload size={16} />
             Upload
@@ -228,10 +228,11 @@ export default function DashboardLayout({ children }) {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/25 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-4 py-3 text-sm font-extrabold text-cyan-100 transition hover:border-cyan-300/40 hover:from-cyan-500/20 hover:to-blue-500/20"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700/40 bg-slate-700/10 px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-slate-700/20"
+            aria-label="Open navigation menu"
           >
             <Menu size={16} />
-            More
+            Menu
           </button>
         </div>
       </header>
@@ -239,27 +240,21 @@ export default function DashboardLayout({ children }) {
       <BottomSheet
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        title="Dashboard Menu"
+        title="Navigation"
       >
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-700/50 bg-slate-900/60 px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Quick Access</p>
-            <p className="mt-1 text-sm text-slate-300">Fast actions for galleries, uploads, and site settings.</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-2">
             <button
               type="button"
               onClick={handleUploadClick}
-              className="flex items-center gap-3 rounded-2xl border border-blue-600/40 bg-gradient-to-r from-blue-600/20 to-cyan-500/10 px-4 py-3 text-left font-semibold text-blue-200 transition hover:from-blue-600/25 hover:to-cyan-500/15"
+              className="flex items-center gap-3 rounded-xl border border-emerald-400/30 bg-gradient-to-r from-emerald-500/20 to-emerald-400/10 px-4 py-3 text-left font-semibold text-emerald-200 transition hover:from-emerald-500/25 hover:to-emerald-400/15"
             >
               <Upload size={18} />
-              Upload
+              Upload Photos
             </button>
           </div>
 
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Navigate</p>
+          <div className="space-y-1.5 border-t border-slate-700/30 pt-3">
             {navItems.map((item) => {
               const Icon = item.to === '/dashboard'
                 ? LayoutDashboard
@@ -284,29 +279,28 @@ export default function DashboardLayout({ children }) {
                   type="button"
                   onClick={() => goTo(item.to)}
                   className={clsx(
-                      'flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition',
+                      'flex w-full items-center gap-3 rounded-lg border px-4 py-2.5 text-left text-sm transition',
                       isActive
-                        ? 'border-blue-500/40 bg-gradient-to-r from-blue-600/20 to-cyan-500/10 text-blue-200 shadow-[0_8px_28px_rgba(37,99,235,0.10)]'
-                        : 'border-slate-700/40 bg-slate-700/15 text-slate-100 hover:border-slate-500/50 hover:bg-slate-700/25'
+                        ? 'border-blue-500/40 bg-gradient-to-r from-blue-600/20 to-cyan-500/10 text-blue-200 font-semibold'
+                        : 'border-slate-700/20 text-slate-100 hover:bg-slate-700/20'
                     )}
                 >
-                  <Icon size={18} />
-                  <span className="font-semibold">{item.label}</span>
+                  <Icon size={16} />
+                  <span>{item.label}</span>
                 </button>
               )
             })}
           </div>
 
-          <div className="space-y-2 border-t border-white/10 pt-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Quick Links</p>
+          <div className="space-y-1.5 border-t border-slate-700/30 pt-3">
             {isOwner && (
-              <button onClick={() => goTo('/dashboard/admin')} className="flex w-full items-center gap-3 rounded-2xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-left font-semibold text-amber-100 hover:bg-amber-300/15">
-                <LayoutDashboard size={18} />
+              <button onClick={() => goTo('/dashboard/admin')} className="flex w-full items-center gap-3 rounded-lg border border-amber-300/25 bg-amber-300/10 px-4 py-2.5 text-left text-sm font-semibold text-amber-100 hover:bg-amber-300/15 transition">
+                <LayoutDashboard size={16} />
                 Admin Panel
               </button>
             )}
-            <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left font-semibold text-slate-100 hover:bg-white/10">
-              <User size={18} />
+            <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center gap-3 rounded-lg border border-slate-700/20 text-slate-100 px-4 py-2.5 text-left text-sm hover:bg-slate-700/20 transition">
+              <User size={16} />
               Edit Profile
             </button>
             <button
@@ -314,9 +308,9 @@ export default function DashboardLayout({ children }) {
                 setMobileMenuOpen(false)
                 handleLogout()
               }}
-              className="flex w-full items-center gap-3 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-left font-semibold text-rose-200 hover:bg-rose-400/15"
+              className="flex w-full items-center gap-3 rounded-lg border border-rose-400/20 bg-rose-400/10 px-4 py-2.5 text-left text-sm font-semibold text-rose-200 hover:bg-rose-400/15 transition"
             >
-              <LogOut size={18} />
+              <LogOut size={16} />
               Log Out
             </button>
           </div>

@@ -201,6 +201,8 @@ router.post('/login', authLimiter, audit('auth.login'), async (req, res, next) =
       refreshToken,
     });
   } catch (err) {
+    const logger = require('../config/logger');
+    logger.error({ msg: 'auth.login error', email: req.body?.email, error: err.message, stack: err.stack });
     next(err);
   }
 });
