@@ -51,8 +51,14 @@ function isAllowedOrigin(origin) {
 // Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  crossOriginOpenerPolicy: false, // Allow OAuth popups to postMessage back
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
 }));
+
+// Allow PayPal popups to postMessage back
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
