@@ -71,17 +71,28 @@ async function sendPasswordResetEmail({ to, resetLink }) {
       to,
       subject: 'Reset your EpicBox password',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #0f172a;">
-          <h2 style="margin-bottom: 8px;">Reset your password</h2>
-          <p style="margin: 0 0 16px; color: #334155;">We received a request to reset your EpicBox account password.</p>
-          <p style="margin: 0 0 20px;">
-            <a href="${resetLink}" style="display:inline-block;background:#16a34a;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:700;">
-              Set new password
-            </a>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 40px 20px;">
+          <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h2 style="margin: 0 0 16px; font-size: 24px; font-weight: 600; color: #0f172a;">Reset your password</h2>
+            <p style="margin: 0 0 24px; font-size: 15px; color: #475569; line-height: 1.6;">
+              We received a request to reset your EpicBox account password. Click the button below to create a new password. This link expires in 1 hour.
+            </p>
+            <div style="margin: 0 0 32px;">
+              <a href="${resetLink}" style="display:inline-block;background:#16a34a;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
+                Reset Password
+              </a>
+            </div>
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 24px; margin-top: 32px;">
+              <p style="margin: 0 0 16px; font-size: 13px; color: #64748b;">If the button doesn't work, copy this link:</p>
+              <p style="margin: 0; font-size: 12px; color: #0f172a; word-break: break-all; background: #f1f5f9; padding: 12px; border-radius: 6px; font-family: monospace;">${resetLink}</p>
+            </div>
+            <p style="margin: 32px 0 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 24px;">
+              If you didn't request this, please ignore this email. Your password will remain unchanged.
+            </p>
+          </div>
+          <p style="margin: 20px 0 0; font-size: 12px; color: #94a3b8; text-align: center;">
+            © 2026 EpicBox. All rights reserved.
           </p>
-          <p style="font-size: 13px; color: #64748b;">This link expires in 1 hour.</p>
-          <p style="font-size: 13px; color: #64748b;">If the button does not work, copy this URL into your browser:</p>
-          <p style="font-size: 12px; color: #0f172a; word-break: break-all;">${resetLink}</p>
         </div>
       `,
     });

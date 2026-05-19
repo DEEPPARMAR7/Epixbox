@@ -63,14 +63,24 @@ const ForgotPasswordPage = () => {
               </button>
             </form>
           ) : (
-            <div className="text-center">
-              <div className="w-16 h-16 bg-accent flex items-center justify-center mx-auto mb-6">
-                <ArrowRight size={24} className="text-accent-foreground" />
+            <div className="text-center space-y-6">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-900">
+                <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
               </div>
-              <p className="font-body text-sm text-muted-foreground mb-6">
-                We sent a password reset link to <strong className="text-foreground">{email}</strong>.
-                Check your Mailtrap inbox at <a href="https://mailtrap.io" target="_blank" rel="noopener noreferrer" className="text-foreground font-medium underline hover:opacity-80">mailtrap.io</a> for the reset email.
-              </p>
+              <div>
+                <h2 className="font-heading font-bold text-xl text-foreground mb-2">Check your email</h2>
+                <p className="font-body text-sm text-muted-foreground">
+                  We've sent a password reset link to the email address associated with your account.
+                  The link will expire in 1 hour.
+                </p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <p className="font-body text-xs text-blue-900 dark:text-blue-200">
+                  <strong>Didn't receive the email?</strong> Check your spam or junk folder. If you still don't see it, try requesting a new reset link below.
+                </p>
+              </div>
             </div>
           )}
 
