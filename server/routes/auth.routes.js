@@ -332,8 +332,9 @@ router.post('/forgot-password', authLimiter, audit('auth.forgot_password'), asyn
     if (!user) return res.json({ message: 'If that email exists, a reset link has been sent' });
 
     const token = crypto.randomBytes(24).toString('hex');
-    const expires = new Date(Date.now() + 3600000); // 1 hour
-    await user.update({ password_reset_token: token, password_reset_expires: expires });
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expires = new Date(Date.now() + 1800000); // 30 minutes (shorter expiration)
+    await user.update({ password_reset_token: tokenHash, password_reset_expires: expires });
 
     const baseUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173';
     const resetLink = `${baseUrl.replace(/\/$/, '')}/reset-password?t=${token}`;
@@ -369,12 +370,13 @@ router.post('/forgot-password', authLimiter, audit('auth.forgot_password'), asyn
 // POST /api/auth/reset-password
 router.post('/reset-password', authLimiter, audit('auth.reset_password'), async (req, res, next) => {
   try {
-    const { token, t, password } = req.body; // Accept both 'token' and 't'
+    const { token, t, password } = req.body;
     const resetToken = token || t;
     if (!resetToken || !password) return res.status(400).json({ error: 'Token and password required' });
     if (String(password).length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
-    const user = await User.findOne({ where: { password_reset_token: resetToken } });
+    const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const user = await User.findOne({ where: { password_reset_token: tokenHash } });
     if (!user || !user.password_reset_expires || new Date(user.password_reset_expires) < new Date()) {
       return res.status(400).json({ error: 'Invalid or expired reset token' });
     }

@@ -75,7 +75,7 @@ async function sendPasswordResetEmail({ to, resetLink }) {
           <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <h2 style="margin: 0 0 16px; font-size: 24px; font-weight: 600; color: #0f172a;">Reset your password</h2>
             <p style="margin: 0 0 24px; font-size: 15px; color: #475569; line-height: 1.6;">
-              We received a request to reset your EpicBox account password. Click the button below to create a new password. This link expires in 1 hour.
+              We received a request to reset your EpicBox account password. Click the button below to create a new password. This link expires in 30 minutes.
             </p>
             <div style="margin: 0 0 32px;">
               <a href="${resetLink}" style="display:inline-block;background:#16a34a;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
