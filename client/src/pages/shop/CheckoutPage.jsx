@@ -244,7 +244,7 @@ export default function CheckoutPage() {
               Checkout
             </p>
             <h1 className="heading-lg text-foreground max-w-2xl">
-              Secure payment with multiple payment options
+              Secure payment with Stripe & PayPal
             </h1>
           </div>
 
