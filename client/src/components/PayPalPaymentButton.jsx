@@ -7,39 +7,52 @@ const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
 
-export default function PayPalPaymentButton({ amount, items, onSuccess, onError, onCancel }) {
+export default function PayPalPaymentButton({ amount, items, buyerEmail, buyerName, onSuccess, onError, onCancel }) {
   const [loading, setLoading] = useState(false)
+  let createdOrderId = null
 
   useEffect(() => {
     if (!paypalClientId) return
 
-    // Load PayPal script
+    let mounted = true
     const script = document.createElement('script')
     script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}`
     script.async = true
-    script.onload = initializePayPal
+    script.onload = () => {
+      if (mounted) initializePayPal()
+    }
     document.body.appendChild(script)
 
     return () => {
+      mounted = false
       if (document.body.contains(script)) {
         document.body.removeChild(script)
       }
     }
-  }, [])
+  }, [paypalClientId])
+
+  useEffect(() => {
+    if (!window.paypal) return
+    const container = document.getElementById('paypal-container')
+    if (container) container.innerHTML = ''
+    initializePayPal()
+  }, [items, buyerEmail, buyerName, onSuccess, onError, onCancel])
 
   const initializePayPal = () => {
     if (!window.paypal) return
 
     window.paypal
       .Buttons({
-        createOrder: async (data, actions) => {
+        createOrder: async () => {
           try {
             setLoading(true)
             const response = await fetch(apiUrl('/paypal/create-paypal-order'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                items: items,
+                items,
+                buyerEmail,
+                buyerName,
                 returnUrl: `${window.location.origin}/checkout/success`,
                 cancelUrl: `${window.location.origin}/checkout/cancel`,
               }),
@@ -49,8 +62,9 @@ export default function PayPalPaymentButton({ amount, items, onSuccess, onError,
               throw new Error('Failed to create PayPal order')
             }
 
-            const { id } = await response.json()
-            return id
+            const result = await response.json()
+            createdOrderId = result.orderId
+            return result.id
           } catch (error) {
             console.error('PayPal create order error:', error)
             toast.error('Failed to create PayPal order')
@@ -61,7 +75,7 @@ export default function PayPalPaymentButton({ amount, items, onSuccess, onError,
           }
         },
 
-        onApprove: async (data, actions) => {
+        onApprove: async (data) => {
           try {
             setLoading(true)
             const response = await fetch(apiUrl('/paypal/capture-paypal-order'), {
@@ -69,6 +83,9 @@ export default function PayPalPaymentButton({ amount, items, onSuccess, onError,
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 paypalOrderId: data.orderID,
+                orderId: createdOrderId,
+                buyerEmail,
+                buyerName,
               }),
             })
 

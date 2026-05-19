@@ -1,6 +1,5 @@
 const router = require('express').Router();
 const crypto = require('crypto');
-const stripe = require('../config/stripe');
 const { Order, OrderItem, Product, Photo, PriceList } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
 const { sendOrderConfirmation } = require('../services/email.service');
@@ -88,7 +87,7 @@ function mapStripeRefundReason(reason) {
   return null;
 }
 
-// POST /api/orders — create order + Stripe PaymentIntent
+// POST /api/orders — create pending order for PayPal checkout
 router.post('/', async (req, res, next) => {
   try {
     const { items, buyer_email, buyer_name, shipping_address } = req.body;
@@ -96,7 +95,6 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'items are required' });
     }
 
-    // Calculate totals
     let subtotal_cents = 0;
     const orderItems = [];
     let resolvedPhotographerId = null;
@@ -134,22 +132,15 @@ router.post('/', async (req, res, next) => {
     const persistedBuyerEmail = normalizedBuyerEmail || `pending+${Date.now()}@epixbox.local`;
     const normalizedBuyerName = String(buyer_name || '').trim() || null;
 
-    // Create Stripe PaymentIntent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: total_cents,
-      currency: 'usd',
-      automatic_payment_methods: { enabled: true },
-      metadata: { buyer_email: persistedBuyerEmail, photographer_id: String(resolvedPhotographerId) },
-    });
-
-    // Create order
     const order = await Order.create({
       buyer_email: persistedBuyerEmail,
       buyer_name: normalizedBuyerName,
       photographer_id: resolvedPhotographerId,
-      stripe_payment_intent_id: paymentIntent.id,
+      payment_gateway: 'paypal',
       status: 'pending',
-      subtotal_cents, tax_cents: 0, total_cents,
+      subtotal_cents,
+      tax_cents: 0,
+      total_cents,
       shipping_address,
       notes: JSON.stringify({
         public_tracking_token: crypto.randomBytes(16).toString('hex'),
@@ -161,7 +152,7 @@ router.post('/', async (req, res, next) => {
     await appendOrderTimelineEvent(order, {
       type: 'order_created',
       title: 'Order created',
-      description: 'Order created and payment intent generated',
+      description: 'Order created and awaiting PayPal payment',
       status: 'pending',
     });
 
@@ -178,7 +169,6 @@ router.post('/', async (req, res, next) => {
 
     res.status(201).json({
       orderId: order.id,
-      clientSecret: paymentIntent.client_secret,
       trackingToken: getOrderPublicTrackingToken(order),
     });
   } catch (err) { next(err); }

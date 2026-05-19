@@ -8,6 +8,9 @@ const Order = sequelize.define('Order', {
   photographer_id: { type: DataTypes.UUID, allowNull: false },
   stripe_payment_intent_id: { type: DataTypes.STRING, unique: true },
   stripe_charge_id: { type: DataTypes.STRING },
+  paypal_order_id: { type: DataTypes.STRING, unique: true },
+  paypal_transaction_id: { type: DataTypes.STRING },
+  payment_gateway: { type: DataTypes.ENUM('stripe', 'paypal'), defaultValue: 'paypal' },
   status: {
     type: DataTypes.ENUM('pending', 'paid', 'processing', 'shipped', 'cancelled'),
     defaultValue: 'pending',

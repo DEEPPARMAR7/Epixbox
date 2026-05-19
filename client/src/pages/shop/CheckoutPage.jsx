@@ -1,130 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { loadStripe } from '@stripe/stripe-js'
-import {
-  Elements,
-  PaymentElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js'
 import PublicLayout from '../../components/layout/PublicLayout'
 import Spinner from '../../components/common/Spinner'
 import PayPalPaymentButton from '../../components/PayPalPaymentButton'
-import ApplePayButton from '../../components/ApplePayButton'
-import GooglePayButton from '../../components/GooglePayButton'
 import PaymentMethodSelector from '../../components/PaymentMethodSelector'
 import { useCart } from '../../hooks/useCart'
-import { createOrder } from '../../api/orderApi'
 import { formatCurrency } from '../../utils/formatters'
-import { useEffect } from 'react'
 import toast from 'react-hot-toast'
-
-const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || import.meta.env.STRIPE_PUBLISHABLE_KEY
-const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null
-
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
-const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
-
-function StripeCheckoutForm({ totalCents, onSuccess }) {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [email, setEmail] = useState('')
-  const [name, setName] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState(null)
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!stripe || !elements) return
-    setSubmitting(true)
-    setError(null)
-
-    const { error: stripeError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/order-success`,
-        receipt_email: email,
-        payment_method_data: {
-          billing_details: { name, email },
-        },
-      },
-      redirect: 'if_required',
-    })
-
-    if (stripeError) {
-      setError(stripeError.message)
-      setSubmitting(false)
-    } else {
-      onSuccess()
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-        <input
-          type="text"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Jane Smith"
-          className="w-full rounded-2xl border border-border/70 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-foreground focus:ring-2 focus:ring-foreground/10"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="jane@example.com"
-          className="w-full rounded-2xl border border-border/70 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-foreground focus:ring-2 focus:ring-foreground/10"
-        />
-      </div>
-
-      <div className="pt-2">
-        <label className="block text-sm font-medium text-slate-700 mb-2">Card Details</label>
-        <div className="rounded-2xl border border-border/70 bg-white p-4 shadow-sm">
-          <PaymentElement />
-        </div>
-      </div>
-
-      {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={submitting || !stripe || !elements}
-        className="btn-cta w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {submitting && <Spinner size="sm" />}
-        {submitting ? 'Processing...' : `Pay ${formatCurrency(totalCents)}`}
-      </button>
-
-      <p className="text-center text-xs text-slate-500">
-        🔒 Secured by Stripe. We never store your card details.
-      </p>
-    </form>
-  )
-}
 
 export default function CheckoutPage() {
   const { items, totalCents, clearCart } = useCart()
   const navigate = useNavigate()
-  const [clientSecret, setClientSecret] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [orderId, setOrderId] = useState(null)
-  const [trackingToken, setTrackingToken] = useState(null)
-  const [hostedBuyerEmail, setHostedBuyerEmail] = useState('')
-  const [hostedBuyerName, setHostedBuyerName] = useState('')
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('stripe')
+  const [loading, setLoading] = useState(false)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('paypal')
   const [availableMethods, setAvailableMethods] = useState([])
+  const [buyerEmail, setBuyerEmail] = useState('')
+  const [buyerName, setBuyerName] = useState('')
 
   useEffect(() => {
     if (!availableMethods.length) return
@@ -134,89 +26,17 @@ export default function CheckoutPage() {
     }
   }, [availableMethods, selectedPaymentMethod])
 
-  useEffect(() => {
-    // Allow viewing payment methods in development/test mode
-    if (items.length === 0) {
-      // Check if we're in test mode (can add test item or show demo)
-      const testMode = true // Set to false to enforce cart requirement
-      
-      if (!testMode) {
-        navigate('/cart')
-        return
-      }
-
-      // In test mode, request a small test PaymentIntent so Stripe can initialize
-      (async () => {
-        try {
-          const resp = await fetch(apiUrl('/checkout/test-intent'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount_cents: 100 }),
-          })
-          if (resp.ok) {
-            const json = await resp.json()
-            setClientSecret(json.clientSecret)
-          } else {
-            console.error('Failed to create test intent', await resp.text())
-          }
-        } catch (err) {
-          console.error('Error creating test intent:', err)
-        } finally {
-          setLoading(false)
-        }
-      })()
-
-      return
-    }
-    // For non-empty carts we wait for user to choose hosted checkout or in-page Elements.
-    setLoading(false)
-  }, [items, navigate])
-
-  const createHostedSession = async () => {
-    try {
-      setLoading(true)
-      const resp = await fetch(apiUrl('/checkout/create-session-from-items'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map((i) => ({ product_id: i.productId, photo_id: i.photoId, quantity: i.quantity })),
-          buyer_email: hostedBuyerEmail,
-          buyer_name: hostedBuyerName,
-        }),
-      })
-      if (!resp.ok) throw new Error(await resp.text())
-      const json = await resp.json()
-      // Redirect to Stripe Checkout
-      window.location = json.url
-    } catch (err) {
-      console.error('Hosted checkout failed', err)
-      toast.error('Unable to start hosted Checkout: ' + (err.message || err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const startInPagePayment = async () => {
-    setLoading(true)
-    try {
-      const { clientSecret: cs, orderId: oid, trackingToken: tt } = await createOrder({
-        items: items.map((i) => ({ product_id: i.productId, photo_id: i.photoId, quantity: i.quantity })),
-      })
-      setClientSecret(cs)
-      setOrderId(oid)
-      setTrackingToken(tt || null)
-    } catch (err) {
-      console.error(err)
-      toast.error(err?.response?.data?.error || 'Unable to start checkout. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (result) => {
     clearCart()
+    const orderId = result?.orderId || result?.id || result?.order_id
+    const trackingToken = result?.trackingToken || result?.tracking_token || result?.token
     const tokenPart = trackingToken ? `&token=${encodeURIComponent(trackingToken)}` : ''
-    navigate(`/order-success?orderId=${orderId}${tokenPart}`)
+
+    if (orderId) {
+      navigate(`/order-success?orderId=${orderId}${tokenPart}`)
+    } else {
+      navigate('/')
+    }
   }
 
   if (loading) {
@@ -227,7 +47,16 @@ export default function CheckoutPage() {
     )
   }
 
-  const stripeKeyMissing = !stripePublishableKey
+  if (!items.length) {
+    return (
+      <PublicLayout>
+        <div className="py-20 text-center">
+          <p className="text-lg font-semibold text-foreground">Your cart is empty.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Add items to your cart before checking out.</p>
+        </div>
+      </PublicLayout>
+    )
+  }
 
   return (
     <PublicLayout>
@@ -244,7 +73,7 @@ export default function CheckoutPage() {
               Checkout
             </p>
             <h1 className="heading-lg text-foreground max-w-2xl">
-              Secure payment with Stripe & PayPal
+              Secure payment with PayPal
             </h1>
           </div>
 
@@ -288,96 +117,37 @@ export default function CheckoutPage() {
               {/* Payment Method Selector */}
               <PaymentMethodSelector onSelect={setSelectedPaymentMethod} selectedMethod={selectedPaymentMethod} onMethods={setAvailableMethods} />
 
-              {/* Payment Method Forms */}
-              <div className="pt-4 border-t border-border/70">
-                {selectedPaymentMethod === 'stripe' && (
-                  <>
-                    {stripeKeyMissing ? (
-                      <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-                        Stripe is not configured. Set <code className="font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> in your environment file.
-                      </div>
-                    ) : items.length > 0 ? (
-                      <div className="space-y-4">
-                        <div className="rounded-2xl border border-border/70 bg-background p-4">
-                          <p className="font-semibold mb-2">Hosted Checkout (recommended)</p>
-                          <p className="text-sm text-muted-foreground mb-3">Redirect to Stripe Checkout to complete your purchase. Supports cards and wallets when enabled.</p>
-                          <div className="grid gap-2">
-                            <input
-                              type="text"
-                              placeholder="Full name"
-                              value={hostedBuyerName}
-                              onChange={(e) => setHostedBuyerName(e.target.value)}
-                              className="w-full rounded-2xl border border-border/70 bg-white px-4 py-2 text-sm"
-                            />
-                            <input
-                              type="email"
-                              placeholder="Email address"
-                              value={hostedBuyerEmail}
-                              onChange={(e) => setHostedBuyerEmail(e.target.value)}
-                              className="w-full rounded-2xl border border-border/70 bg-white px-4 py-2 text-sm"
-                            />
-                            <button onClick={createHostedSession} className="btn-cta w-full">Pay ${formatCurrency(totalCents)}</button>
-                          </div>
-                        </div>
-
-                        <div className="text-center text-sm text-muted-foreground">or</div>
-
-                        <div className="rounded-2xl border border-border/70 bg-background p-4">
-                          <p className="font-semibold mb-2">Pay In-Page</p>
-                          <p className="text-sm text-muted-foreground mb-3">Use the embedded Payment Element in this page.</p>
-                          <button onClick={startInPagePayment} className="btn-outline w-full">Initialize Card Form</button>
-                          {clientSecret && (
-                            <div className="mt-4">
-                              <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
-                                <StripeCheckoutForm
-                                  totalCents={totalCents}
-                                  onSuccess={handlePaymentSuccess}
-                                />
-                              </Elements>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ) : clientSecret ? (
-                      <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
-                        <StripeCheckoutForm
-                          totalCents={totalCents}
-                          onSuccess={handlePaymentSuccess}
-                        />
-                      </Elements>
-                    ) : (
-                      <p className="text-sm text-red-500">Unable to initialize Stripe. Please try again.</p>
-                    )}
-                  </>
-                )}
-
-                {selectedPaymentMethod === 'paypal' && (
-                  <PayPalPaymentButton
-                    amount={totalCents}
-                    items={items}
-                    onSuccess={handlePaymentSuccess}
-                    onError={(err) => toast.error('PayPal payment failed: ' + err.message)}
-                    onCancel={() => toast.info('Payment cancelled')}
+              {/* PayPal Checkout */}
+              <div className="pt-4 border-t border-border/70 space-y-4">
+                <div className="grid gap-3">
+                  <label className="block text-sm font-medium text-slate-700">Buyer Email</label>
+                  <input
+                    type="email"
+                    value={buyerEmail}
+                    onChange={(e) => setBuyerEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full rounded-2xl border border-border/70 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-foreground focus:ring-2 focus:ring-foreground/10"
                   />
-                )}
-
-                {selectedPaymentMethod === 'apple' && (
-                  <ApplePayButton
-                    amount={totalCents}
-                    items={items}
-                    onSuccess={handlePaymentSuccess}
-                    onError={(err) => toast.error('Apple Pay failed: ' + err.message)}
+                </div>
+                <div className="grid gap-3">
+                  <label className="block text-sm font-medium text-slate-700">Full Name</label>
+                  <input
+                    type="text"
+                    value={buyerName}
+                    onChange={(e) => setBuyerName(e.target.value)}
+                    placeholder="Jane Doe"
+                    className="w-full rounded-2xl border border-border/70 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-foreground focus:ring-2 focus:ring-foreground/10"
                   />
-                )}
-
-                {selectedPaymentMethod === 'google' && (
-                  <GooglePayButton
-                    amount={totalCents}
-                    items={items}
-                    onSuccess={handlePaymentSuccess}
-                    onError={(err) => toast.error('Google Pay failed: ' + err.message)}
-                  />
-                )}
+                </div>
+                <PayPalPaymentButton
+                  amount={totalCents}
+                  items={items}
+                  buyerEmail={buyerEmail}
+                  buyerName={buyerName}
+                  onSuccess={handlePaymentSuccess}
+                  onError={(err) => toast.error('PayPal payment failed: ' + (err?.message || 'Unknown error'))}
+                  onCancel={() => toast.info('Payment cancelled')}
+                />
               </div>
 
               <p className="text-center text-xs text-slate-500">
