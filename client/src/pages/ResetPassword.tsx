@@ -7,7 +7,7 @@ import { useAuth } from "../hooks/use-auth";
 
 const ResetPasswordPage = () => {
   const [params] = useSearchParams();
-  const token = useMemo(() => params.get("token") || "", [params]);
+  const token = useMemo(() => params.get("token") || params.get("t") || "", [params]);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
