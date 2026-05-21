@@ -2,9 +2,19 @@ const router = require('express').Router();
 const jwt = require('jsonwebtoken');
 const { User, Gallery, Photo, Tag, GalleryExpiry, GalleryPassword, GallerySetting } = require('../models/index');
 const { getPublicUrl } = require('../services/s3.service');
-const { Op } = require('sequelize');
+const { Op, fn, col, where } = require('sequelize');
 const { setPublicCache } = require('../middleware/cache.middleware');
 const { getTierLimits } = require('../utils/subscriptionTiers');
+
+async function findUserByUsername(username, options = {}) {
+  const { activeOnly = false, ...queryOptions } = options;
+  const normalized = String(username || '').trim().toLowerCase();
+  const usernameCondition = where(fn('lower', col('username')), normalized);
+  return User.findOne({
+    where: activeOnly ? { [Op.and]: [usernameCondition, { is_active: true }] } : usernameCondition,
+    ...queryOptions,
+  });
+}
 
 function isGalleryExpired(expiry) {
   if (!expiry || expiry.is_enabled === false) return false;
@@ -40,6 +50,19 @@ function requireGalleryPasswordAccess(req, res, gallery) {
   return true;
 }
 
+function isMissingGalleryExpiryTableError(err) {
+  const originalMsg = String(err?.original?.message || err?.parent?.message || err?.message || '');
+  const code = err?.original?.code || err?.parent?.code || err?.code || null;
+  if (typeof originalMsg === 'string' && /GalleryExpir/i.test(originalMsg)) {
+    // Postgres missing relation uses code '42P01' but other dialects/contexts may vary.
+    if (code === '42P01' || originalMsg.toLowerCase().includes('does not exist') || originalMsg.toLowerCase().includes('doesn\'t exist')) {
+      return true;
+    }
+    return true; // still treat it as missing-expiry table when name appears in message
+  }
+  return false;
+}
+
 // Portfolios are always public now
 function requirePublicPortfolioEnabled(res, user) {
   return false;
@@ -66,8 +89,8 @@ function withGalleryUrls(gallery) {
 // GET /api/portfolio/:username
 router.get('/:username', setPublicCache, async (req, res, next) => {
   try {
-    const user = await User.findOne({
-      where: { username: req.params.username.toLowerCase(), is_active: true },
+    const user = await findUserByUsername(req.params.username, {
+      activeOnly: true,
       attributes: ['id', 'username', 'first_name', 'last_name', 'bio', 'avatar_url', 'website_url', 'brand_name', 'brand_logo_url', 'brand_color'],
     });
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
@@ -81,7 +104,7 @@ router.get('/:username', setPublicCache, async (req, res, next) => {
 // GET /api/portfolio/:username/galleries
 router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
   try {
-    const user = await User.findOne({ where: { username: req.params.username.toLowerCase() } });
+    const user = await findUserByUsername(req.params.username);
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
     if (requirePublicPortfolioEnabled(res, user)) return;
 
@@ -106,14 +129,29 @@ router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
       where.visibility = 'public';
     }
 
-    const galleries = await Gallery.findAll({
-      where,
-      include: [
-        { model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb', 's3_key_medium'], required: false },
-        { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
-      ],
-      order: [['sort_order', 'ASC'], ['createdAt', 'DESC']],
-    });
+    let galleries
+    try {
+      galleries = await Gallery.findAll({
+        where,
+        include: [
+          { model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb', 's3_key_medium'], required: false },
+          { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
+        ],
+        order: [['sort_order', 'ASC'], ['createdAt', 'DESC']],
+      });
+    } catch (err) {
+      if (isMissingGalleryExpiryTableError(err)) {
+        galleries = await Gallery.findAll({
+          where,
+          include: [
+            { model: Photo, as: 'coverPhoto', attributes: ['id', 's3_key_thumb', 's3_key_medium'], required: false },
+          ],
+          order: [['sort_order', 'ASC'], ['createdAt', 'DESC']],
+        });
+      } else {
+        throw err;
+      }
+    }
 
     // For owner: show all, including expired. For others: filter out expired.
     const visibleGalleries = galleries
@@ -129,18 +167,33 @@ router.get('/:username/galleries', setPublicCache, async (req, res, next) => {
 // GET /api/portfolio/:username/galleries/:slug
 router.get('/:username/galleries/:slug', setPublicCache, async (req, res, next) => {
   try {
-    const user = await User.findOne({ where: { username: req.params.username.toLowerCase() } });
+    const user = await findUserByUsername(req.params.username);
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
     if (requirePublicPortfolioEnabled(res, user)) return;
 
-    const gallery = await Gallery.findOne({
-      where: { user_id: user.id, slug: req.params.slug, visibility: { [Op.in]: ['public', 'unlisted'] } },
-      include: [
-        { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
-        { model: GalleryPassword, attributes: ['gallery_id', 'hint', 'is_enabled'], required: false },
-        { model: GallerySetting, as: 'settings', attributes: ['appearance'], required: false },
-      ],
-    });
+    let gallery
+    try {
+      gallery = await Gallery.findOne({
+        where: { user_id: user.id, slug: req.params.slug, visibility: { [Op.in]: ['public', 'unlisted'] } },
+        include: [
+          { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
+          { model: GalleryPassword, attributes: ['gallery_id', 'hint', 'is_enabled'], required: false },
+          { model: GallerySetting, as: 'settings', attributes: ['appearance'], required: false },
+        ],
+      });
+    } catch (err) {
+      if (isMissingGalleryExpiryTableError(err)) {
+        gallery = await Gallery.findOne({
+          where: { user_id: user.id, slug: req.params.slug, visibility: { [Op.in]: ['public', 'unlisted'] } },
+          include: [
+            { model: GalleryPassword, attributes: ['gallery_id', 'hint', 'is_enabled'], required: false },
+            { model: GallerySetting, as: 'settings', attributes: ['appearance'], required: false },
+          ],
+        });
+      } else {
+        throw err;
+      }
+    }
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
 
     if (isGalleryExpired(gallery.GalleryExpiry)) {
@@ -165,25 +218,47 @@ router.get('/:username/galleries/:slug', setPublicCache, async (req, res, next) 
 // GET /api/portfolio/:username/photos/:id
 router.get('/:username/photos/:id', setPublicCache, async (req, res, next) => {
   try {
-    const user = await User.findOne({ where: { username: req.params.username.toLowerCase() } });
+    const user = await findUserByUsername(req.params.username);
     if (!user) return res.status(404).json({ error: 'Photographer not found' });
     if (requirePublicPortfolioEnabled(res, user)) return;
 
-    const photo = await Photo.findOne({
-      where: { id: req.params.id, user_id: user.id },
-      include: [
-        {
-          model: Gallery,
-          where: { visibility: 'public' },
+    let photo
+    try {
+      photo = await Photo.findOne({
+        where: { id: req.params.id, user_id: user.id },
+        include: [
+          {
+            model: Gallery,
+            where: { visibility: 'public' },
+            include: [
+              { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
+              { model: GalleryPassword, attributes: ['gallery_id', 'hint', 'is_enabled'], required: false },
+            ],
+            required: true,
+          },
+          { model: Tag, through: { attributes: [] } },
+        ],
+      });
+    } catch (err) {
+      if (isMissingGalleryExpiryTableError(err)) {
+        photo = await Photo.findOne({
+          where: { id: req.params.id, user_id: user.id },
           include: [
-            { model: GalleryExpiry, attributes: ['expires_at', 'is_enabled'], required: false },
-            { model: GalleryPassword, attributes: ['gallery_id', 'hint', 'is_enabled'], required: false },
+            {
+              model: Gallery,
+              where: { visibility: 'public' },
+              include: [
+                { model: GalleryPassword, attributes: ['gallery_id', 'hint', 'is_enabled'], required: false },
+              ],
+              required: true,
+            },
+            { model: Tag, through: { attributes: [] } },
           ],
-          required: true,
-        },
-        { model: Tag, through: { attributes: [] } },
-      ],
-    });
+        });
+      } else {
+        throw err;
+      }
+    }
     if (!photo) return res.status(404).json({ error: 'Photo not found' });
 
     if (isGalleryExpired(photo.Gallery?.GalleryExpiry)) {

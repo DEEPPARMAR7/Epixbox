@@ -18,10 +18,10 @@ const isAuthPath = (config, paths) => {
 }
 
 const getDefaultApiBase = () => {
-  if (typeof window === 'undefined') return 'http://localhost:4000/api'
+  if (typeof window === 'undefined') return 'http://localhost:4000/api/v1'
   const protocol = window.location.protocol
   const host = window.location.hostname
-  return `${protocol}//${host}:4000/api`
+  return `${protocol}//${host}:4000/api/v1`
 }
 
 const BASE = import.meta.env.VITE_API_BASE_URL || getDefaultApiBase()
