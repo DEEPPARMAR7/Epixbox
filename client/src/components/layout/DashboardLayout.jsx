@@ -216,15 +216,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
 
-        <div className="mx-auto grid w-full max-w-[1280px] grid-cols-2 gap-3 px-4 pb-3 sm:hidden">
-          <button
-            type="button"
-            onClick={handleUploadClick}
-            className="flex items-center justify-center gap-2 rounded-lg border border-emerald-400/25 bg-emerald-400/10 px-4 py-2.5 text-sm font-bold text-emerald-100 transition hover:bg-emerald-400/15"
-          >
-            <Upload size={16} />
-            Upload
-          </button>
+        <div className="mx-auto grid w-full max-w-[1280px] px-4 pb-3 sm:hidden">
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
@@ -246,7 +238,7 @@ export default function DashboardLayout({ children }) {
             <button
               type="button"
               onClick={handleUploadClick}
-              className="flex items-center gap-3 rounded-xl border border-emerald-400/30 bg-gradient-to-r from-emerald-500/20 to-emerald-400/10 px-4 py-3 text-left font-semibold text-emerald-200 transition hover:from-emerald-500/25 hover:to-emerald-400/15"
+              className="flex items-center gap-3 rounded-2xl border border-slate-700/30 bg-slate-950/90 px-4 py-3 text-left text-base font-semibold text-white transition hover:bg-slate-800"
             >
               <Upload size={18} />
               Upload Photos
@@ -278,13 +270,13 @@ export default function DashboardLayout({ children }) {
                   type="button"
                   onClick={() => goTo(item.to)}
                   className={clsx(
-                      'flex w-full items-center gap-3 rounded-lg border px-4 py-2.5 text-left text-sm transition',
+                      'flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left text-base transition',
                       isActive
-                        ? 'border-blue-500/40 bg-gradient-to-r from-blue-600/20 to-cyan-500/10 text-blue-200 font-semibold'
-                        : 'border-slate-700/20 text-slate-100 hover:bg-slate-700/20'
+                        ? 'border-blue-500/40 bg-slate-900 text-blue-200 font-semibold'
+                        : 'border-slate-700/20 bg-slate-950/90 text-slate-100 hover:bg-slate-800'
                     )}
                 >
-                  <Icon size={16} />
+                  <Icon size={18} />
                   <span>{item.label}</span>
                 </button>
               )
@@ -293,13 +285,13 @@ export default function DashboardLayout({ children }) {
 
           <div className="space-y-1.5 border-t border-slate-700/30 pt-3">
             {isOwner && (
-              <button onClick={() => goTo('/dashboard/admin')} className="flex w-full items-center gap-3 rounded-lg border border-amber-300/25 bg-amber-300/10 px-4 py-2.5 text-left text-sm font-semibold text-amber-100 hover:bg-amber-300/15 transition">
-                <LayoutDashboard size={16} />
+              <button onClick={() => goTo('/dashboard/admin')} className="flex w-full items-center gap-3 rounded-2xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-left text-base font-semibold text-amber-100 hover:bg-amber-300/15 transition">
+                <LayoutDashboard size={18} />
                 Admin Panel
               </button>
             )}
-            <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center gap-3 rounded-lg border border-slate-700/20 text-slate-100 px-4 py-2.5 text-left text-sm hover:bg-slate-700/20 transition">
-              <User size={16} />
+            <button onClick={() => goTo('/dashboard/profile')} className="flex w-full items-center gap-3 rounded-2xl border border-slate-700/20 bg-slate-950/90 px-4 py-3 text-left text-base text-slate-100 hover:bg-slate-800 transition">
+              <User size={18} />
               Edit Profile
             </button>
             <button
@@ -307,9 +299,9 @@ export default function DashboardLayout({ children }) {
                 setMobileMenuOpen(false)
                 handleLogout()
               }}
-              className="flex w-full items-center gap-3 rounded-lg border border-rose-400/20 bg-rose-400/10 px-4 py-2.5 text-left text-sm font-semibold text-rose-200 hover:bg-rose-400/15 transition"
+              className="flex w-full items-center gap-3 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-left text-base font-semibold text-rose-200 hover:bg-rose-400/15 transition"
             >
-              <LogOut size={16} />
+              <LogOut size={18} />
               Log Out
             </button>
           </div>
