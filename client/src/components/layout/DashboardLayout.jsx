@@ -228,11 +228,10 @@ export default function DashboardLayout({ children }) {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700/40 bg-slate-700/10 px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:bg-slate-700/20"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700/40 bg-slate-700/10 text-slate-100 transition hover:bg-slate-700/20"
             aria-label="Open navigation menu"
           >
-            <Menu size={16} />
-            Menu
+            <Menu size={20} />
           </button>
         </div>
       </header>
