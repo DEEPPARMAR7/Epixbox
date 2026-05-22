@@ -118,12 +118,17 @@ router.post('/billing/portal', async (req, res, next) => {
       await req.user.update({ stripe_customer_id: stripeCustomerId });
     }
 
-    const session = await stripe.billingPortal.sessions.create({
+    const sessionConfig = {
       customer: stripeCustomerId,
       return_url: `${process.env.CLIENT_URL}/dashboard/settings`,
-    });
+    };
 
-    // Helpful debug log: surface portal URL and customer id when troubleshooting
+    if (process.env.STRIPE_PORTAL_CONFIG_ID) {
+      sessionConfig.configuration = process.env.STRIPE_PORTAL_CONFIG_ID;
+    }
+
+    const session = await stripe.billingPortal.sessions.create(sessionConfig);
+
     console.log('Stripe billing portal created', { customer: stripeCustomerId, url: session.url });
     res.json({ url: session.url });
   } catch (err) {
@@ -132,6 +137,39 @@ router.post('/billing/portal', async (req, res, next) => {
       return res.status(500).json({ error: 'Stripe API key is invalid or not configured properly.' });
     }
     next(err);
+  }
+});
+
+// GET /api/settings/billing/portal-config-info
+// Helper endpoint to check Stripe portal configuration
+router.get('/billing/portal-config-info', requireAuth, async (req, res) => {
+  try {
+    if (req.userRole !== 'admin' && req.userRole !== 'photographer') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
+    if (!stripeSecretKey || !/^(sk_test_|sk_live_)/.test(stripeSecretKey)) {
+      return res.json({ configured: false, message: 'Stripe not configured' });
+    }
+
+    const configId = process.env.STRIPE_PORTAL_CONFIG_ID;
+    if (!configId) {
+      return res.json({
+        configured: false,
+        message: 'Stripe portal not configured. Set STRIPE_PORTAL_CONFIG_ID in .env',
+        help: 'Configure portal at: https://dashboard.stripe.com/settings/billing/portal',
+      });
+    }
+
+    res.json({
+      configured: true,
+      configId,
+      message: 'Stripe portal is configured',
+    });
+  } catch (err) {
+    console.error('Portal config info error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
