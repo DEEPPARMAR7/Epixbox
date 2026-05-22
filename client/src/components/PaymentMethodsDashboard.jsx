@@ -30,13 +30,14 @@ function ProviderCard({ m }) {
   const isDisabled = !m.enabled
 
   const openPortal = async () => {
-    const portalWindow = window.open('about:blank', '_blank', 'noopener,noreferrer')
+    const portalWindow = window.open('about:blank', '_blank')
     try {
       const resp = await axiosClient.post(apiUrl('/settings/billing/portal'))
       const data = resp.data
       if (!data?.url) throw new Error('Portal URL missing')
       if (portalWindow) {
         portalWindow.location.href = data.url
+        portalWindow.focus()
       } else {
         window.location.href = data.url
       }

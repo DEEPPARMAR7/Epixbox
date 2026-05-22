@@ -50,12 +50,13 @@ export default function PaymentsPage() {
 
   const openPortal = async () => {
     setOpeningPortal(true)
-    const billingWindow = window.open('about:blank', '_blank', 'noopener,noreferrer')
+    const billingWindow = window.open('about:blank', '_blank')
     try {
       const { url } = await createBillingPortal()
       if (!url) throw new Error('Billing portal URL not returned')
       if (billingWindow) {
         billingWindow.location.href = url
+        billingWindow.focus()
       } else {
         window.location.href = url
       }
