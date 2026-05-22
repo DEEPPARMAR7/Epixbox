@@ -52,7 +52,7 @@ export default function PaymentsPage() {
     setOpeningPortal(true)
     try {
       const { url } = await createBillingPortal()
-      window.location.href = url
+      window.open(url, '_blank', 'noopener,noreferrer')
     } catch (err) {
       toast.error(err?.response?.data?.error || 'Billing portal unavailable for this account')
     } finally {

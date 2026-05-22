@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CreditCard, DollarSign, Apple, Chrome } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
@@ -27,16 +28,32 @@ function ProviderCard({ m }) {
 
   const isDisabled = !m.enabled
 
+  const openPortal = async () => {
+    try {
+      const resp = await fetch(apiUrl('/settings/billing/portal'), { method: 'POST' })
+      if (!resp.ok) throw new Error('Failed to open billing portal')
+      const data = await resp.json()
+      if (data?.url) {
+        window.open(data.url, '_blank', 'noopener,noreferrer')
+      } else {
+        throw new Error('Portal URL missing')
+      }
+    } catch (err) {
+      console.error('Open billing portal error:', err)
+      toast.error(err?.message || 'Unable to open billing portal')
+    }
+  }
+
   return (
-    <div className={`relative overflow-hidden rounded-3xl shadow-lg ${isDisabled ? 'opacity-70' : ''}`}>
-      <div className={`p-5 bg-gradient-to-br ${gradient} text-white ${isDisabled ? 'brightness-90' : ''}`}
-        style={{ minHeight: 140 }}>
+    <div className={`relative overflow-hidden rounded-3xl shadow-xl ${isDisabled ? 'opacity-70' : ''}`}>
+      <div className={`p-6 bg-gradient-to-br ${gradient} text-white ${isDisabled ? 'brightness-90' : ''}`}
+        style={{ minHeight: 160 }}>
         <div className="flex items-start gap-4">
           <div className="rounded-xl bg-white/10 p-3">
             <Icon name={m.icon || 'credit-card'} />
           </div>
           <div>
-            <div className="text-xl font-extrabold">{m.name}</div>
+            <div className="text-xl font-extrabold tracking-tight">{m.name}</div>
             <div className="text-sm opacity-90 mt-1">{m.description}</div>
           </div>
         </div>
@@ -54,14 +71,15 @@ function ProviderCard({ m }) {
             <button
               type="button"
               onClick={() => window.open('/checkout', '_blank')}
-              className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-900 hover:bg-white/90"
+              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-white/95 shadow-md"
               disabled={isDisabled}
             >Preview</button>
             <button
               type="button"
-              onClick={() => window.open('/dashboard/settings/billing', '_self')}
-              className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white hover:bg-white/10"
-            >Configure</button>
+              onClick={openPortal}
+              className="rounded-full border border-white/20 bg-transparent px-4 py-2 text-sm text-white hover:bg-white/5 shadow-sm"
+              disabled={isDisabled}
+            >Manage Billing</button>
           </div>
         </div>
       </div>
