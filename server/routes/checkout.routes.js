@@ -99,7 +99,8 @@ router.get('/payment-methods', async (req, res) => {
     }
 
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    if (stripeSecretKey && !stripeSecretKey.includes('placeholder')) {
+    const isStripeConfigured = stripeSecretKey && /^(sk_test_|sk_live_)/.test(stripeSecretKey);
+    if (isStripeConfigured) {
       const stripeLabel = stripeSecretKey.includes('sk_test_')
         ? 'Card via Stripe (test mode)'
         : 'Card via Stripe';

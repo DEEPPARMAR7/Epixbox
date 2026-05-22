@@ -96,6 +96,11 @@ router.get('/billing', async (req, res, next) => {
 // POST /api/settings/billing/portal
 router.post('/billing/portal', async (req, res, next) => {
   try {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
+    if (!stripeSecretKey || !/^(sk_test_|sk_live_)/.test(stripeSecretKey)) {
+      return res.status(500).json({ error: 'Stripe is not configured on the server.' });
+    }
+
     let stripeCustomerId = req.user.stripe_customer_id;
 
     if (!stripeCustomerId) {
@@ -121,7 +126,13 @@ router.post('/billing/portal', async (req, res, next) => {
     // Helpful debug log: surface portal URL and customer id when troubleshooting
     console.log('Stripe billing portal created', { customer: stripeCustomerId, url: session.url });
     res.json({ url: session.url });
-  } catch (err) { next(err); }
+  } catch (err) {
+    if (err?.type === 'StripeAuthenticationError' || err?.code === 'authentication_error') {
+      console.error('Stripe authentication failure:', err.message);
+      return res.status(500).json({ error: 'Stripe API key is invalid or not configured properly.' });
+    }
+    next(err);
+  }
 });
 
 module.exports = router;
