@@ -1,13 +1,17 @@
 const express = require('express');
 const { Op } = require('sequelize');
-// Stripe integration removed. Keep stubs for compatibility.
-let stripe = null;
 const requireAuth = require('../middleware/auth.middleware');
 const { SubscriptionPlan, Subscription, User, Gallery } = require('../models/index');
 const { getTierLimits } = require('../utils/subscriptionTiers');
 const { sendSubscriptionWelcomeEmail, sendTrialEndingReminderEmail } = require('../services/email.service');
 
 const router = express.Router();
+
+function subscriptionPaymentsDisabled(res) {
+  return res.status(410).json({
+    error: 'Subscription payment management is disabled in this deployment',
+  });
+}
 
 function parseBillingPeriod(period) {
   const normalized = String(period || '').toLowerCase();
@@ -27,7 +31,7 @@ function asDate(unixSeconds) {
 }
 
 async function findOrCreateStripeCustomer() {
-  throw new Error('Stripe integration removed from server');
+  throw new Error('Subscription payment management is disabled in this deployment');
 }
 
 async function resolvePlanStripeLink(plan) {
@@ -35,7 +39,7 @@ async function resolvePlanStripeLink(plan) {
     needsMigration: false,
     stripe_product_id: null,
     stripe_price_id: null,
-    reason: 'stripe_removed',
+    reason: 'payment_management_removed',
   };
 }
 
@@ -157,21 +161,16 @@ router.get('/plans/migration-audit', requireAuth, async (req, res, next) => {
       order: [['created_at', 'DESC']],
     });
 
-    const results = [];
-    for (const plan of plans) {
-      const link = await resolvePlanStripeLink(plan);
-      results.push({
+    res.json({
+      total: plans.length,
+      missing: 0,
+      plans: plans.map((plan) => ({
         id: plan.id,
         name: plan.name,
         is_active: plan.is_active,
-        ...link,
-      });
-    }
-
-    res.json({
-      total: results.length,
-      missing: results.filter((r) => r.needsMigration).length,
-      plans: results,
+        needsMigration: false,
+        reason: 'payment_management_removed',
+      })),
     });
   } catch (error) {
     next(error);
@@ -180,148 +179,13 @@ router.get('/plans/migration-audit', requireAuth, async (req, res, next) => {
 
 // POST /api/subscriptions/plans/migrate-stripe (photographer)
 router.post('/plans/migrate-stripe', requireAuth, async (req, res, next) => {
-  try {
-    const dryRun = req.body?.dryRun !== false;
-    const includeInactive = req.body?.includeInactive === true;
-
-    const where = { user_id: req.user.id };
-    if (!includeInactive) where.is_active = true;
-
-    const plans = await SubscriptionPlan.findAll({ where, order: [['created_at', 'ASC']] });
-    const summary = {
-      scanned: plans.length,
-      migrated: 0,
-      alreadyValid: 0,
-      failed: 0,
-      dryRun,
-      details: [],
-    };
-
-    for (const plan of plans) {
-      try {
-        const link = await resolvePlanStripeLink(plan);
-        if (!link.needsMigration) {
-          if (!dryRun && (plan.stripe_product_id !== link.stripe_product_id || plan.stripe_price_id !== link.stripe_price_id)) {
-            await plan.update({
-              stripe_product_id: link.stripe_product_id,
-              stripe_price_id: link.stripe_price_id,
-            });
-          }
-
-          summary.alreadyValid += 1;
-          summary.details.push({ id: plan.id, name: plan.name, status: 'valid', ...link });
-          continue;
-        }
-
-        if (dryRun) {
-          summary.migrated += 1;
-          summary.details.push({ id: plan.id, name: plan.name, status: 'would_migrate', reason: link.reason });
-          continue;
-        }
-
-        const product = await stripe.products.create({
-          name: plan.name,
-          description: plan.description || undefined,
-          metadata: {
-            photographer_user_id: String(plan.user_id),
-            plan_id: String(plan.id),
-            migration: 'true',
-          },
-        });
-
-        const amount = Number(plan.price_cents || 0);
-        if (!Number.isFinite(amount) || amount < 100) {
-          throw new Error('Invalid plan price_cents for migration');
-        }
-
-        const interval = parseBillingPeriod(plan.billing_period) === 'yearly' ? 'year' : 'month';
-        const price = await stripe.prices.create({
-          product: product.id,
-          unit_amount: amount,
-          currency: 'usd',
-          recurring: { interval },
-          metadata: {
-            photographer_user_id: String(plan.user_id),
-            plan_id: String(plan.id),
-            migration: 'true',
-          },
-        });
-
-        await plan.update({ stripe_product_id: product.id, stripe_price_id: price.id });
-        summary.migrated += 1;
-        summary.details.push({ id: plan.id, name: plan.name, status: 'migrated', stripe_product_id: product.id, stripe_price_id: price.id });
-      } catch (err) {
-        summary.failed += 1;
-        summary.details.push({ id: plan.id, name: plan.name, status: 'failed', error: err.message });
-      }
-    }
-
-    res.json(summary);
-  } catch (error) {
-    next(error);
-  }
+  return subscriptionPaymentsDisabled(res);
 });
 
 // POST /api/subscriptions/plans (photographer)
 router.post('/plans', requireAuth, async (req, res, next) => {
   try {
-    const tier = getTierLimits(req.user.plan);
-    const activeCount = await SubscriptionPlan.count({ where: { user_id: req.user.id, is_active: true } });
-    if (activeCount >= tier.maxActivePlans) {
-      return res.status(403).json({
-        error: `Your ${tier.label} plan allows up to ${tier.maxActivePlans} active subscription plans.`,
-      });
-    }
-
-    const {
-      name,
-      description,
-      price_cents,
-      billing_period,
-      trial_days = 0,
-      features = {},
-      is_active = true,
-    } = req.body;
-
-    const amount = cents(price_cents);
-    if (!name || !Number.isFinite(amount) || amount < 100) {
-      return res.status(400).json({ error: 'name and valid price_cents (>=100) are required' });
-    }
-
-    const period = parseBillingPeriod(billing_period);
-
-    const product = await stripe.products.create({
-      name,
-      description: description || undefined,
-      metadata: {
-        photographer_user_id: String(req.user.id),
-      },
-    });
-
-    const price = await stripe.prices.create({
-      product: product.id,
-      unit_amount: amount,
-      currency: 'usd',
-      recurring: { interval: period === 'yearly' ? 'year' : 'month' },
-      metadata: {
-        photographer_user_id: String(req.user.id),
-      },
-    });
-
-    const plan = await SubscriptionPlan.create({
-      user_id: req.user.id,
-      stripe_product_id: product.id,
-      stripe_price_id: price.id,
-      name,
-      description: description || null,
-      price_cents: amount,
-      billing_period: period,
-      trial_days: Math.max(0, Math.min(Number(trial_days || 0), 30)),
-      features,
-      is_active: Boolean(is_active),
-    });
-
-    res.status(201).json(plan);
+    return subscriptionPaymentsDisabled(res);
   } catch (error) {
     next(error);
   }
@@ -340,29 +204,8 @@ router.patch('/plans/:id', requireAuth, async (req, res, next) => {
     if (typeof req.body.is_active === 'boolean') updates.is_active = req.body.is_active;
     if (req.body.trial_days != null) updates.trial_days = Math.max(0, Math.min(Number(req.body.trial_days || 0), 30));
 
-    if (req.body.price_cents != null) {
-      const amount = cents(req.body.price_cents);
-      if (!Number.isFinite(amount) || amount < 100) {
-        return res.status(400).json({ error: 'price_cents must be >= 100' });
-      }
-
-      const period = parseBillingPeriod(req.body.billing_period || plan.billing_period);
-      const newPrice = await stripe.prices.create({
-        product: plan.stripe_product_id,
-        unit_amount: amount,
-        currency: 'usd',
-        recurring: { interval: period === 'yearly' ? 'year' : 'month' },
-        metadata: {
-          photographer_user_id: String(req.user.id),
-          replaces_plan_id: String(plan.id),
-        },
-      });
-
-      updates.price_cents = amount;
-      updates.billing_period = period;
-      updates.stripe_price_id = newPrice.id;
-    } else if (req.body.billing_period) {
-      updates.billing_period = parseBillingPeriod(req.body.billing_period);
+    if (req.body.price_cents != null || req.body.billing_period) {
+      return subscriptionPaymentsDisabled(res);
     }
 
     await plan.update(updates);
@@ -521,23 +364,7 @@ router.get('/customer', async (req, res, next) => {
 // POST /api/subscriptions/customer/portal
 router.post('/customer/portal', async (req, res, next) => {
   try {
-    const { subscriptionId, customerEmail, returnUrl } = req.body;
-    if (!subscriptionId || !customerEmail || !returnUrl) {
-      return res.status(400).json({ error: 'subscriptionId, customerEmail, and returnUrl are required' });
-    }
-
-    const sub = await Subscription.findByPk(subscriptionId);
-    if (!sub) return res.status(404).json({ error: 'Subscription not found' });
-    if (String(sub.customer_email || '').toLowerCase() !== String(customerEmail).trim().toLowerCase()) {
-      return res.status(403).json({ error: 'Subscription/email mismatch' });
-    }
-
-    const session = await stripe.billingPortal.sessions.create({
-      customer: sub.stripe_customer_id,
-      return_url: returnUrl,
-    });
-
-    res.json({ url: session.url });
+    return subscriptionPaymentsDisabled(res);
   } catch (error) {
     next(error);
   }
@@ -546,8 +373,7 @@ router.post('/customer/portal', async (req, res, next) => {
 // ----- Stripe webhook for recurring billing -----
 
 router.post('/webhook', async (req, res) => {
-  // Stripe webhooks disabled when Stripe integration is removed.
-  res.status(400).json({ error: 'Stripe webhooks disabled on this server.' });
+  res.status(410).json({ error: 'Subscription payment webhooks are disabled on this server.' });
 });
 
 module.exports = router;

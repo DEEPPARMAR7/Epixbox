@@ -7,7 +7,19 @@
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const { SubscriptionPlan, User } = require('../models/index');
-const stripe = require('../config/stripe');
+
+const stripe = {
+  products: {
+    create: async function () {
+      throw new Error('Stripe integration is disabled in this deployment');
+    },
+  },
+  prices: {
+    create: async function () {
+      throw new Error('Stripe integration is disabled in this deployment');
+    },
+  },
+};
 
 const DEFAULT_PLANS = [
   {
@@ -64,6 +76,9 @@ const DEFAULT_PLANS = [
 
 async function seedDefaultPlans() {
   try {
+    console.log('Stripe integration removed; skipping Stripe-based seeding.');
+    return;
+
     // Find or create a system/template user for default plans
     let systemUser = await User.findOne({ where: { username: 'system' } });
     
@@ -95,27 +110,8 @@ async function seedDefaultPlans() {
         continue;
       }
 
-      // Create Stripe product and price
-      const product = await stripe.products.create({
-        name: planData.name,
-        description: planData.description || undefined,
-        metadata: {
-          template: 'true',
-          photographer_user_id: String(systemUser.id),
-        },
-      });
-
-      const interval = planData.billing_period === 'yearly' ? 'year' : 'month';
-      const price = await stripe.prices.create({
-        product: product.id,
-        unit_amount: planData.price_cents,
-        currency: 'usd',
-        recurring: { interval },
-        metadata: {
-          template: 'true',
-          photographer_user_id: String(systemUser.id),
-        },
-      });
+      const product = { id: null };
+      const price = { id: null };
 
       // Create subscription plan in database
       const plan = await SubscriptionPlan.create({
@@ -145,4 +141,8 @@ async function seedDefaultPlans() {
   }
 }
 
-seedDefaultPlans();
+if (require.main === module) {
+  seedDefaultPlans();
+}
+
+module.exports = seedDefaultPlans;

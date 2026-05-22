@@ -2,7 +2,6 @@ const router = require('express').Router();
 const crypto = require('crypto');
 const { Order, OrderItem, Product, Photo, PriceList } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
-const stripe = require('../config/stripe');
 const { sendOrderConfirmation } = require('../services/email.service');
 const { pushUserNotification } = require('../services/realtime.service');
 
@@ -176,10 +175,11 @@ router.post('/', async (req, res, next) => {
 
 // POST /api/orders/webhook — Stripe webhook
 router.post('/webhook', async (req, res, next) => {
+  return res.status(410).json({ error: 'Payment webhooks are disabled in this deployment' });
   const sig = req.headers['stripe-signature'];
   let event;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET || '');
+    event = null;
   } catch (err) {
     return res.status(400).json({ error: `Webhook error: ${err.message}` });
   }
@@ -418,6 +418,8 @@ router.post('/mine/:id/refunds', requireAuth, async (req, res, next) => {
     }
     const amount_cents = Math.min(Math.floor(requestedAmount), maxRefundable);
 
+    return res.status(410).json({ error: 'Stripe refunds are disabled in this deployment' });
+
     const stripeReason = mapStripeRefundReason(req.body?.reason);
     const refundPayload = {
       amount: amount_cents,
@@ -431,7 +433,7 @@ router.post('/mine/:id/refunds', requireAuth, async (req, res, next) => {
     else refundPayload.payment_intent = order.stripe_payment_intent_id;
     if (stripeReason) refundPayload.reason = stripeReason;
 
-    const refund = await stripe.refunds.create(refundPayload);
+    const refund = { id: `refund-${Date.now()}`, status: 'disabled' };
 
     await updateOrderMeta(order, (meta) => {
       const refunds = Array.isArray(meta.refunds) ? meta.refunds : [];

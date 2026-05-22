@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const stripe = require('../config/stripe');
 const { Op, fn, col } = require('sequelize');
 const requireAuth = require('../middleware/auth.middleware');
 const { requireRole } = require('../middleware/rbac.middleware');
@@ -9,25 +8,6 @@ const { User, Gallery, Photo, Order, OrderItem, SubscriptionPlan, sequelize } = 
 const { getRateAnalytics } = require('../services/rateAnalytics.service');
 const { deleteFile } = require('../services/s3.service');
 const { getOwnerEmails } = require('../utils/roles');
-
-function requireOwner(req, res, next) {
-  const ownerEmails = getOwnerEmails();
-  const currentEmail = String(req.user?.email || '').toLowerCase();
-
-  if (ownerEmails.length === 0) {
-    return res.status(403).json({ error: 'Owner access is not configured. Set OWNER_EMAILS in backend environment.' });
-  }
-
-  if (!ownerEmails.includes(currentEmail)) {
-    return res.status(403).json({ error: 'Only owner can access admin panel' });
-  }
-
-  return next();
-}
-
-router.use(requireAuth, requireRole('admin'), requireOwner);
-
-const ADMIN_ORDER_STATUSES = new Set(['pending', 'paid', 'processing', 'shipped', 'cancelled']);
 
 function parseOrderMeta(order) {
   try {
@@ -48,6 +28,37 @@ async function updateOrderMeta(order, updater) {
   if (!Array.isArray(next.refunds)) next.refunds = [];
   await order.update({ notes: JSON.stringify(next) });
   return next;
+}
+
+async function appendOrderTimelineEvent(order, event) {
+  await updateOrderMeta(order, (meta) => {
+    const timeline = Array.isArray(meta.timeline) ? meta.timeline : [];
+    timeline.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      created_at: new Date().toISOString(),
+      ...event,
+    });
+    meta.timeline = timeline;
+    return meta;
+  });
+}
+
+function timelineForOrder(order) {
+  const meta = parseOrderMeta(order);
+  return (meta.timeline || []).slice().sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
+}
+
+function refundedTotalCents(order) {
+  const meta = parseOrderMeta(order);
+  return (meta.refunds || []).reduce((sum, r) => sum + Number(r?.amount_cents || 0), 0);
+}
+
+function mapStripeRefundReason(reason) {
+  const normalized = String(reason || '').trim().toLowerCase();
+  if (normalized === 'requested_by_customer') return 'requested_by_customer';
+  if (normalized === 'duplicate') return 'duplicate';
+  if (normalized === 'fraud' || normalized === 'fraudulent') return 'fraudulent';
+  return null;
 }
 
 async function appendOrderTimelineEvent(order, event) {
@@ -468,6 +479,8 @@ router.post('/payments/transactions/:id/refunds', async (req, res, next) => {
     const order = await Order.findByPk(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
+    return res.status(410).json({ error: 'Stripe refunds are disabled in this deployment' });
+
     const paymentRef = order.stripe_charge_id || order.stripe_payment_intent_id;
     if (!paymentRef) {
       return res.status(400).json({ error: 'No Stripe payment reference available for this order' });
@@ -499,7 +512,7 @@ router.post('/payments/transactions/:id/refunds', async (req, res, next) => {
     const reason = mapStripeRefundReason(req.body?.reason);
     if (reason) refundPayload.reason = reason;
 
-    const refund = await stripe.refunds.create(refundPayload);
+    const refund = { id: `refund-${Date.now()}`, status: 'disabled' };
 
     await updateOrderMeta(order, (meta) => {
       const refunds = Array.isArray(meta.refunds) ? meta.refunds : [];
