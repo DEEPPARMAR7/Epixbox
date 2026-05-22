@@ -14,7 +14,7 @@ export default function CheckoutPage() {
   const { items, totalCents, clearCart } = useCart()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('paypal')
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('stripe')
   const [availableMethods, setAvailableMethods] = useState([])
   const [buyerEmail, setBuyerEmail] = useState('')
   const [buyerName, setBuyerName] = useState('')

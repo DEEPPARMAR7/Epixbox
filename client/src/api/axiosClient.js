@@ -21,7 +21,13 @@ const getDefaultApiBase = () => {
   if (typeof window === 'undefined') return 'http://localhost:4000/api/v1'
   const protocol = window.location.protocol
   const host = window.location.hostname
-  return `${protocol}//${host}:4000/api/v1`
+  // If running locally use the local API port. Otherwise default to the
+  // production API host on Render so Vercel frontend points at the correct backend.
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return `${protocol}//${host}:4000/api/v1`
+  }
+
+  return `${protocol}//epixbox.onrender.com/api/v1`
 }
 
 const BASE = import.meta.env.VITE_API_BASE_URL || getDefaultApiBase()

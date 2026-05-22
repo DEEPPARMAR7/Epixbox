@@ -86,18 +86,6 @@ router.get('/payment-methods', async (req, res) => {
   try {
     const methods = [];
 
-    const paypalClientId = process.env.PAYPAL_CLIENT_ID;
-    const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
-    if (paypalClientId && paypalClientSecret && !paypalClientId.includes('YOUR_PAYPAL')) {
-      methods.push({
-        id: 'paypal',
-        name: 'PayPal',
-        description: 'Fast and secure',
-        icon: 'paypal',
-        enabled: true,
-      });
-    }
-
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     const isStripeConfigured = stripeSecretKey && /^(sk_test_|sk_live_)/.test(stripeSecretKey);
     if (isStripeConfigured) {
@@ -110,6 +98,18 @@ router.get('/payment-methods', async (req, res) => {
         name: 'Stripe',
         description: stripeLabel,
         icon: 'stripe',
+        enabled: true,
+      });
+    }
+
+    const paypalClientId = process.env.PAYPAL_CLIENT_ID;
+    const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
+    if (paypalClientId && paypalClientSecret && !paypalClientId.includes('YOUR_PAYPAL')) {
+      methods.push({
+        id: 'paypal',
+        name: 'PayPal',
+        description: 'Fast and secure',
+        icon: 'paypal',
         enabled: true,
       });
     }
