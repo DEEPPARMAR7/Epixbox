@@ -117,6 +117,9 @@ router.post('/billing/portal', async (req, res, next) => {
       customer: stripeCustomerId,
       return_url: `${process.env.CLIENT_URL}/dashboard/settings`,
     });
+
+    // Helpful debug log: surface portal URL and customer id when troubleshooting
+    console.log('Stripe billing portal created', { customer: stripeCustomerId, url: session.url });
     res.json({ url: session.url });
   } catch (err) { next(err); }
 });

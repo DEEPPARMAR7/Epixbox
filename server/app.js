@@ -49,13 +49,15 @@ function isAllowedOrigin(origin) {
 }
 
 // Security headers
+// Keep COOP off for regular pages so third-party payment popups
+// (PayPal/Stripe) can communicate back via postMessage.
+// Apply a relaxed COOP only to API routes if needed.
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
 }));
 
-// Allow PayPal popups to postMessage back
-app.use((req, res, next) => {
+// Apply COOP for API endpoints only (keeps client pages freer for popups)
+app.use('/api', (req, res, next) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
   next();
 });

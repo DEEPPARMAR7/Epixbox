@@ -50,11 +50,18 @@ export default function PaymentsPage() {
 
   const openPortal = async () => {
     setOpeningPortal(true)
+    const billingWindow = window.open('about:blank', '_blank', 'noopener,noreferrer')
     try {
       const { url } = await createBillingPortal()
-      window.open(url, '_blank', 'noopener,noreferrer')
+      if (!url) throw new Error('Billing portal URL not returned')
+      if (billingWindow) {
+        billingWindow.location.href = url
+      } else {
+        window.location.href = url
+      }
     } catch (err) {
-      toast.error(err?.response?.data?.error || 'Billing portal unavailable for this account')
+      if (billingWindow) billingWindow.close()
+      toast.error(err?.response?.data?.error || err?.message || 'Billing portal unavailable for this account')
     } finally {
       setOpeningPortal(false)
     }

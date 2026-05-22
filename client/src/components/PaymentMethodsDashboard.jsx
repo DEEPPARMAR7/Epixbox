@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CreditCard, DollarSign, Apple, Chrome } from 'lucide-react'
 import toast from 'react-hot-toast'
+import axiosClient from '../api/axiosClient'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
@@ -29,18 +30,20 @@ function ProviderCard({ m }) {
   const isDisabled = !m.enabled
 
   const openPortal = async () => {
+    const portalWindow = window.open('about:blank', '_blank', 'noopener,noreferrer')
     try {
-      const resp = await fetch(apiUrl('/settings/billing/portal'), { method: 'POST' })
-      if (!resp.ok) throw new Error('Failed to open billing portal')
-      const data = await resp.json()
-      if (data?.url) {
-        window.open(data.url, '_blank', 'noopener,noreferrer')
+      const resp = await axiosClient.post(apiUrl('/settings/billing/portal'))
+      const data = resp.data
+      if (!data?.url) throw new Error('Portal URL missing')
+      if (portalWindow) {
+        portalWindow.location.href = data.url
       } else {
-        throw new Error('Portal URL missing')
+        window.location.href = data.url
       }
     } catch (err) {
+      if (portalWindow) portalWindow.close()
       console.error('Open billing portal error:', err)
-      toast.error(err?.message || 'Unable to open billing portal')
+      toast.error(err?.response?.data?.error || err?.message || 'Unable to open billing portal')
     }
   }
 
