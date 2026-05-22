@@ -187,7 +187,7 @@ export default function PaymentsPage() {
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Payments</p>
           <h1 className="mt-2 text-2xl font-black text-white sm:text-4xl">Payment Gateway and Billing</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-            Stripe checkout is active for orders, billing is managed through the Stripe customer portal, and refunds are handled from the admin console.
+            Checkout is active for orders. Billing is managed through your configured payment provider, and refunds are handled from the admin console.
           </p>
         </div>
 
@@ -212,16 +212,18 @@ export default function PaymentsPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-white">Current Plan: <span className="text-emerald-300 uppercase">{billing?.plan || 'free'}</span></p>
-              <p className="text-xs text-slate-400">Stripe customer: {billing?.stripe_customer_id || 'Not linked'}</p>
+              <p className="text-xs text-slate-400">Customer: {billing?.stripe_customer_id || billing?.razorpay_customer_id || 'Not linked'}</p>
             </div>
-            <button
-              type="button"
-              onClick={openPortal}
-              disabled={openingPortal}
-              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:opacity-60"
-            >
-              {openingPortal ? 'Opening...' : 'Open Stripe Billing Portal'}
-            </button>
+            {billing?.stripe_customer_id ? (
+              <button
+                type="button"
+                onClick={openPortal}
+                disabled={openingPortal}
+                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:opacity-60"
+              >
+                {openingPortal ? 'Opening...' : 'Open Billing Portal'}
+              </button>
+            ) : null}
           </div>
         </div>
 
