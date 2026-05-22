@@ -40,6 +40,7 @@ export default function PaymentMethodSelector({ onSelect, selectedMethod = 'payp
   const getIconComponent = (icon) => {
     switch (icon) {
       case 'credit-card':
+      case 'stripe':
         return <CreditCard className="w-6 h-6" />
       case 'paypal':
         return <DollarSign className="w-6 h-6" />

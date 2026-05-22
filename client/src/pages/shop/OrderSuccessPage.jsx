@@ -1,12 +1,21 @@
+import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import PublicLayout from '../../components/layout/PublicLayout'
+import { useCart } from '../../hooks/useCart'
 
 export default function OrderSuccessPage() {
+  const { clearCart } = useCart()
   const [searchParams] = useSearchParams()
   const orderId = searchParams.get('orderId')
   const token = searchParams.get('token')
   const canTrack = Boolean(orderId && token)
+
+  useEffect(() => {
+    if (orderId) {
+      clearCart()
+    }
+  }, [orderId, clearCart])
 
   return (
     <PublicLayout>

@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import PublicLayout from '../../components/layout/PublicLayout'
 import Spinner from '../../components/common/Spinner'
 import PayPalPaymentButton from '../../components/PayPalPaymentButton'
+import StripeCheckoutButton from '../../components/StripeCheckoutButton'
 import PaymentMethodSelector from '../../components/PaymentMethodSelector'
 import { useCart } from '../../hooks/useCart'
 import { formatCurrency } from '../../utils/formatters'
@@ -73,7 +74,7 @@ export default function CheckoutPage() {
               Checkout
             </p>
             <h1 className="heading-lg text-foreground max-w-2xl">
-              Secure payment with PayPal
+              Secure checkout for your order
             </h1>
           </div>
 
@@ -117,7 +118,6 @@ export default function CheckoutPage() {
               {/* Payment Method Selector */}
               <PaymentMethodSelector onSelect={setSelectedPaymentMethod} selectedMethod={selectedPaymentMethod} onMethods={setAvailableMethods} />
 
-              {/* PayPal Checkout */}
               <div className="pt-4 border-t border-border/70 space-y-4">
                 <div className="grid gap-3">
                   <label className="block text-sm font-medium text-slate-700">Buyer Email</label>
@@ -139,15 +139,24 @@ export default function CheckoutPage() {
                     className="w-full rounded-2xl border border-border/70 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-foreground focus:ring-2 focus:ring-foreground/10"
                   />
                 </div>
-                <PayPalPaymentButton
-                  amount={totalCents}
-                  items={items}
-                  buyerEmail={buyerEmail}
-                  buyerName={buyerName}
-                  onSuccess={handlePaymentSuccess}
-                  onError={(err) => toast.error('PayPal payment failed: ' + (err?.message || 'Unknown error'))}
-                  onCancel={() => toast.info('Payment cancelled')}
-                />
+
+                {selectedPaymentMethod === 'stripe' ? (
+                  <StripeCheckoutButton
+                    items={items}
+                    buyerEmail={buyerEmail}
+                    buyerName={buyerName}
+                  />
+                ) : (
+                  <PayPalPaymentButton
+                    amount={totalCents}
+                    items={items}
+                    buyerEmail={buyerEmail}
+                    buyerName={buyerName}
+                    onSuccess={handlePaymentSuccess}
+                    onError={(err) => toast.error('PayPal payment failed: ' + (err?.message || 'Unknown error'))}
+                    onCancel={() => toast.info('Payment cancelled')}
+                  />
+                )}
               </div>
 
               <p className="text-center text-xs text-slate-500">
