@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const stripe = require('../config/stripe');
 const { Order, OrderItem, Product, Photo, PriceList } = require('../models');
 
 const createPendingOrderFromItems = async ({ items, buyerEmail, buyerName, paymentGateway }) => {
@@ -55,7 +54,6 @@ const createPendingOrderFromItems = async ({ items, buyerEmail, buyerName, payme
     buyer_email: persistedBuyerEmail,
     buyer_name: normalizedBuyerName,
     photographer_id: resolvedPhotographerId,
-    payment_gateway: paymentGateway,
     status: 'pending',
     subtotal_cents: totalCents,
     tax_cents: 0,
@@ -86,21 +84,6 @@ router.get('/payment-methods', async (req, res) => {
   try {
     const methods = [];
 
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    const isStripeConfigured = stripeSecretKey && /^(sk_test_|sk_live_)/.test(stripeSecretKey);
-    if (isStripeConfigured) {
-      const stripeLabel = stripeSecretKey.includes('sk_test_')
-        ? 'Card via Stripe (test mode)'
-        : 'Card via Stripe';
-
-      methods.push({
-        id: 'stripe',
-        name: 'Stripe',
-        description: stripeLabel,
-        icon: 'stripe',
-        enabled: true,
-      });
-    }
 
     const paypalClientId = process.env.PAYPAL_CLIENT_ID;
     const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
@@ -114,6 +97,17 @@ router.get('/payment-methods', async (req, res) => {
       });
     }
 
+    const razorKey = process.env.RAZORPAY_KEY_ID;
+    if (razorKey) {
+      methods.push({
+        id: 'razorpay',
+        name: 'Razorpay',
+        description: 'Razorpay (INR) - available',
+        icon: 'credit-card',
+        enabled: true,
+      });
+    }
+
     res.json(methods);
   } catch (error) {
     console.error('Error fetching payment methods:', error.message);
@@ -123,71 +117,25 @@ router.get('/payment-methods', async (req, res) => {
 
 // Create checkout session with payment method selection
 router.post('/create-session', async (req, res) => {
-  try {
-    const { paymentMethod = 'paypal', items, buyerEmail, buyerName } = req.body;
-
-    if (paymentMethod === 'paypal') {
-      return res.status(400).json({ error: 'Use the PayPal order endpoints for PayPal checkout' });
-    }
-
-    if (paymentMethod !== 'stripe') {
-      return res.status(400).json({ error: `Payment method '${paymentMethod}' is not enabled.` });
-    }
-
-    if (!process.env.STRIPE_PUBLISHABLE_KEY || !process.env.STRIPE_SECRET_KEY) {
-      return res.status(500).json({ error: 'Stripe is not configured on the server.' });
-    }
-
-    const { order, lineItems, totalCents } = await createPendingOrderFromItems({
-      items,
-      buyerEmail,
-      buyerName,
-      paymentGateway: 'stripe',
-    });
-
-    const successUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/order-success?orderId=${order.id}&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout`;
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: lineItems.map((item) => ({
-        price_data: {
-          currency: 'usd',
-          unit_amount: item.product.price_cents,
-          product_data: {
-            name: item.product.name,
-            description: item.product.description || undefined,
-          },
-        },
-        quantity: item.quantity,
-      })),
-      mode: 'payment',
-      customer_email: buyerEmail || undefined,
-      metadata: {
-        orderId: order.id,
-        buyerName: buyerName || '',
-      },
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-    });
-
-    res.json({ sessionId: session.id, orderId: order.id });
-  } catch (error) {
-    console.error('Error creating checkout session:', error.response?.data || error.message);
-    res.status(500).json({ error: error.response?.data?.message || error.message || 'Failed to create checkout session' });
-  }
+  // Stripe hosted sessions are intentionally disabled. Use Razorpay endpoints or external redirect.
+  res.status(400).json({ error: 'Hosted Stripe sessions are disabled. Use Razorpay or external redirect flow.' });
 });
 
 // Dev-only: create a simple PaymentIntent for testing without products
-router.post('/test-intent', async (req, res) => {
-  res.status(400).json({ error: 'Stripe test intent is disabled. Use PayPal checkout instead.' });
-});
+// External redirect checkout (third-party hosted checkout like SmugMug)
+router.post('/external-redirect', async (req, res) => {
+  try {
+    const { items, buyerEmail, buyerName } = req.body;
+    const { order } = await createPendingOrderFromItems({ items, buyerEmail, buyerName, paymentGateway: 'external' });
 
-// Create a hosted Checkout Session from multiple cart items and create an Order record
-router.post('/create-session-from-items', async (req, res) => {
-  res.status(400).json({
-    error: 'Stripe hosted checkout from cart items is disabled. Use PayPal checkout instead.',
-  });
+    const template = process.env.EXTERNAL_CHECKOUT_URL_TEMPLATE || 'https://example.com/thirdparty/checkout?orderId={orderId}';
+    const redirectUrl = template.replace('{orderId}', encodeURIComponent(order.id));
+
+    res.json({ redirectUrl, orderId: order.id });
+  } catch (err) {
+    console.error('External redirect error:', err.message || err);
+    res.status(500).json({ error: err.message || 'Failed to create external redirect' });
+  }
 });
 
 module.exports = router;

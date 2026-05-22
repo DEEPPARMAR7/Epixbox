@@ -54,5 +54,6 @@ router.use('/checkout', require('./checkout.routes'));
 router.use('/paypal', require('./paypal.routes'));
 router.use('/apple-pay', require('./apple-pay.routes'));
 router.use('/google-pay', require('./google-pay.routes'));
+router.use('/razorpay', require('./razorpay.routes'));
 
 module.exports = router;

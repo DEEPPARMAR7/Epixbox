@@ -69,7 +69,6 @@ router.post('/create-paypal-order', async (req, res) => {
       buyer_email: persistedBuyerEmail,
       buyer_name: normalizedBuyerName,
       photographer_id: resolvedPhotographerId,
-      payment_gateway: 'paypal',
       status: 'pending',
       subtotal_cents: totalCents,
       tax_cents: 0,

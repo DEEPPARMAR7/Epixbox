@@ -53,35 +53,11 @@ function SubscriptionsPage() {
       return;
     }
 
-    try {
-      setIsProcessing(true);
-      setSelectedPlan(plan.id);
-      setError(null);
-
-      // Create checkout session
-      const checkoutData = {
-        plan_id: plan.id,
-        trial_days: plan.trial_days,
-      };
-
-      const { sessionId } = await subscriptionsApi.createCheckoutSession(checkoutData);
-
-      // Redirect to checkout
-      if (window.Stripe) {
-        const stripe = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-        stripe.redirectToCheckout({ sessionId }).catch((err) => {
-          setError('Failed to redirect to checkout: ' + err.message);
-          setIsProcessing(false);
-        });
-      } else {
-        setError('Stripe not loaded. Please refresh the page.');
-        setIsProcessing(false);
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to create checkout session');
-      setIsProcessing(false);
-      setSelectedPlan(null);
-    }
+    // Stripe-based subscription checkout is disabled on this deployment.
+    setError('Subscription checkout disabled (Stripe removed). Contact support or the site admin to subscribe.');
+    setIsProcessing(false);
+    setSelectedPlan(null);
+    return;
   };
 
   return (

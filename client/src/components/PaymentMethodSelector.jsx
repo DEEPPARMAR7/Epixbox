@@ -4,7 +4,7 @@ import { CreditCard, DollarSign, Apple, Chrome } from 'lucide-react'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
 
-export default function PaymentMethodSelector({ onSelect, selectedMethod = 'stripe', onMethods }) {
+export default function PaymentMethodSelector({ onSelect, selectedMethod = 'razorpay', onMethods }) {
   const [methods, setMethods] = useState([])
   const [loading, setLoading] = useState(true)
 

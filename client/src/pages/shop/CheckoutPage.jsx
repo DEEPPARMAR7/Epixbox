@@ -4,7 +4,8 @@ import { Helmet } from 'react-helmet-async'
 import PublicLayout from '../../components/layout/PublicLayout'
 import Spinner from '../../components/common/Spinner'
 import PayPalPaymentButton from '../../components/PayPalPaymentButton'
-import StripeCheckoutButton from '../../components/StripeCheckoutButton'
+import RazorpayCheckoutButton from '../../components/RazorpayCheckoutButton'
+import ExternalRedirectButton from '../../components/ExternalRedirectButton'
 import PaymentMethodSelector from '../../components/PaymentMethodSelector'
 import { useCart } from '../../hooks/useCart'
 import { formatCurrency } from '../../utils/formatters'
@@ -14,7 +15,7 @@ export default function CheckoutPage() {
   const { items, totalCents, clearCart } = useCart()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('stripe')
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('razorpay')
   const [availableMethods, setAvailableMethods] = useState([])
   const [buyerEmail, setBuyerEmail] = useState('')
   const [buyerName, setBuyerName] = useState('')
@@ -140,8 +141,16 @@ export default function CheckoutPage() {
                   />
                 </div>
 
-                {selectedPaymentMethod === 'stripe' ? (
-                  <StripeCheckoutButton
+                {selectedPaymentMethod === 'razorpay' ? (
+                  <RazorpayCheckoutButton
+                    items={items}
+                    buyerEmail={buyerEmail}
+                    buyerName={buyerName}
+                    onSuccess={handlePaymentSuccess}
+                    onError={(err) => toast.error('Razorpay payment failed: ' + (err?.message || 'Unknown error'))}
+                  />
+                ) : selectedPaymentMethod === 'external' ? (
+                  <ExternalRedirectButton
                     items={items}
                     buyerEmail={buyerEmail}
                     buyerName={buyerName}

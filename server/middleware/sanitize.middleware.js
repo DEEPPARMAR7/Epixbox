@@ -20,7 +20,16 @@ function sanitizeValue(value) {
 }
 
 module.exports = function sanitizeInput(req, res, next) {
-  req.body = sanitizeValue(req.body);
+  const webhookPaths = new Set([
+    '/api/orders/webhook',
+    '/api/v1/orders/webhook',
+    '/api/subscriptions/webhook',
+    '/api/v1/subscriptions/webhook',
+  ]);
+  const requestPath = String(req.originalUrl || req.url || '').split('?')[0];
+  if (!webhookPaths.has(requestPath)) {
+    req.body = sanitizeValue(req.body);
+  }
   req.query = sanitizeValue(req.query);
   req.params = sanitizeValue(req.params);
   next();

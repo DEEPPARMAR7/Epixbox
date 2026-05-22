@@ -1,6 +1,7 @@
 const express = require('express');
 const { Op } = require('sequelize');
-const stripe = require('../config/stripe');
+// Stripe integration removed. Keep stubs for compatibility.
+let stripe = null;
 const requireAuth = require('../middleware/auth.middleware');
 const { SubscriptionPlan, Subscription, User, Gallery } = require('../models/index');
 const { getTierLimits } = require('../utils/subscriptionTiers');
@@ -25,50 +26,17 @@ function asDate(unixSeconds) {
   return new Date(Number(unixSeconds) * 1000);
 }
 
-async function findOrCreateStripeCustomer({ email, photographerUserId }) {
-  const result = await stripe.customers.list({ email, limit: 1 });
-  const existing = result?.data?.[0];
-  if (existing) return existing;
-
-  return stripe.customers.create({
-    email,
-    metadata: {
-      type: 'epicbox_subscription_customer',
-      photographer_user_id: String(photographerUserId),
-    },
-  });
+async function findOrCreateStripeCustomer() {
+  throw new Error('Stripe integration removed from server');
 }
 
 async function resolvePlanStripeLink(plan) {
-  const result = {
+  return {
     needsMigration: false,
-    stripe_product_id: plan.stripe_product_id || null,
-    stripe_price_id: plan.stripe_price_id || null,
-    reason: null,
+    stripe_product_id: null,
+    stripe_price_id: null,
+    reason: 'stripe_removed',
   };
-
-  if (!plan.stripe_price_id && !plan.stripe_product_id) {
-    result.needsMigration = true;
-    result.reason = 'missing_price_and_product';
-    return result;
-  }
-
-  if (plan.stripe_price_id) {
-    try {
-      const stripePrice = await stripe.prices.retrieve(plan.stripe_price_id);
-      result.stripe_price_id = stripePrice.id;
-      result.stripe_product_id = typeof stripePrice.product === 'string' ? stripePrice.product : stripePrice.product?.id;
-      return result;
-    } catch {
-      result.needsMigration = true;
-      result.reason = 'invalid_price_id';
-      return result;
-    }
-  }
-
-  result.needsMigration = true;
-  result.reason = 'missing_price_id';
-  return result;
 }
 
 // ----- Public browsing endpoints (no auth required) -----
@@ -510,48 +478,8 @@ router.get('/public/:username/plans', async (req, res, next) => {
 
 // POST /api/subscriptions/checkout-session
 router.post('/checkout-session', async (req, res, next) => {
-  try {
-    const { planId, customerEmail, successUrl, cancelUrl } = req.body;
-    if (!planId || !customerEmail || !successUrl || !cancelUrl) {
-      return res.status(400).json({ error: 'planId, customerEmail, successUrl, and cancelUrl are required' });
-    }
-
-    const plan = await SubscriptionPlan.findOne({ where: { id: planId, is_active: true } });
-    if (!plan) return res.status(404).json({ error: 'Plan not found' });
-    const photographer = await User.findByPk(plan.user_id, { attributes: ['username'] });
-
-    const customer = await findOrCreateStripeCustomer({
-      email: String(customerEmail).trim().toLowerCase(),
-      photographerUserId: plan.user_id,
-    });
-
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      customer: customer.id,
-      line_items: [{ price: plan.stripe_price_id, quantity: 1 }],
-      success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl,
-      subscription_data: {
-        trial_period_days: plan.trial_days || undefined,
-        metadata: {
-          plan_id: String(plan.id),
-          photographer_user_id: String(plan.user_id),
-          username: String(photographer?.username || ''),
-          customer_email: String(customerEmail).trim().toLowerCase(),
-        },
-      },
-      metadata: {
-        plan_id: String(plan.id),
-        photographer_user_id: String(plan.user_id),
-        username: String(photographer?.username || ''),
-        customer_email: String(customerEmail).trim().toLowerCase(),
-      },
-    });
-
-    res.json({ url: session.url, sessionId: session.id });
-  } catch (error) {
-    next(error);
-  }
+  // Subscriptions via Stripe are disabled on this server.
+  return res.status(400).json({ error: 'Stripe subscriptions are disabled on this server.' });
 });
 
 // GET /api/subscriptions/customer
@@ -618,121 +546,8 @@ router.post('/customer/portal', async (req, res, next) => {
 // ----- Stripe webhook for recurring billing -----
 
 router.post('/webhook', async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET || '');
-  } catch (err) {
-    return res.status(400).json({ error: `Webhook error: ${err.message}` });
-  }
-
-  try {
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      if (session.mode === 'subscription' && session.subscription) {
-        const stripeSub = await stripe.subscriptions.retrieve(session.subscription);
-        const planId = stripeSub.metadata?.plan_id || session.metadata?.plan_id;
-        const photographerUserId = stripeSub.metadata?.photographer_user_id || session.metadata?.photographer_user_id;
-        const customerEmail = (stripeSub.metadata?.customer_email || session.metadata?.customer_email || session.customer_details?.email || '').toLowerCase();
-
-        if (planId && photographerUserId && customerEmail) {
-          const plan = await SubscriptionPlan.findByPk(planId, { attributes: ['name', 'trial_days'] });
-          await Subscription.upsert({
-            plan_id: planId,
-            photographer_user_id: photographerUserId,
-            stripe_subscription_id: stripeSub.id,
-            stripe_customer_id: stripeSub.customer,
-            customer_email: customerEmail,
-            status: stripeSub.status,
-            current_period_start: asDate(stripeSub.current_period_start),
-            current_period_end: asDate(stripeSub.current_period_end),
-            trial_start: asDate(stripeSub.trial_start),
-            trial_end: asDate(stripeSub.trial_end),
-            canceled_at_period_end: Boolean(stripeSub.cancel_at_period_end),
-            canceled_at: asDate(stripeSub.canceled_at),
-            latest_invoice_id: stripeSub.latest_invoice || null,
-          });
-
-          const manageBase = process.env.CLIENT_URL || process.env.FRONTEND_URL || '';
-          const manageUrl = manageBase ? `${manageBase}/subscribe/${session.metadata?.username || ''}/manage` : '#';
-          sendSubscriptionWelcomeEmail({
-            to: customerEmail,
-            planName: plan?.name || 'EpicBox Plan',
-            trialDays: Number(plan?.trial_days || 0),
-            manageUrl,
-          }).catch(() => {});
-        }
-      }
-    }
-
-    if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
-      const stripeSub = event.data.object;
-      const local = await Subscription.findOne({ where: { stripe_subscription_id: stripeSub.id } });
-      if (local) {
-        await local.update({
-          status: stripeSub.status,
-          current_period_start: asDate(stripeSub.current_period_start),
-          current_period_end: asDate(stripeSub.current_period_end),
-          trial_start: asDate(stripeSub.trial_start),
-          trial_end: asDate(stripeSub.trial_end),
-          canceled_at_period_end: Boolean(stripeSub.cancel_at_period_end),
-          canceled_at: asDate(stripeSub.canceled_at),
-          latest_invoice_id: stripeSub.latest_invoice || null,
-        });
-      }
-    }
-
-    if (event.type === 'invoice.payment_succeeded') {
-      const invoice = event.data.object;
-      if (invoice.subscription) {
-        const local = await Subscription.findOne({ where: { stripe_subscription_id: invoice.subscription } });
-        if (local) {
-          await local.update({
-            status: 'active',
-            latest_invoice_id: invoice.id,
-          });
-        }
-      }
-    }
-
-    if (event.type === 'invoice.payment_failed') {
-      const invoice = event.data.object;
-      if (invoice.subscription) {
-        const local = await Subscription.findOne({ where: { stripe_subscription_id: invoice.subscription } });
-        if (local) {
-          await local.update({
-            status: 'past_due',
-            latest_invoice_id: invoice.id,
-          });
-        }
-      }
-    }
-
-    if (event.type === 'customer.subscription.trial_will_end') {
-      const stripeSub = event.data.object;
-      const local = await Subscription.findOne({
-        where: { stripe_subscription_id: stripeSub.id },
-        include: [{ model: SubscriptionPlan, attributes: ['name'] }],
-      });
-
-      if (local) {
-        const manageBase = process.env.CLIENT_URL || process.env.FRONTEND_URL || '';
-        const username = (await User.findByPk(local.photographer_user_id, { attributes: ['username'] }))?.username || '';
-        const manageUrl = manageBase ? `${manageBase}/subscribe/${username}/manage` : '#';
-
-        sendTrialEndingReminderEmail({
-          to: local.customer_email,
-          planName: local.SubscriptionPlan?.name || 'EpicBox Plan',
-          manageUrl,
-        }).catch(() => {});
-      }
-    }
-
-    res.json({ received: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message || 'Webhook processing failed' });
-  }
+  // Stripe webhooks disabled when Stripe integration is removed.
+  res.status(400).json({ error: 'Stripe webhooks disabled on this server.' });
 });
 
 module.exports = router;

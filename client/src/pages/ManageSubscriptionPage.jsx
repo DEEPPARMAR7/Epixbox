@@ -58,23 +58,9 @@ function ManageSubscriptionPage() {
   }
 
   const handleUpgradePlan = async (plan) => {
-    try {
-      setIsProcessing(true);
-      setError(null);
-
-      const { sessionId } = await subscriptionsApi.createCheckoutSession({
-        plan_id: plan.id,
-      });
-
-      const stripe = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-      stripe.redirectToCheckout({ sessionId }).catch((err) => {
-        setError('Failed to redirect to checkout: ' + err.message);
-        setIsProcessing(false);
-      });
-    } catch (err) {
-      setError(err.message || 'Failed to create checkout session');
-      setIsProcessing(false);
-    }
+    // Stripe-based subscription checkout is disabled. Use server-managed subscriptions or contact admin.
+    setError('Subscription checkout is disabled (Stripe removed). Please contact support to subscribe.');
+    return;
   };
 
   const handleCancelSubscription = async () => {

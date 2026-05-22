@@ -37,32 +37,8 @@ router.post('/send-test-email', async (req, res) => {
 router.get('/stripe-config', requireAuth, async (req, res) => {
   try {
     if (req.userRole !== 'admin') return res.status(403).json({ error: 'Forbidden' });
-
-    const stripeKey = process.env.STRIPE_SECRET_KEY || '';
-    const configured = !!stripeKey && /^(sk_test_|sk_live_)/.test(stripeKey);
-    const probeRequested = String(req.query.probe || '').toLowerCase() === 'true';
-
-    if (!configured) {
-      return res.json({ configured: false, probe: probeRequested ? 'skipped' : 'not_requested' });
-    }
-
-    if (!probeRequested) {
-      return res.json({ configured: true, probe: 'not_requested' });
-    }
-
-    // Perform a safe, read-only Stripe call to validate the key
-    const stripe = require('../config/stripe');
-    try {
-      await stripe.products.list({ limit: 1 });
-      return res.json({ configured: true, probe: 'ok' });
-    } catch (err) {
-      if (err?.type === 'StripeAuthenticationError' || err?.code === 'authentication_error') {
-        logger.error('Stripe authentication failure (debug probe)', { message: err.message });
-        return res.json({ configured: false, probe: 'auth_error', message: 'Stripe authentication failed' });
-      }
-      logger.error('Stripe probe error', { message: err.message });
-      return res.json({ configured: true, probe: 'error', message: err.message });
-    }
+    // Stripe integration has been removed from this server.
+    return res.json({ configured: false, probe: 'disabled', message: 'Stripe integration removed' });
   } catch (err) {
     logger.error('Stripe config debug failed', { error: err.message });
     return res.status(500).json({ error: 'Debug route failed', details: err.message });

@@ -3,7 +3,8 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const s3Client = require('../config/s3');
-const stripe = require('../config/stripe');
+// Stripe removed: billing portal and Stripe actions are disabled.
+let stripe = null;
 const { User, CustomDomain } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
 const { requireFeature } = require('../middleware/featureGate.middleware');
@@ -96,41 +97,8 @@ router.get('/billing', async (req, res, next) => {
 // POST /api/settings/billing/portal
 router.post('/billing/portal', async (req, res, next) => {
   try {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
-    if (!stripeSecretKey || !/^(sk_test_|sk_live_)/.test(stripeSecretKey)) {
-      return res.status(500).json({ error: 'Stripe is not configured on the server.' });
-    }
-
-    let stripeCustomerId = req.user.stripe_customer_id;
-
-    if (!stripeCustomerId) {
-      const customer = await stripe.customers.create({
-        email: req.user.email,
-        name: [req.user.first_name, req.user.last_name].filter(Boolean).join(' ').trim() || undefined,
-        metadata: {
-          user_id: String(req.user.id),
-          username: req.user.username || '',
-          created_from: 'billing_portal',
-        },
-      });
-
-      stripeCustomerId = customer.id;
-      await req.user.update({ stripe_customer_id: stripeCustomerId });
-    }
-
-    const sessionConfig = {
-      customer: stripeCustomerId,
-      return_url: `${process.env.CLIENT_URL}/dashboard/settings`,
-    };
-
-    if (process.env.STRIPE_PORTAL_CONFIG_ID) {
-      sessionConfig.configuration = process.env.STRIPE_PORTAL_CONFIG_ID;
-    }
-
-    const session = await stripe.billingPortal.sessions.create(sessionConfig);
-
-    console.log('Stripe billing portal created', { customer: stripeCustomerId, url: session.url });
-    res.json({ url: session.url });
+    // Billing portal disabled because Stripe integration has been removed.
+    return res.status(400).json({ error: 'Stripe billing portal is disabled on this server.' });
   } catch (err) {
     if (err?.type === 'StripeAuthenticationError' || err?.code === 'authentication_error') {
       console.error('Stripe authentication failure:', err.message);
@@ -148,25 +116,7 @@ router.get('/billing/portal-config-info', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
-    if (!stripeSecretKey || !/^(sk_test_|sk_live_)/.test(stripeSecretKey)) {
-      return res.json({ configured: false, message: 'Stripe not configured' });
-    }
-
-    const configId = process.env.STRIPE_PORTAL_CONFIG_ID;
-    if (!configId) {
-      return res.json({
-        configured: false,
-        message: 'Stripe portal not configured. Set STRIPE_PORTAL_CONFIG_ID in .env',
-        help: 'Configure portal at: https://dashboard.stripe.com/settings/billing/portal',
-      });
-    }
-
-    res.json({
-      configured: true,
-      configId,
-      message: 'Stripe portal is configured',
-    });
+    return res.json({ configured: false, message: 'Stripe integration removed from server' });
   } catch (err) {
     console.error('Portal config info error:', err.message);
     res.status(500).json({ error: err.message });

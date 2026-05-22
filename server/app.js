@@ -105,7 +105,18 @@ app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }))
 app.use('/api/v1/subscriptions/webhook', express.raw({ type: 'application/json' }));
 
 // JSON body parser
-app.use(express.json({ limit: '10mb' }));
+const webhookPaths = new Set([
+  '/api/orders/webhook',
+  '/api/v1/orders/webhook',
+  '/api/subscriptions/webhook',
+  '/api/v1/subscriptions/webhook',
+]);
+const jsonParser = express.json({ limit: '10mb' });
+app.use((req, res, next) => {
+  const requestPath = String(req.originalUrl || req.url || '').split('?')[0];
+  if (webhookPaths.has(requestPath)) return next();
+  return jsonParser(req, res, next);
+});
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 if (sentryEnabled) {

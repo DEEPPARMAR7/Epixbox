@@ -2,6 +2,7 @@ const router = require('express').Router();
 const crypto = require('crypto');
 const { Order, OrderItem, Product, Photo, PriceList } = require('../models/index');
 const requireAuth = require('../middleware/auth.middleware');
+const stripe = require('../config/stripe');
 const { sendOrderConfirmation } = require('../services/email.service');
 const { pushUserNotification } = require('../services/realtime.service');
 
@@ -136,7 +137,6 @@ router.post('/', async (req, res, next) => {
       buyer_email: persistedBuyerEmail,
       buyer_name: normalizedBuyerName,
       photographer_id: resolvedPhotographerId,
-      payment_gateway: 'paypal',
       status: 'pending',
       subtotal_cents,
       tax_cents: 0,
