@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { ArrowUpRight, BadgeCheck, Chrome, CreditCard, DollarSign, Sparkles } from 'lucide-react';
 import api from '../api/axiosClient';
 
@@ -28,7 +29,7 @@ const PROVIDER_META = {
 
 const getProviderMeta = (method) => PROVIDER_META[method.id] || PROVIDER_META.default;
 
-function ProviderCard({ method }) {
+function ProviderCard({ method, onOpen }) {
   const meta = getProviderMeta(method);
 
   return (
@@ -85,7 +86,7 @@ function ProviderCard({ method }) {
           </div>
           <button
             type="button"
-            onClick={() => window.open('/checkout', '_blank', 'noopener,noreferrer')}
+            onClick={() => onOpen(method)}
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/10"
           >
             Open checkout
@@ -100,6 +101,61 @@ function ProviderCard({ method }) {
 export default function PaymentMethodsDashboard() {
   const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const loadScript = (src) => new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => reject(new Error('Failed to load script: ' + src));
+    document.body.appendChild(script);
+  });
+
+  const startRazorpayCheckout = async (opts = {}) => {
+    try {
+      await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+      const resp = await api.post('/checkout/razorpay/create-order', { amount_cents: opts.amount_cents || 100 });
+      const { key_id, razorpay_order_id, amount, currency } = resp.data;
+      const options = {
+        key: key_id,
+        amount: amount,
+        currency: currency || 'INR',
+        name: 'Epixbox',
+        description: 'Order payment',
+        order_id: razorpay_order_id,
+        handler: async function (response) {
+          try {
+            const verify = await api.post('/checkout/razorpay/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            if (verify.data && verify.data.verified) {
+              toast.success('Payment verified — thank you!');
+            } else {
+              toast.error('Payment verification failed');
+            }
+          } catch (err) {
+            console.error('verify error', err);
+            toast.error('Payment verification error');
+          }
+        },
+        prefill: { name: '', email: '' },
+        theme: { color: '#06b6d4' },
+      };
+
+      // eslint-disable-next-line no-undef
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error('Razorpay checkout error', err);
+      toast.error(err?.response?.data?.error || err.message || 'Checkout failed');
+    }
+  };
+
+  const handleOpen = (method) => {
+    if (method.id === 'razorpay') return startRazorpayCheckout({ amount_cents: 100 });
+    window.open('/checkout', '_blank', 'noopener,noreferrer');
+  };
 
   useEffect(() => {
     let mounted = true;

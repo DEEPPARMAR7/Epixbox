@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const Razorpay = require('razorpay');
 const { Order, OrderItem, Product, Photo, PriceList } = require('../models');
 
 const createPendingOrderFromItems = async ({ items, buyerEmail, buyerName, paymentGateway }) => {
@@ -112,6 +113,59 @@ router.get('/payment-methods', async (req, res) => {
   } catch (error) {
     console.error('Error fetching payment methods:', error.message);
     res.status(500).json({ error: 'Failed to fetch payment methods' });
+  }
+});
+
+// Create a Razorpay order for client-side checkout
+router.post('/razorpay/create-order', async (req, res) => {
+  try {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) return res.status(400).json({ error: 'Razorpay not configured on server' });
+
+    let { amount_cents, items, buyerEmail, buyerName } = req.body || {};
+
+    let order;
+    if (items && items.length) {
+      const result = await createPendingOrderFromItems({ items, buyerEmail, buyerName, paymentGateway: 'razorpay' });
+      order = result.order;
+      amount_cents = result.totalCents;
+    } else {
+      // create a simple pending order record
+      const total = Math.max(1, parseInt(amount_cents || 100, 10));
+      const persistedBuyerEmail = String(buyerEmail || `pending+${Date.now()}@epixbox.local`).trim();
+      order = await Order.create({ buyer_email: persistedBuyerEmail, buyer_name: buyerName || null, photographer_id: null, status: 'pending', subtotal_cents: total, tax_cents: 0, total_cents: total, notes: JSON.stringify({ timeline: [], public_tracking_token: crypto.randomBytes(16).toString('hex') }) });
+    }
+
+    const instance = new Razorpay({ key_id: keyId, key_secret: keySecret });
+    const razorAmount = Math.max(1, parseInt(amount_cents || order.total_cents || 100, 10));
+
+    const razorOrder = await instance.orders.create({ amount: razorAmount, currency: 'INR', receipt: String(order.id), payment_capture: 1 });
+
+    res.json({ key_id: keyId, razorpay_order_id: razorOrder.id, amount: razorOrder.amount, currency: razorOrder.currency, orderId: order.id });
+  } catch (err) {
+    console.error('Razorpay create-order error:', err.message || err);
+    res.status(500).json({ error: err.message || 'Failed to create razorpay order' });
+  }
+});
+
+// Verify Razorpay payment signature (client posts payment_id, order_id, signature)
+router.post('/razorpay/verify', async (req, res) => {
+  try {
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret) return res.status(400).json({ error: 'Razorpay not configured on server' });
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) return res.status(400).json({ error: 'Missing verification fields' });
+
+    const generated = crypto.createHmac('sha256', keySecret).update(razorpay_order_id + '|' + razorpay_payment_id).digest('hex');
+    if (generated === razorpay_signature) {
+      // Optionally mark the corresponding Order as paid using the receipt -> order id mapping
+      return res.json({ verified: true });
+    }
+    return res.status(400).json({ verified: false });
+  } catch (err) {
+    console.error('Razorpay verify error:', err.message || err);
+    res.status(500).json({ error: 'Verification failed' });
   }
 });
 
