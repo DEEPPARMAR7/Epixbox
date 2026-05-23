@@ -289,11 +289,11 @@ AWS_SECRET_ACCESS_KEY=your_secret_key
 S3_BUCKET_NAME=epixbox-production
 ```
 
-### Stripe Payments
+### Razorpay Payments
 ```env
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+RAZORPAY_KEY_ID=rzp_test_...
+RAZORPAY_KEY_SECRET=your_razorpay_secret
+RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 ```
 
 ### Email Configuration
@@ -345,7 +345,7 @@ REDIS_PASSWORD=
 | POST | `/api/orders` | Create order |
 | GET | `/api/orders/:id` | Get order details |
 | POST | `/api/checkout` | Process checkout |
-| POST | `/api/payments/webhook` | Stripe webhook handler |
+| POST | `/api/checkout/razorpay/webhook` | Razorpay webhook handler |
 
 ### Admin Dashboard
 | Method | Route | Description |

@@ -114,15 +114,19 @@ Copy `.env.example` to `.env` and fill in these critical values:
 ```bash
 # Database
 DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=photoapp_dev
-DB_USER=postgres
+# Payments
+RAZORPAY_KEY_ID=rzp_test_your_key_here
+RAZORPAY_KEY_SECRET=your_razorpay_secret_here
+RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret_here
+PAYPAL_CLIENT_ID=your_paypal_client_id
+PAYPAL_CLIENT_SECRET=your_paypal_secret
 DB_PASSWORD=postgres
 DB_SSL=false
 
 # Auth
 JWT_ACCESS_SECRET=your_256_bit_secret_here
-JWT_REFRESH_SECRET=your_256_bit_secret_here
+VITE_RAZORPAY_KEY_ID=rzp_test_your_key_here
+VITE_PAYPAL_CLIENT_ID=your_paypal_client_id
 
 # AWS S3
 AWS_ACCESS_KEY_ID=your_access_key
@@ -135,9 +139,6 @@ STRIPE_SECRET_KEY=sk_test_your_key_here
 STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
 
-# Email (Mailtrap for testing)
-SMTP_HOST=smtp.mailtrap.io
-SMTP_PORT=2525
 SMTP_USER=your_mailtrap_user
 SMTP_PASS=your_mailtrap_pass
 EMAIL_FROM=noreply@epixbox.dev
@@ -158,10 +159,12 @@ VITE_LOGROCKET_APP_ID=your_logrocket_id_here
 The client picks up VITE_ prefixed variables from server .env:
 ```bash
 VITE_API_BASE_URL=http://localhost:4000/api/v1
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 VITE_SENTRY_DSN=your_sentry_dsn_here
 VITE_LOGROCKET_APP_ID=your_logrocket_id_here
 ```
+
+> Payment provider secrets are server-side only for the current Razorpay flow.
+> The client does not need `VITE_RAZORPAY_KEY_ID` or `VITE_RAZORPAY_KEY_SECRET`.
 
 ## 4. Getting Credentials
 
@@ -171,11 +174,12 @@ VITE_LOGROCKET_APP_ID=your_logrocket_id_here
 3. Generate access key and secret
 4. Create S3 bucket: `epixbox-photos-dev`
 
-### Stripe
-1. Sign up at https://stripe.com
-2. Go to API Keys section
-3. Copy test keys (starts with `sk_test_` and `pk_test_`)
-4. In Webhooks, add endpoint: `http://localhost:4000/api/v1/webhooks/stripe`
+### Razorpay
+1. Sign up at https://razorpay.com
+2. Go to the API keys section and copy your test keys.
+3. Add a webhook endpoint for the checkout flow:
+	- `http://localhost:4000/api/v1/checkout/razorpay/webhook`
+4. Create a webhook secret and set it in `RAZORPAY_WEBHOOK_SECRET`.
 
 ### Email (Mailtrap)
 1. Sign up at https://mailtrap.io

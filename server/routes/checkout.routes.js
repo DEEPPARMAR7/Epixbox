@@ -4,6 +4,67 @@ const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const { Order, OrderItem, Product, Photo, PriceList } = require('../models');
 const requireAuth = require('../middleware/auth.middleware');
+const { keyId, keySecret } = require('../config/razorpay');
+
+const getRazorpayInstance = () => {
+  if (!keyId || !keySecret) return null;
+  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+};
+
+function parseOrderNotes(order) {
+  try {
+    return order?.notes ? JSON.parse(order.notes) : {};
+  } catch {
+    return {};
+  }
+}
+
+async function setOrderPaid({ order, razorpayOrderId, razorpayPaymentId, eventType = 'payment_succeeded', source = 'razorpay' }) {
+  if (!order) return null;
+
+  const notes = parseOrderNotes(order);
+  if (!Array.isArray(notes.timeline)) notes.timeline = [];
+  if (!Array.isArray(notes.refunds)) notes.refunds = [];
+
+  if (order.status === 'paid' && (!razorpayPaymentId || notes.razorpay_payment_id === razorpayPaymentId)) {
+    return order;
+  }
+
+  notes.gateway = source;
+  notes.razorpay_order_id = razorpayOrderId || notes.razorpay_order_id || null;
+  notes.razorpay_payment_id = razorpayPaymentId || notes.razorpay_payment_id || null;
+  notes.timeline.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    created_at: new Date().toISOString(),
+    type: eventType,
+    title: 'Payment received',
+    description: 'Razorpay payment was confirmed',
+    status: 'paid',
+    razorpay_order_id: razorpayOrderId || null,
+    razorpay_payment_id: razorpayPaymentId || null,
+    source,
+  });
+
+  await order.update({
+    status: 'paid',
+    notes: JSON.stringify(notes),
+  });
+
+  return order;
+}
+
+async function findOrderByRazorpayOrderId(razorpayOrderId) {
+  if (!razorpayOrderId) return null;
+
+  const instance = getRazorpayInstance();
+  if (!instance) return null;
+
+  const razorpayOrder = await instance.orders.fetch(razorpayOrderId);
+  const receiptOrderId = String(razorpayOrder?.receipt || '').trim();
+  if (!receiptOrderId) return null;
+
+  return Order.findByPk(receiptOrderId);
+}
 
 const createPendingOrderFromItems = async ({ items, buyerEmail, buyerName, paymentGateway }) => {
   if (!items || !items.length) {
@@ -120,8 +181,6 @@ router.get('/payment-methods', async (req, res) => {
 // Create a Razorpay order for client-side checkout
 router.post('/razorpay/create-order', requireAuth, async (req, res) => {
   try {
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
     if (!keyId || !keySecret) return res.status(400).json({ error: 'Razorpay not configured on server' });
 
     let { amount_cents, items, buyerEmail, buyerName } = req.body || {};
@@ -147,10 +206,28 @@ router.post('/razorpay/create-order', requireAuth, async (req, res) => {
       });
     }
 
-    const instance = new Razorpay({ key_id: keyId, key_secret: keySecret });
+    const instance = getRazorpayInstance();
+    if (!instance) return res.status(400).json({ error: 'Razorpay not configured on server' });
     const razorAmount = Math.max(1, parseInt(amount_cents || order.total_cents || 100, 10));
 
-    const razorOrder = await instance.orders.create({ amount: razorAmount, currency: 'INR', receipt: String(order.id), payment_capture: 1 });
+    const razorOrder = await instance.orders.create({
+      amount: razorAmount,
+      currency: 'INR',
+      receipt: String(order.id),
+      payment_capture: 1,
+      notes: {
+        order_id: String(order.id),
+        photographer_id: String(order.photographer_id),
+        buyer_email: String(order.buyer_email || ''),
+      },
+    });
+
+    const notes = parseOrderNotes(order);
+    notes.gateway = 'razorpay';
+    notes.razorpay_order_id = razorOrder.id;
+    if (!Array.isArray(notes.timeline)) notes.timeline = [];
+    if (!Array.isArray(notes.refunds)) notes.refunds = [];
+    await order.update({ notes: JSON.stringify(notes) });
 
     res.json({ key_id: keyId, razorpay_order_id: razorOrder.id, amount: razorOrder.amount, currency: razorOrder.currency, orderId: order.id });
   } catch (err) {
@@ -162,20 +239,79 @@ router.post('/razorpay/create-order', requireAuth, async (req, res) => {
 // Verify Razorpay payment signature (client posts payment_id, order_id, signature)
 router.post('/razorpay/verify', async (req, res) => {
   try {
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
     if (!keySecret) return res.status(400).json({ error: 'Razorpay not configured on server' });
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) return res.status(400).json({ error: 'Missing verification fields' });
 
     const generated = crypto.createHmac('sha256', keySecret).update(razorpay_order_id + '|' + razorpay_payment_id).digest('hex');
     if (generated === razorpay_signature) {
-      // Optionally mark the corresponding Order as paid using the receipt -> order id mapping
-      return res.json({ verified: true });
+      const order = await findOrderByRazorpayOrderId(razorpay_order_id);
+      if (!order) return res.status(404).json({ error: 'Order not found' });
+
+      await setOrderPaid({
+        order,
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        eventType: 'payment_verified',
+        source: 'razorpay-client',
+      });
+
+      return res.json({ verified: true, orderId: order.id, orderStatus: 'paid' });
     }
     return res.status(400).json({ verified: false });
   } catch (err) {
     console.error('Razorpay verify error:', err.message || err);
     res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
+// Razorpay webhook endpoint (payment captured / order paid)
+router.post('/razorpay/webhook', async (req, res) => {
+  try {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret) return res.status(400).json({ error: 'Razorpay webhook secret not configured' });
+
+    const signature = req.headers['x-razorpay-signature'];
+    const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : '';
+    if (!signature || !rawBody) {
+      return res.status(400).json({ error: 'Missing webhook signature or body' });
+    }
+
+    const digest = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+    if (digest !== signature) {
+      return res.status(400).json({ error: 'Invalid webhook signature' });
+    }
+
+    const event = JSON.parse(rawBody);
+    const eventType = String(event?.event || '').trim();
+    const razorpayOrderId = event?.payload?.payment?.entity?.order_id
+      || event?.payload?.order?.entity?.id
+      || null;
+    const razorpayPaymentId = event?.payload?.payment?.entity?.id || null;
+
+    if (!razorpayOrderId) {
+      return res.status(200).json({ received: true, ignored: true });
+    }
+
+    const order = await findOrderByRazorpayOrderId(razorpayOrderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.status !== 'paid') {
+      await setOrderPaid({
+        order,
+        razorpayOrderId,
+        razorpayPaymentId,
+        eventType: eventType || 'payment.captured',
+        source: 'razorpay-webhook',
+      });
+    }
+
+    res.json({ received: true, orderId: order.id, status: 'paid' });
+  } catch (err) {
+    console.error('Razorpay webhook error:', err.message || err);
+    res.status(500).json({ error: err.message || 'Webhook processing failed' });
   }
 });
 

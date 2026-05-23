@@ -93,6 +93,8 @@ app.options('*', cors(corsOptions));
 // Raw body for payment webhooks
 app.use('/api/orders/webhook', express.raw({ type: 'application/json' }));
 app.use('/api/v1/orders/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/checkout/razorpay/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/v1/checkout/razorpay/webhook', express.raw({ type: 'application/json' }));
 app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
 app.use('/api/v1/subscriptions/webhook', express.raw({ type: 'application/json' }));
 
@@ -100,6 +102,8 @@ app.use('/api/v1/subscriptions/webhook', express.raw({ type: 'application/json' 
 const webhookPaths = new Set([
   '/api/orders/webhook',
   '/api/v1/orders/webhook',
+  '/api/checkout/razorpay/webhook',
+  '/api/v1/checkout/razorpay/webhook',
   '/api/subscriptions/webhook',
   '/api/v1/subscriptions/webhook',
 ]);
