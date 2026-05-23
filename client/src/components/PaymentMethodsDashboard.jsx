@@ -29,7 +29,7 @@ const PROVIDER_META = {
 
 const getProviderMeta = (method) => PROVIDER_META[method.id] || PROVIDER_META.default;
 
-function ProviderCard({ method, onOpen }) {
+function ProviderCard({ method, onOpen = () => {} }) {
   const meta = getProviderMeta(method);
 
   return (
@@ -224,7 +224,7 @@ export default function PaymentMethodsDashboard() {
         ) : methods.length > 0 ? (
           <div className="grid gap-5 lg:grid-cols-2">
             {methods.map((method) => (
-              <ProviderCard key={method.id} method={method} />
+              <ProviderCard key={method.id} method={method} onOpen={handleOpen} />
             ))}
           </div>
         ) : (
