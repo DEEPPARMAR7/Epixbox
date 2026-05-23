@@ -180,6 +180,12 @@ const PricingPage = () => {
         </div>
 
         {/* Plan Cards */}
+        <div className="mt-6 text-center">
+          <Link to="/support" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground/90 hover:underline">
+            Contact Support
+          </Link>
+        </div>
+
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {plans.map((plan) => (
             <div
