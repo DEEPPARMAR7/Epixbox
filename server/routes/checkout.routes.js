@@ -3,6 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const { Order, OrderItem, Product, Photo, PriceList } = require('../models');
+const requireAuth = require('../middleware/auth.middleware');
 
 const createPendingOrderFromItems = async ({ items, buyerEmail, buyerName, paymentGateway }) => {
   if (!items || !items.length) {
@@ -117,7 +118,7 @@ router.get('/payment-methods', async (req, res) => {
 });
 
 // Create a Razorpay order for client-side checkout
-router.post('/razorpay/create-order', async (req, res) => {
+router.post('/razorpay/create-order', requireAuth, async (req, res) => {
   try {
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -131,10 +132,19 @@ router.post('/razorpay/create-order', async (req, res) => {
       order = result.order;
       amount_cents = result.totalCents;
     } else {
-      // create a simple pending order record
+      // create a simple pending order record owned by the logged-in user
       const total = Math.max(1, parseInt(amount_cents || 100, 10));
       const persistedBuyerEmail = String(buyerEmail || `pending+${Date.now()}@epixbox.local`).trim();
-      order = await Order.create({ buyer_email: persistedBuyerEmail, buyer_name: buyerName || null, photographer_id: null, status: 'pending', subtotal_cents: total, tax_cents: 0, total_cents: total, notes: JSON.stringify({ timeline: [], public_tracking_token: crypto.randomBytes(16).toString('hex') }) });
+      order = await Order.create({
+        buyer_email: persistedBuyerEmail,
+        buyer_name: buyerName || null,
+        photographer_id: req.user.id,
+        status: 'pending',
+        subtotal_cents: total,
+        tax_cents: 0,
+        total_cents: total,
+        notes: JSON.stringify({ timeline: [], public_tracking_token: crypto.randomBytes(16).toString('hex') }),
+      });
     }
 
     const instance = new Razorpay({ key_id: keyId, key_secret: keySecret });
