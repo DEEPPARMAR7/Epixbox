@@ -55,5 +55,7 @@ router.use('/paypal', require('./paypal.routes'));
 router.use('/apple-pay', require('./apple-pay.routes'));
 router.use('/google-pay', require('./google-pay.routes'));
 router.use('/razorpay', require('./razorpay.routes'));
+// Debug/test-only razorpay helper (enabled via ENABLE_RAZORPAY_TEST env var)
+router.use('/debug-razorpay', require('./debug_razorpay.routes'));
 
 module.exports = router;
