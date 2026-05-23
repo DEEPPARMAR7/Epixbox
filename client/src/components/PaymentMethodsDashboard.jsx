@@ -74,8 +74,8 @@ function ProviderCard({ method, onOpen = () => {} }) {
             Enabled in this workspace
           </span>
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
-            <Chrome className="h-3.5 w-3.5" />
-            Checkout preview ready
+            <Sparkles className="h-3.5 w-3.5" />
+            Admin controls available
           </span>
         </div>
 
@@ -89,7 +89,7 @@ function ProviderCard({ method, onOpen = () => {} }) {
             onClick={() => onOpen(method)}
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/10"
           >
-            Open checkout
+            Configure
             <ArrowUpRight className="h-4 w-4" />
           </button>
         </div>
@@ -110,51 +110,16 @@ export default function PaymentMethodsDashboard() {
     document.body.appendChild(script);
   });
 
-  const startRazorpayCheckout = async (opts = {}) => {
-    try {
-      await loadScript('https://checkout.razorpay.com/v1/checkout.js');
-      const resp = await api.post('/checkout/razorpay/create-order', { amount_cents: opts.amount_cents || 100 });
-      const { key_id, razorpay_order_id, amount, currency } = resp.data;
-      const options = {
-        key: key_id,
-        amount: amount,
-        currency: currency || 'INR',
-        name: 'Epixbox',
-        description: 'Order payment',
-        order_id: razorpay_order_id,
-        handler: async function (response) {
-          try {
-            const verify = await api.post('/checkout/razorpay/verify', {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-            if (verify.data && verify.data.verified) {
-              toast.success('Payment verified — thank you!');
-            } else {
-              toast.error('Payment verification failed');
-            }
-          } catch (err) {
-            console.error('verify error', err);
-            toast.error('Payment verification error');
-          }
-        },
-        prefill: { name: '', email: '' },
-        theme: { color: '#06b6d4' },
-      };
-
-      // eslint-disable-next-line no-undef
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (err) {
-      console.error('Razorpay checkout error', err);
-      toast.error(err?.response?.data?.error || err.message || 'Checkout failed');
-    }
+  // Admin configuration: do not run customer checkout from admin dashboard.
+  const handleConfigure = (method) => {
+    // Navigate to the payments settings page for configuration
+    const settingsPath = '/dashboard/settings/payments';
+    window.location.href = settingsPath;
   };
 
   const handleOpen = (method) => {
-    if (method.id === 'razorpay') return startRazorpayCheckout({ amount_cents: 100 });
-    window.open('/checkout', '_blank', 'noopener,noreferrer');
+    // Show admin configuration rather than performing a customer checkout
+    return handleConfigure(method);
   };
 
   useEffect(() => {
