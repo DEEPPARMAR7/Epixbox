@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import IllustratedEmptyState from '../../components/common/IllustratedEmptyState'
@@ -16,7 +15,6 @@ import { formatCurrency } from '../../utils/formatters'
 const STATUS_OPTIONS = ['pending', 'paid', 'processing', 'shipped', 'cancelled']
 
 export default function PaymentsPage() {
-  const location = useLocation()
   const [loading, setLoading] = useState(true)
   const [orders, setOrders] = useState([])
   const [billing, setBilling] = useState(null)
@@ -45,22 +43,6 @@ export default function PaymentsPage() {
       .catch((err) => toast.error(err?.response?.data?.error || 'Failed to load payments'))
       .finally(() => setLoading(false))
   }, [])
-
-  useEffect(() => {
-    if (location.hash !== '#payment-gateway-settings') return
-
-    const scrollToGateway = () => {
-      const target = document.getElementById('payment-gateway-settings')
-      if (!target) return false
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      return true
-    }
-
-    if (scrollToGateway()) return
-
-    const timer = window.setTimeout(scrollToGateway, 50)
-    return () => window.clearTimeout(timer)
-  }, [location.hash, loading])
 
   const paid = useMemo(() => orders.filter(o => o.status === 'paid'), [orders])
   const revenue = useMemo(() => paid.reduce((sum, o) => sum + (o.total_cents || 0), 0), [paid])
@@ -190,30 +172,6 @@ export default function PaymentsPage() {
 
         <PaymentMethodsDashboard />
 
-        <div id="payment-gateway-settings" className="rounded-[28px] border border-white/10 bg-white/5 p-5 sm:p-6 shadow-[0_24px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Gateway settings</p>
-              <h2 className="mt-2 text-xl font-black text-white sm:text-2xl">Active payment providers</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                Review the gateways currently available for checkout. Razorpay handles INR orders and PayPal handles international payments.
-              </p>
-            </div>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">Gateway options</span>
-          </div>
-
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-sm font-semibold text-white">Razorpay</p>
-              <p className="mt-1 text-sm text-slate-400">Best for INR checkout, UPI, cards, and wallets.</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-sm font-semibold text-white">PayPal</p>
-              <p className="mt-1 text-sm text-slate-400">Best for international cards and wallet payments.</p>
-            </div>
-          </div>
-        </div>
-
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
             <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Total Orders</p>
@@ -262,22 +220,6 @@ export default function PaymentsPage() {
                       <button
                         type="button"
                         onClick={() => openOrderManager(o.id)}
-                        className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10"
-                      >
-                        Manage
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <IllustratedEmptyState
-            variant="orders"
-            title="No orders yet"
-            description="As customers start purchasing photos, payment activity and status will appear here."
-            actionLabel="Review Pricing"
             actionTo="/dashboard/pricing"
           />
         )}
@@ -297,30 +239,6 @@ export default function PaymentsPage() {
                 Close
               </button>
             </div>
-
-            {loadingOrderPanel ? (
-              <div className="text-sm text-slate-400">Loading order details...</div>
-            ) : (
-              <>
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                  <label className="block text-xs uppercase tracking-[0.15em] text-slate-500 mb-2">Update Status</label>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {STATUS_OPTIONS.map((status) => (
-                      <button
-                        key={status}
-                        type="button"
-                        disabled={updatingStatus}
-                        onClick={() => handleStatusUpdate(activeOrderId, status)}
-                        className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-60"
-                      >
-                        {status}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <form onSubmit={handleShippingSave} className="rounded-2xl border border-white/10 bg-black/20 p-3 space-y-3">
-                  <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Shipping Details</p>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <input
                       value={shippingForm.shipping_carrier}

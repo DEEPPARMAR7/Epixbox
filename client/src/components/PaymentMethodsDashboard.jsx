@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowUpRight, BadgeCheck, Chrome, CreditCard, DollarSign, Sparkles } from 'lucide-react';
 import api from '../api/axiosClient';
@@ -30,7 +29,7 @@ const PROVIDER_META = {
 
 const getProviderMeta = (method) => PROVIDER_META[method.id] || PROVIDER_META.default;
 
-function ProviderCard({ method, onOpen = () => {} }) {
+function ProviderCard({ method }) {
   const meta = getProviderMeta(method);
 
   return (
@@ -85,14 +84,10 @@ function ProviderCard({ method, onOpen = () => {} }) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Provider ID</p>
             <p className="mt-1 text-sm font-medium text-slate-200">{method.id}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => onOpen(method)}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/10"
-          >
-            Gateway Settings
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300">
+            Configured
             <ArrowUpRight className="h-4 w-4" />
-          </button>
+          </span>
         </div>
       </div>
     </div>
@@ -102,7 +97,6 @@ function ProviderCard({ method, onOpen = () => {} }) {
 export default function PaymentMethodsDashboard() {
   const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   const loadScript = (src) => new Promise((resolve, reject) => {
     const script = document.createElement('script');
@@ -111,16 +105,6 @@ export default function PaymentMethodsDashboard() {
     script.onerror = () => reject(new Error('Failed to load script: ' + src));
     document.body.appendChild(script);
   });
-
-  // Open the gateway section on the same Payments page.
-  const handleConfigure = () => {
-    navigate('/dashboard/payments#payment-gateway-settings');
-  };
-
-  const handleOpen = (method) => {
-    // Keep the action functional by opening the gateway settings section.
-    return handleConfigure(method);
-  };
 
   useEffect(() => {
     let mounted = true;
@@ -189,7 +173,7 @@ export default function PaymentMethodsDashboard() {
         ) : methods.length > 0 ? (
           <div className="grid gap-5 lg:grid-cols-2">
             {methods.map((method) => (
-              <ProviderCard key={method.id} method={method} onOpen={handleOpen} />
+              <ProviderCard key={method.id} method={method} />
             ))}
           </div>
         ) : (
