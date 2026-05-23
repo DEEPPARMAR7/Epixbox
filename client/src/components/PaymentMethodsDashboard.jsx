@@ -158,7 +158,7 @@ export default function PaymentMethodsDashboard() {
               Payments
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
-              Manage payment gateways and billing for your site. Checkout is active for customer orders — configure providers (Razorpay, PayPal) here to manage billing, payouts, and refunds. Use the Configure button to update API keys, view payment logs, and test webhooks.
+              Manage gateways and billing. Configure providers, API keys, and webhooks.
             </p>
           </div>
 
