@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useTheme } from "next-themes";
 import BrandLogo from "./BrandLogo";
 import { useAuth } from "../hooks/use-auth";
 
@@ -16,13 +15,30 @@ const navLinks = [
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const location = useLocation();
   const { isAuthenticated, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
 
   const links = isAuthenticated
     ? navLinks.filter((l) => l.href !== "/login")
     : navLinks;
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const shouldUseDark = storedTheme ? storedTheme === "dark" : prefersDark;
+    setIsDark(shouldUseDark);
+    document.documentElement.classList.toggle("dark", shouldUseDark);
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark((current) => {
+      const nextTheme = !current;
+      document.documentElement.classList.toggle("dark", nextTheme);
+      window.localStorage.setItem("theme", nextTheme ? "dark" : "light");
+      return nextTheme;
+    });
+  };
 
   const onLogout = async () => {
     await logout();
@@ -53,11 +69,11 @@ const Navbar = () => {
 
           {/* Dark Mode Toggle */}
           <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={toggleTheme}
             className="rounded-full border border-border/70 p-2.5 transition-colors hover:bg-muted"
-            aria-label="Toggle dark mode"
+            aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {theme === 'dark' ? (
+            {isDark ? (
               <Sun size={20} className="text-foreground" />
             ) : (
               <Moon size={20} className="text-foreground" />
@@ -70,9 +86,6 @@ const Navbar = () => {
             </button>
           ) : (
             <>
-              <Link to="/support" className="font-heading text-[11px] uppercase tracking-[0.24em] text-foreground/70 hover:text-foreground mr-4">
-                Support
-              </Link>
               <Link to="/signup" className="btn-cta text-xs py-3 px-6">
                 try free
               </Link>
