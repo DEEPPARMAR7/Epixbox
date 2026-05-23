@@ -191,8 +191,13 @@ router.post('/razorpay/create-order', requireAuth, async (req, res) => {
       order = result.order;
       amount_cents = result.totalCents;
     } else {
+      // If client did not send items, require an explicit amount_cents to avoid accidental ₹1 default
+      if (!amount_cents) {
+        return res.status(400).json({ error: 'No items provided — supply `items` or `amount_cents` in request' });
+      }
+
       // create a simple pending order record owned by the logged-in user
-      const total = Math.max(1, parseInt(amount_cents || 100, 10));
+      const total = Math.max(1, parseInt(amount_cents, 10));
       const persistedBuyerEmail = String(buyerEmail || `pending+${Date.now()}@epixbox.local`).trim();
       order = await Order.create({
         buyer_email: persistedBuyerEmail,
