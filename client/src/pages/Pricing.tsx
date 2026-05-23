@@ -127,8 +127,11 @@ const PricingPage = () => {
       {/* Hero */}
       <section className="section-padding text-center">
         <h1 className="heading-xl text-foreground mb-4">Plans & Pricing</h1>
-        <p className="body-lg max-w-2xl mx-auto mb-10">
+        <p className="body-lg max-w-2xl mx-auto mb-4">
           Start free for 14 days. No credit card required. Pick the plan that grows with you.
+        </p>
+        <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-10">
+          Payments: Razorpay (INR) • PayPal (International). Billing & refunds are handled by your payment provider.
         </p>
 
         {/* Toggle */}

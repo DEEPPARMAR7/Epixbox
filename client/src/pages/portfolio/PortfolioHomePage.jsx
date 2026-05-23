@@ -201,9 +201,6 @@ export default function PortfolioHomePage() {
                 >
                   Browse collections
                 </a>
-                <div className="rounded-full border border-white/15 bg-white/5 px-4 py-3 text-xs font-medium text-white/70 backdrop-blur-md">
-                  Clean portfolio, client-ready presentation, fast browsing
-                </div>
               </div>
               <div className="mt-6 flex justify-start">
                 <ShareBar url={window.location.href} title={`${displayName} — Photography Portfolio`} />

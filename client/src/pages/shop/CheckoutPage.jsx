@@ -117,7 +117,11 @@ export default function CheckoutPage() {
               </div>
 
               {/* Payment Method Selector */}
-              <PaymentMethodSelector onSelect={setSelectedPaymentMethod} selectedMethod={selectedPaymentMethod} onMethods={setAvailableMethods} />
+              <div className="mb-4">
+                <p className="text-sm text-muted-foreground mb-2">We accept: <span className="font-semibold text-foreground">Razorpay (INR)</span> • <span className="font-semibold text-foreground">PayPal (International)</span></p>
+                <p className="text-xs text-muted-foreground mb-2">Razorpay: INR only · PayPal: international cards and wallets</p>
+                <PaymentMethodSelector onSelect={setSelectedPaymentMethod} selectedMethod={selectedPaymentMethod} onMethods={setAvailableMethods} />
+              </div>
 
               <div className="pt-4 border-t border-border/70 space-y-4">
                 <div className="grid gap-3">
