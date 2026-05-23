@@ -190,10 +190,10 @@ export default function PaymentMethodsDashboard() {
           <div className="max-w-2xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.36em] text-cyan-200/80">Payments</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-              Gateway options presented like a premium storefront.
+              Payment gateways for your storefront
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
-              Choose the processors that are actually available in this workspace. The dashboard now highlights live gateways first and keeps the styling clean, editorial, and easy to scan.
+              Select and manage the payment processors enabled for this workspace. Live gateways are highlighted so you can quickly configure and test checkout flows.
             </p>
           </div>
 
@@ -208,7 +208,7 @@ export default function PaymentMethodsDashboard() {
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Checkout feel</p>
-              <p className="mt-2 text-sm font-medium text-slate-100">SmugMug-inspired</p>
+              <p className="mt-2 text-sm font-medium text-slate-100">Clean, customizable checkout experience</p>
             </div>
           </div>
         </div>
