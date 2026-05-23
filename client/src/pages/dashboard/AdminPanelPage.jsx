@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Spinner from '../../components/common/Spinner'
@@ -32,6 +33,7 @@ function Stat({ label, value }) {
 }
 
 export default function AdminPanelPage() {
+  const location = useLocation()
   const [loading, setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
   const [activeTab, setActiveTab] = useState('users')
@@ -53,6 +55,14 @@ export default function AdminPanelPage() {
     mark_shipped: false,
   })
   const [transactionRefundForm, setTransactionRefundForm] = useState({ amount_cents: '', reason: 'requested_by_customer', notes: '' })
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const requestedTab = params.get('tab')
+    if (requestedTab && ['users', 'media', 'payments', 'system'].includes(requestedTab)) {
+      setActiveTab(requestedTab)
+    }
+  }, [location.search])
 
   const totals = useMemo(() => analytics?.totals || {}, [analytics])
 
