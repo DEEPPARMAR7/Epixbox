@@ -110,11 +110,15 @@ export default function PaymentMethodsDashboard() {
     document.body.appendChild(script);
   });
 
-  // Admin configuration: do not run customer checkout from admin dashboard.
-  const handleConfigure = (method) => {
-    // Navigate to the payments settings page for configuration
-    const settingsPath = '/dashboard/settings/payments';
-    window.location.href = settingsPath;
+  // Admin configuration: jump to the billing/admin panel on the same page.
+  const handleConfigure = () => {
+    const target = document.getElementById('payment-admin-panel');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    window.location.href = '/dashboard/payments#payment-admin-panel';
   };
 
   const handleOpen = (method) => {
