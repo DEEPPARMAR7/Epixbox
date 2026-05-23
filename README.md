@@ -296,6 +296,40 @@ RAZORPAY_KEY_SECRET=your_razorpay_secret
 RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 ```
 
+### Razorpay — Enablement & Verification
+
+Follow these steps to enable Razorpay payments in production (or staging):
+
+- **Set environment variables**: ensure `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` are configured in your hosting provider (you mentioned Render).
+- **Configure webhook in Razorpay dashboard**:
+	- Webhook URL: `https://<YOUR_DOMAIN>/api/v1/checkout/razorpay/webhook`
+	- Use the same secret value as `RAZORPAY_WEBHOOK_SECRET` in the dashboard so the server can validate incoming signatures.
+- **Verify server is receiving webhooks**: there is a helper script at `server/scripts/send_test_webhook.js` which signs a test payload using `RAZORPAY_WEBHOOK_SECRET`.
+
+Local test commands (server folder):
+```powershell
+cd server
+# Set secret for this shell (or add to .env)
+$env:RAZORPAY_WEBHOOK_SECRET='shhh'
+# Send a signed test webhook to your local server
+node scripts/send_test_webhook.js --url http://localhost:4000/api/v1/checkout/razorpay/webhook --event order.paid --order_id rzp_test_order_123 --secret shhh
+```
+
+Create-order & client checkout (quick test):
+```bash
+# Create a Razorpay order (server creates a pending Order record)
+curl -X POST http://localhost:4000/api/v1/razorpay/create-order \
+	-H "Content-Type: application/json" \
+	-d '{"items":[{"productId":123,"photoId":456,"quantity":1}],"buyerEmail":"you@example.com"}'
+
+# Open the frontend and use the "Pay with Razorpay" button (component: client/src/components/RazorpayCheckoutButton.jsx)
+```
+
+Notes:
+- The server exposes Razorpay handlers in `server/routes/razorpay.routes.js` and additional helpers in `server/routes/checkout.routes.js`.
+- If you prefer, I can consolidate duplicate handlers or run an end-to-end test and push changes — tell me if you want me to proceed.
+
+
 ### Email Configuration
 ```env
 SMTP_HOST=smtp.example.com
