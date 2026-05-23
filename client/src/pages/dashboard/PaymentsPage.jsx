@@ -162,7 +162,7 @@ export default function PaymentsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-5 sm:space-y-6">
-        <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 sm:p-6 shadow-[0_24px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+        <div id="payment-admin-panel" className="rounded-[28px] border border-white/10 bg-white/5 p-5 sm:p-6 shadow-[0_24px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Payments</p>
           <h1 className="mt-2 text-2xl font-black text-white sm:text-4xl">Payment Gateway and Billing</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
@@ -171,6 +171,30 @@ export default function PaymentsPage() {
         </div>
 
         <PaymentMethodsDashboard />
+
+        <div id="payment-gateway-settings" className="rounded-[28px] border border-white/10 bg-white/5 p-5 sm:p-6 shadow-[0_24px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Gateway settings</p>
+              <h2 className="mt-2 text-xl font-black text-white sm:text-2xl">Active payment providers</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                Review the gateways currently available for checkout. Razorpay handles INR orders and PayPal handles international payments.
+              </p>
+            </div>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">Gateway options</span>
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-sm font-semibold text-white">Razorpay</p>
+              <p className="mt-1 text-sm text-slate-400">Best for INR checkout, UPI, cards, and wallets.</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-sm font-semibold text-white">PayPal</p>
+              <p className="mt-1 text-sm text-slate-400">Best for international cards and wallet payments.</p>
+            </div>
+          </div>
+        </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
