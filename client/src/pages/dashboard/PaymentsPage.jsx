@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import IllustratedEmptyState from '../../components/common/IllustratedEmptyState'
@@ -15,6 +16,7 @@ import { formatCurrency } from '../../utils/formatters'
 const STATUS_OPTIONS = ['pending', 'paid', 'processing', 'shipped', 'cancelled']
 
 export default function PaymentsPage() {
+  const location = useLocation()
   const [loading, setLoading] = useState(true)
   const [orders, setOrders] = useState([])
   const [billing, setBilling] = useState(null)
@@ -43,6 +45,22 @@ export default function PaymentsPage() {
       .catch((err) => toast.error(err?.response?.data?.error || 'Failed to load payments'))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (location.hash !== '#payment-gateway-settings') return
+
+    const scrollToGateway = () => {
+      const target = document.getElementById('payment-gateway-settings')
+      if (!target) return false
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return true
+    }
+
+    if (scrollToGateway()) return
+
+    const timer = window.setTimeout(scrollToGateway, 50)
+    return () => window.clearTimeout(timer)
+  }, [location.hash, loading])
 
   const paid = useMemo(() => orders.filter(o => o.status === 'paid'), [orders])
   const revenue = useMemo(() => paid.reduce((sum, o) => sum + (o.total_cents || 0), 0), [paid])
