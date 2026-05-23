@@ -90,33 +90,32 @@ router.post('/domain', requireFeature(async ({ limits }) => ({
 router.get('/billing', async (req, res, next) => {
   try {
     const limits = getTierLimits(req.user.plan);
-    res.json({ plan: req.user.plan, stripe_customer_id: req.user.stripe_customer_id, tier_limits: limits });
+    res.json({
+      plan: req.user.plan,
+      billing_provider: 'disabled',
+      billing_portal_enabled: false,
+      tier_limits: limits,
+    });
   } catch (err) { next(err); }
 });
 
 // POST /api/settings/billing/portal
 router.post('/billing/portal', async (req, res, next) => {
   try {
-    // Billing portal disabled because Stripe integration has been removed.
-    return res.status(400).json({ error: 'Stripe billing portal is disabled on this server.' });
+    return res.status(410).json({ error: 'Billing portal is disabled on this server.' });
   } catch (err) {
-    if (err?.type === 'StripeAuthenticationError' || err?.code === 'authentication_error') {
-      console.error('Stripe authentication failure:', err.message);
-      return res.status(500).json({ error: 'Stripe API key is invalid or not configured properly.' });
-    }
     next(err);
   }
 });
 
 // GET /api/settings/billing/portal-config-info
-// Helper endpoint to check Stripe portal configuration
 router.get('/billing/portal-config-info', requireAuth, async (req, res) => {
   try {
     if (req.userRole !== 'admin' && req.userRole !== 'photographer') {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    return res.json({ configured: false, message: 'Stripe integration removed from server' });
+    return res.json({ configured: false, message: 'Billing portal disabled on this server' });
   } catch (err) {
     console.error('Portal config info error:', err.message);
     res.status(500).json({ error: err.message });

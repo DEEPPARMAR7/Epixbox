@@ -37,18 +37,6 @@ services:
         scope: secret
         # User must provide this - change it!
 
-      - key: STRIPE_SECRET_KEY
-        scope: secret
-        # Optional - for Stripe integration
-
-      - key: STRIPE_PUBLISHABLE_KEY
-        scope: secret
-        # Optional
-
-      - key: STRIPE_WEBHOOK_SECRET
-        scope: secret
-        # Optional
-
       - key: AWS_ACCESS_KEY_ID
         scope: secret
         # Optional - for S3 uploads

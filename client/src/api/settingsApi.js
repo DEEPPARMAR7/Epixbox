@@ -8,5 +8,5 @@ export const uploadAvatar = (file) => {
   return axiosClient.post('/settings/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } }).then(r => r.data)
 }
 export const getBilling = () => axiosClient.get('/settings/billing').then(r => r.data)
-export const createBillingPortal = () => axiosClient.post('/settings/billing/portal').then(r => r.data)
+export const createBillingPortal = () => Promise.reject(new Error('Billing portal is disabled on this server'))
 export const connectCustomDomain = (domain) => axiosClient.post('/settings/domain', { domain }).then(r => r.data)

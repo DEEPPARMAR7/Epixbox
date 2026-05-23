@@ -1217,30 +1217,95 @@ export default function GalleryOrganizerPage() {
       )}
 
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={closeCreateDialog} />
-          <form onSubmit={handleCreate} className="relative z-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-600/50 bg-slate-950 text-white shadow-[0_36px_120px_rgba(2,6,23,0.78)]">
-            <div className="border-b border-slate-700/70 px-6 py-5 text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Workspace Setup</p>
-              <h2 className="mt-1 text-3xl font-black tracking-tight">{editingGalleryId ? 'Edit Gallery Settings' : `Create ${form.kind === 'folder' ? 'Folder' : 'Gallery'}`}</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.18),transparent_34%),rgba(2,6,23,0.84)] backdrop-blur-sm" onClick={closeCreateDialog} />
+          <form onSubmit={handleCreate} className="relative z-10 w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#070b14] text-white shadow-[0_36px_120px_rgba(2,6,23,0.88)]">
+            <div className="flex flex-col gap-5 border-b border-white/10 px-6 py-5 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-200/80">Workspace Setup</p>
+                <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{editingGalleryId ? 'Edit gallery settings' : `Create ${form.kind === 'folder' ? 'folder' : 'gallery'}`}</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+                  Shape the gallery before it goes live. The layout keeps the controls organized, while the summary panel on the left reflects the current setup at a glance.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-200">
+                  {form.kind === 'folder' ? 'Folder workspace' : 'Gallery workspace'}
+                </span>
+                <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
+                  {form.preset || 'epicbox_default'}
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
+                  {form.security.display_on_site || 'private'}
+                </span>
+              </div>
             </div>
 
-            <div className="grid min-h-[480px] grid-cols-[230px,minmax(0,1fr)]">
-              <aside className="border-r border-slate-700/70 bg-slate-900/70 p-2">
-                {CREATE_TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveCreateTab(tab.id)}
-                    className={`block w-full rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${activeCreateTab === tab.id ? 'border-blue-500/40 bg-blue-500/15 text-blue-200 shadow-sm' : 'border-transparent text-slate-300 hover:border-slate-700/60 hover:bg-slate-800/70 hover:text-white'}`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+            <div className="grid min-h-[560px] lg:grid-cols-[320px,minmax(0,1fr)]">
+              <aside className="border-b border-white/10 bg-white/[0.03] p-5 sm:p-6 lg:border-b-0 lg:border-r">
+                <div className="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.95),rgba(8,12,20,0.95))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Live Summary</p>
+                  <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">{form.title?.trim() || 'Untitled gallery'}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{form.description?.trim() || 'Add a short description to give the gallery a stronger editorial feel.'}</p>
+
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Type</p>
+                      <p className="mt-2 text-sm font-medium text-slate-100">{form.kind === 'folder' ? 'Folder' : 'Gallery'}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Visibility</p>
+                      <p className="mt-2 text-sm font-medium text-slate-100 capitalize">{form.security.display_on_site || 'private'}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Preset</p>
+                      <p className="mt-2 text-sm font-medium text-slate-100">{form.preset || 'epicbox_default'}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Parent</p>
+                      <p className="mt-2 text-sm font-medium text-slate-100">{galleries.find((gallery) => String(gallery.id) === String(form.parent_id))?.title || 'Root folder'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-2">
+                  {CREATE_TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveCreateTab(tab.id)}
+                      className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${activeCreateTab === tab.id ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-100 shadow-[0_10px_30px_rgba(6,182,212,0.12)]' : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/[0.06] hover:text-white'}`}
+                    >
+                      <span>{tab.label}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${activeCreateTab === tab.id ? 'bg-cyan-400/15 text-cyan-100' : 'bg-white/5 text-slate-400'}`}>
+                        {tab.id}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </aside>
 
-              <section className="bg-slate-900/30 p-7">
-                {activeCreateTab === 'basics' && (
+              <section className="bg-[#0b1120]/95 p-5 sm:p-7 lg:p-8">
+                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6">
+                  <div className="mb-6 flex flex-col gap-2 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">{CREATE_TABS.find((tab) => tab.id === activeCreateTab)?.label}</p>
+                      <h3 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
+                        {activeCreateTab === 'basics' && 'Core gallery details'}
+                        {activeCreateTab === 'security' && 'Access and visibility'}
+                        {activeCreateTab === 'protection' && 'Protection settings'}
+                        {activeCreateTab === 'social' && 'Community controls'}
+                        {activeCreateTab === 'selling' && 'Sales and proofing'}
+                        {activeCreateTab === 'appearance' && 'Display and ordering'}
+                      </h3>
+                    </div>
+                    <p className="max-w-sm text-sm leading-6 text-slate-300">
+                      Use the tabs to move through the setup without losing context. The layout keeps the form calm even when the gallery has a lot of options.
+                    </p>
+                  </div>
+
+                  {activeCreateTab === 'basics' && (
                   <div className="space-y-5">
                     <label className="block text-sm font-semibold text-slate-300">Gallery Preset</label>
                     <select value={form.preset} onChange={(e) => setForm((f) => ({ ...f, preset: e.target.value }))} className="w-full rounded-xl border border-slate-600/80 bg-slate-900/70 px-3 py-3 text-base text-slate-100 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
@@ -1276,9 +1341,9 @@ export default function GalleryOrganizerPage() {
                       </select>
                     </div>
                   </div>
-                )}
+                  )}
 
-                {activeCreateTab === 'security' && (
+                  {activeCreateTab === 'security' && (
                   <div className="space-y-5">
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Display on Site</label>
@@ -1319,9 +1384,9 @@ export default function GalleryOrganizerPage() {
                       </div>
                     </div>
                   </div>
-                )}
+                  )}
 
-                {activeCreateTab === 'protection' && (
+                  {activeCreateTab === 'protection' && (
                   <div className="space-y-5">
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Watermark Photos</label>
@@ -1350,9 +1415,9 @@ export default function GalleryOrganizerPage() {
                       </label>
                     </div>
                   </div>
-                )}
+                  )}
 
-                {activeCreateTab === 'social' && (
+                  {activeCreateTab === 'social' && (
                   <div className="space-y-4">
                     <label className="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-3 text-base font-semibold text-slate-200">
                       <span>Show Sharing Options</span>
@@ -1363,9 +1428,9 @@ export default function GalleryOrganizerPage() {
                       <button type="button" onClick={() => setForm((f) => ({ ...f, social: { ...f.social, allow_comments: !f.social.allow_comments } }))} className={`rounded-full px-3 py-1 text-xs font-bold ${form.social.allow_comments ? 'bg-blue-500/25 text-blue-200 ring-1 ring-blue-500/30' : 'bg-slate-800 text-slate-300 ring-1 ring-slate-700'}`}>{form.social.allow_comments ? 'ON' : 'OFF'}</button>
                     </label>
                   </div>
-                )}
+                  )}
 
-                {activeCreateTab === 'selling' && (
+                  {activeCreateTab === 'selling' && (
                   <div className="space-y-5">
                     <label className="flex items-center justify-between rounded-xl border border-slate-700/70 bg-slate-900/70 px-3 py-3 text-base font-semibold text-slate-200">
                       <span>Visitor Shopping Cart</span>
@@ -1391,9 +1456,9 @@ export default function GalleryOrganizerPage() {
                       </select>
                     </div>
                   </div>
-                )}
+                  )}
 
-                {activeCreateTab === 'appearance' && (
+                  {activeCreateTab === 'appearance' && (
                   <div className="space-y-5">
                     <div>
                       <label className="block text-sm font-semibold text-slate-300">Gallery Style</label>
@@ -1433,13 +1498,14 @@ export default function GalleryOrganizerPage() {
                       </label>
                     ))}
                   </div>
-                )}
+                  )}
+                </div>
               </section>
             </div>
 
-            <div className="grid grid-cols-2 border-t border-slate-700/70">
-              <button type="button" onClick={closeCreateDialog} className="px-6 py-4 text-center text-lg font-bold text-slate-200 transition hover:bg-slate-800/80">Cancel</button>
-              <button type="submit" disabled={creating || !form.title.trim()} className="bg-blue-600 px-6 py-4 text-center text-lg font-bold tracking-[0.08em] text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">{creating ? (editingGalleryId ? 'SAVING...' : 'CREATING...') : (editingGalleryId ? 'SAVE' : 'CREATE')}</button>
+            <div className="grid grid-cols-2 border-t border-white/10 bg-black/20">
+              <button type="button" onClick={closeCreateDialog} className="px-6 py-4 text-center text-base font-semibold text-slate-200 transition hover:bg-white/5 sm:text-lg">Cancel</button>
+              <button type="submit" disabled={creating || !form.title.trim()} className="bg-cyan-500 px-6 py-4 text-center text-base font-semibold tracking-[0.12em] text-[#04111f] transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60 sm:text-lg">{creating ? (editingGalleryId ? 'SAVING...' : 'CREATING...') : (editingGalleryId ? 'SAVE' : 'CREATE')}</button>
             </div>
           </form>
         </div>

@@ -9,7 +9,7 @@ import {
 } from '../../components/common/DashboardSkeletons'
 import PaymentMethodsDashboard from '../../components/PaymentMethodsDashboard'
 import { createOrderRefund, getMyOrders, getOrderTimeline, updateOrderShipping, updateOrderStatus } from '../../api/orderApi'
-import { createBillingPortal, getBilling } from '../../api/settingsApi'
+import { getBilling } from '../../api/settingsApi'
 import { formatCurrency } from '../../utils/formatters'
 
 const STATUS_OPTIONS = ['pending', 'paid', 'processing', 'shipped', 'cancelled']
@@ -18,7 +18,6 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true)
   const [orders, setOrders] = useState([])
   const [billing, setBilling] = useState(null)
-  const [openingPortal, setOpeningPortal] = useState(false)
   const [activeOrderId, setActiveOrderId] = useState(null)
   const [activeTimeline, setActiveTimeline] = useState([])
   const [activeShipping, setActiveShipping] = useState(null)
@@ -47,26 +46,6 @@ export default function PaymentsPage() {
 
   const paid = useMemo(() => orders.filter(o => o.status === 'paid'), [orders])
   const revenue = useMemo(() => paid.reduce((sum, o) => sum + (o.total_cents || 0), 0), [paid])
-
-  const openPortal = async () => {
-    setOpeningPortal(true)
-    const billingWindow = window.open('about:blank', '_blank')
-    try {
-      const { url } = await createBillingPortal()
-      if (!url) throw new Error('Billing portal URL not returned')
-      if (billingWindow) {
-        billingWindow.location.href = url
-        billingWindow.focus()
-      } else {
-        window.location.href = url
-      }
-    } catch (err) {
-      if (billingWindow) billingWindow.close()
-      toast.error(err?.response?.data?.error || err?.message || 'Billing portal unavailable for this account')
-    } finally {
-      setOpeningPortal(false)
-    }
-  }
 
   const loadOrderPanel = async (orderId) => {
     setLoadingOrderPanel(true)
@@ -214,16 +193,7 @@ export default function PaymentsPage() {
               <p className="text-sm font-semibold text-white">Current Plan: <span className="text-emerald-300 uppercase">{billing?.plan || 'free'}</span></p>
               <p className="text-xs text-slate-400">Customer: {billing?.stripe_customer_id || billing?.razorpay_customer_id || 'Not linked'}</p>
             </div>
-            {billing?.stripe_customer_id ? (
-              <button
-                type="button"
-                onClick={openPortal}
-                disabled={openingPortal}
-                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:opacity-60"
-              >
-                {openingPortal ? 'Opening...' : 'Open Billing Portal'}
-              </button>
-            ) : null}
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">Billing portal disabled</span>
           </div>
         </div>
 
