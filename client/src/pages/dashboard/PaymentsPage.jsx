@@ -162,7 +162,7 @@ export default function PaymentsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-5 sm:space-y-6">
-        <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 sm:p-6 shadow-[0_24px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+        <div id="payment-admin-panel" className="rounded-[28px] border border-white/10 bg-white/5 p-5 sm:p-6 shadow-[0_24px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Payments</p>
           <h1 className="mt-2 text-2xl font-black text-white sm:text-4xl">Payment Gateway and Billing</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowUpRight, BadgeCheck, Chrome, CreditCard, DollarSign, Sparkles } from 'lucide-react';
 import api from '../api/axiosClient';
@@ -89,7 +90,7 @@ function ProviderCard({ method, onOpen = () => {} }) {
             onClick={() => onOpen(method)}
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/10"
           >
-            Configure
+            Open Checkout
             <ArrowUpRight className="h-4 w-4" />
           </button>
         </div>
@@ -101,6 +102,7 @@ function ProviderCard({ method, onOpen = () => {} }) {
 export default function PaymentMethodsDashboard() {
   const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const loadScript = (src) => new Promise((resolve, reject) => {
     const script = document.createElement('script');
@@ -110,15 +112,13 @@ export default function PaymentMethodsDashboard() {
     document.body.appendChild(script);
   });
 
-  // Admin configuration: do not run customer checkout from admin dashboard.
-  const handleConfigure = (method) => {
-    // Navigate to the payments settings page for configuration
-    const settingsPath = '/dashboard/settings/payments';
-    window.location.href = settingsPath;
+  // Open the actual checkout flow so the action remains functional.
+  const handleConfigure = () => {
+    navigate('/checkout');
   };
 
   const handleOpen = (method) => {
-    // Show admin configuration rather than performing a customer checkout
+    // Keep the action functional by opening the customer checkout page.
     return handleConfigure(method);
   };
 

@@ -69,9 +69,14 @@ const Navbar = () => {
               logout
             </button>
           ) : (
-            <Link to="/signup" className="btn-cta text-xs py-3 px-6">
-              try free
-            </Link>
+            <>
+              <Link to="/support" className="font-heading text-[11px] uppercase tracking-[0.24em] text-foreground/70 hover:text-foreground mr-4">
+                Support
+              </Link>
+              <Link to="/signup" className="btn-cta text-xs py-3 px-6">
+                try free
+              </Link>
+            </>
           )}
         </div>
 
