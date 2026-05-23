@@ -89,7 +89,7 @@ function ProviderCard({ method, onOpen = () => {} }) {
             onClick={() => onOpen(method)}
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/10"
           >
-            Configure
+            Open Checkout
             <ArrowUpRight className="h-4 w-4" />
           </button>
         </div>
@@ -110,19 +110,13 @@ export default function PaymentMethodsDashboard() {
     document.body.appendChild(script);
   });
 
-  // Admin configuration: jump to the billing/admin panel on the same page.
+  // Open the actual checkout flow so the action remains functional.
   const handleConfigure = () => {
-    const target = document.getElementById('payment-admin-panel');
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-
-    window.location.href = '/dashboard/payments#payment-admin-panel';
+    window.location.href = '/checkout';
   };
 
   const handleOpen = (method) => {
-    // Show admin configuration rather than performing a customer checkout
+    // Keep the action functional by opening the customer checkout page.
     return handleConfigure(method);
   };
 
