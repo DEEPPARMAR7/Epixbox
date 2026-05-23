@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowUpRight, BadgeCheck, Chrome, CreditCard, DollarSign, Sparkles } from 'lucide-react';
 import api from '../api/axiosClient';
@@ -101,6 +102,7 @@ function ProviderCard({ method, onOpen = () => {} }) {
 export default function PaymentMethodsDashboard() {
   const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const loadScript = (src) => new Promise((resolve, reject) => {
     const script = document.createElement('script');
@@ -112,7 +114,7 @@ export default function PaymentMethodsDashboard() {
 
   // Open the actual checkout flow so the action remains functional.
   const handleConfigure = () => {
-    window.location.href = '/checkout';
+    navigate('/checkout');
   };
 
   const handleOpen = (method) => {
