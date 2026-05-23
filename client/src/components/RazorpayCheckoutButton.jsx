@@ -17,7 +17,7 @@ async function loadRazorpayScript() {
 export default function RazorpayCheckoutButton({ items = [], buyerEmail, buyerName, onSuccess, onError }) {
   const handleClick = async () => {
     try {
-      const resp = await fetch(apiUrl('/v1/razorpay/create-order'), {
+      const resp = await fetch(apiUrl('/razorpay/create-order'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items, buyerEmail, buyerName }),
@@ -35,7 +35,7 @@ export default function RazorpayCheckoutButton({ items = [], buyerEmail, buyerNa
         order_id: data.razorpayOrderId,
         handler: async function (response) {
           try {
-            const verifyResp = await fetch(apiUrl('/v1/razorpay/verify'), {
+            const verifyResp = await fetch(apiUrl('/razorpay/verify'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
