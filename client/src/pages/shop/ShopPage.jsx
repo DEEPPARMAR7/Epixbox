@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useLocation } from 'react-router-dom'
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import PublicLayout from '../../components/layout/PublicLayout'
 import Spinner from '../../components/common/Spinner'
@@ -29,6 +29,7 @@ const DEMO_PRODUCTS = [
 export default function ShopPage() {
   const { photoId } = useParams()
   const location = useLocation()
+  const navigate = useNavigate()
   const photoTitle = location.state?.photoTitle || 'Photo'
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -107,25 +108,20 @@ export default function ShopPage() {
 
     setBuyNowLoading(true)
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/checkout/create-product-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: selectedProduct.id,
-          variantId: selectedVariant?.id,
-          quantity: 1,
-        }),
+      const displayPrice = getDisplayPrice()
+      addItem({
+        id: selectedVariant ? `${selectedProduct.id}-${selectedVariant.id}` : `${selectedProduct.id}-${photoId}`,
+        productId: selectedProduct.id,
+        variant_id: selectedVariant?.id,
+        photoId,
+        photoTitle,
+        productName: selectedVariant?.name || `${selectedProduct.size} ${selectedProduct.category}`,
+        unit_price_cents: displayPrice,
+        price_cents: displayPrice,
+        paperType: selectedProduct.paper_type,
+        quantity: 1,
       })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to create checkout session')
-      }
-
-      const { url } = await response.json()
-      if (url) {
-        window.location.href = url
-      }
+      navigate('/checkout')
     } catch (error) {
       console.error('Checkout error:', error)
       toast.error(error.message || 'Failed to start checkout')
