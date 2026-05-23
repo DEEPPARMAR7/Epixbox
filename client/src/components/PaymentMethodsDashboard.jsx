@@ -90,7 +90,7 @@ function ProviderCard({ method, onOpen = () => {} }) {
             onClick={() => onOpen(method)}
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/10"
           >
-            Manage Payments
+            Gateway Settings
             <ArrowUpRight className="h-4 w-4" />
           </button>
         </div>
@@ -112,13 +112,19 @@ export default function PaymentMethodsDashboard() {
     document.body.appendChild(script);
   });
 
-  // Open the admin payments tab so this card manages gateways instead of customer checkout.
+  // Open the gateway section on the same Payments page.
   const handleConfigure = () => {
-    navigate('/dashboard/admin?tab=payments');
+    const target = document.getElementById('payment-gateway-settings');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    navigate('/dashboard/payments#payment-gateway-settings');
   };
 
   const handleOpen = (method) => {
-    // Keep the action functional by opening the admin payments panel.
+    // Keep the action functional by opening the gateway settings section.
     return handleConfigure(method);
   };
 
