@@ -69,3 +69,23 @@ services:
       - key: SMTP_PASS
         scope: secret
         # Optional
+
+      - key: RAZORPAY_KEY_ID
+        scope: secret
+        # Required for Razorpay checkout creation
+
+      - key: RAZORPAY_KEY_SECRET
+        scope: secret
+        # Required for Razorpay signature verification
+
+      - key: RAZORPAY_WEBHOOK_SECRET
+        scope: secret
+        # Required for Razorpay webhook verification
+
+      - key: PAYPAL_CLIENT_ID
+        scope: secret
+        # Optional - for PayPal checkout
+
+      - key: PAYPAL_CLIENT_SECRET
+        scope: secret
+        # Optional - for PayPal checkout

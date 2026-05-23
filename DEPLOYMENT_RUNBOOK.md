@@ -243,9 +243,11 @@ Verify these are set in Render dashboard:
 | Variable | Purpose | Status |
 |----------|---------|--------|
 | `DATABASE_URL` | PostgreSQL connection | Required ✓ |
-| `STRIPE_SECRET_KEY` | Stripe API key | Required ✓ |
-| `STRIPE_PUBLISHABLE_KEY` | Frontend Stripe | Required ✓ |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | Client Stripe key | Required ✓ |
+| `RAZORPAY_KEY_ID` | Razorpay key ID | Required ✓ |
+| `RAZORPAY_KEY_SECRET` | Razorpay secret | Required ✓ |
+| `RAZORPAY_WEBHOOK_SECRET` | Razorpay webhook signature secret | Required ✓ |
+| `PAYPAL_CLIENT_ID` | PayPal client ID | Optional |
+| `PAYPAL_CLIENT_SECRET` | PayPal client secret | Optional |
 | `AUTO_MIGRATE` | Run migrations on startup | Set to `"true"` ✓ |
 | `DEBUG` | Enable debug logging | Optional (set to `"*"` for full logs) |
 | `JWT_SECRET` | Auth token signing | Required ✓ |
@@ -310,9 +312,13 @@ git push origin main
 **Cause:** No plans in database  
 **Fix:** Run seed-default-plans script (Step 4)
 
-### ❌ "Missing value for Stripe(): apiKey should be a string"
-**Cause:** STRIPE_PUBLISHABLE_KEY or VITE_STRIPE_PUBLISHABLE_KEY not set  
-**Fix:** Add keys to Render environment variables and redeploy
+### ❌ "Razorpay not configured on server"
+**Cause:** `RAZORPAY_KEY_ID` or `RAZORPAY_KEY_SECRET` not set
+**Fix:** Add Razorpay keys to Render environment variables and redeploy
+
+### ❌ Webhook verification fails
+**Cause:** `RAZORPAY_WEBHOOK_SECRET` missing or webhook endpoint not configured
+**Fix:** Add the webhook secret and set the webhook URL to `https://epixbox.onrender.com/api/v1/checkout/razorpay/webhook`
 
 ### ❌ "FATAL: password authentication failed"
 **Cause:** Incorrect DATABASE_URL in Render  
