@@ -114,12 +114,6 @@ export default function PaymentMethodsDashboard() {
 
   // Open the gateway section on the same Payments page.
   const handleConfigure = () => {
-    const target = document.getElementById('payment-gateway-settings');
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-
     navigate('/dashboard/payments#payment-gateway-settings');
   };
 
