@@ -198,47 +198,57 @@ export default function PaymentsPage() {
         </div>
 
         {orders.length > 0 ? (
-          <div className="overflow-x-auto rounded-[28px] border border-white/10 bg-white/5 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
-            <table className="w-full text-sm">
-              <thead className="bg-white/5 text-left">
-                <tr>
-                  <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Order</th>
-                  <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Buyer</th>
-                  <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Total</th>
-                  <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Status</th>
-                  <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Lifecycle</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {orders.slice(0, 20).map((o) => (
-                  <tr key={o.id}>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-300">#{o.id.slice(0, 8)}</td>
-                    <td className="px-4 py-3 text-slate-300">{o.buyer_name || o.buyer_email}</td>
-                    <td className="px-4 py-3 text-slate-100">{formatCurrency(o.total_cents || 0)}</td>
-                    <td className="px-4 py-3 text-slate-200 uppercase">{o.status}</td>
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => openOrderManager(o.id)}
-            actionTo="/dashboard/pricing"
-          />
-        )}
-
-        {activeOrderId && (
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-4 sm:p-5 space-y-4 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Order Lifecycle</p>
-                <p className="font-mono text-sm text-white">#{activeOrderId.slice(0, 8)}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveOrderId(null)}
-                className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10"
-              >
-                Close
-              </button>
+          <>
+            <div className="overflow-x-auto rounded-[28px] border border-white/10 bg-white/5 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
+              <table className="w-full text-sm">
+                <thead className="bg-white/5 text-left">
+                  <tr>
+                    <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Order</th>
+                    <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Buyer</th>
+                    <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Total</th>
+                    <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Status</th>
+                    <th className="px-4 py-3 text-xs uppercase tracking-[0.15em] text-slate-500">Lifecycle</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {orders.slice(0, 20).map((o) => (
+                    <tr key={o.id}>
+                      <td className="px-4 py-3 font-mono text-xs text-slate-300">#{o.id.slice(0, 8)}</td>
+                      <td className="px-4 py-3 text-slate-300">{o.buyer_name || o.buyer_email}</td>
+                      <td className="px-4 py-3 text-slate-100">{formatCurrency(o.total_cents || 0)}</td>
+                      <td className="px-4 py-3 text-slate-200 uppercase">{o.status}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => openOrderManager(o.id)}
+                          className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10"
+                        >
+                          Manage
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+
+            {activeOrderId && (
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-4 sm:p-5 space-y-4 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-xl">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Order Lifecycle</p>
+                    <p className="font-mono text-sm text-white">#{activeOrderId.slice(0, 8)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveOrderId(null)}
+                    className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <form onSubmit={handleShippingSave} className="space-y-3">
                   <div className="grid gap-2 sm:grid-cols-2">
                     <input
                       value={shippingForm.shipping_carrier}
@@ -274,12 +284,13 @@ export default function PaymentsPage() {
                   >
                     {savingShipping ? 'Saving...' : 'Save Shipping'}
                   </button>
-                  {activeShipping && (
-                    <p className="text-xs text-slate-400">
-                      Current: {activeShipping.shipping_carrier || 'No carrier'} · {activeShipping.tracking_number || 'No tracking'}
-                    </p>
-                  )}
                 </form>
+
+                {activeShipping && (
+                  <p className="text-xs text-slate-400">
+                    Current: {activeShipping.shipping_carrier || 'No carrier'} · {activeShipping.tracking_number || 'No tracking'}
+                  </p>
+                )}
 
                 <form onSubmit={handleCreateRefund} className="rounded-2xl border border-white/10 bg-black/20 p-3 space-y-3">
                   <p className="text-xs uppercase tracking-[0.15em] text-slate-500">Issue Refund</p>
@@ -337,9 +348,11 @@ export default function PaymentsPage() {
                     </div>
                   )}
                 </div>
-              </>
+              </div>
             )}
-          </div>
+          </>
+        ) : (
+          <IllustratedEmptyState title="No orders" description="No orders found yet." />
         )}
       </div>
     </DashboardLayout>
