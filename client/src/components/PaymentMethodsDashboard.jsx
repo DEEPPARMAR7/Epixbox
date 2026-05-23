@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
-import { ArrowUpRight, BadgeCheck, Chrome, CreditCard, DollarSign, Sparkles } from 'lucide-react';
+import { BadgeCheck, CreditCard, DollarSign, Sparkles } from 'lucide-react';
 import api from '../api/axiosClient';
 
 const PROVIDER_META = {
@@ -84,9 +83,12 @@ function ProviderCard({ method }) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Provider ID</p>
             <p className="mt-1 text-sm font-medium text-slate-200">{method.id}</p>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300">
+          <span
+            className="inline-flex cursor-default items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-200"
+            title="Status only"
+            aria-label="Gateway configured status"
+          >
             Configured
-            <ArrowUpRight className="h-4 w-4" />
           </span>
         </div>
       </div>
@@ -97,14 +99,6 @@ function ProviderCard({ method }) {
 export default function PaymentMethodsDashboard() {
   const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const loadScript = (src) => new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = () => resolve(true);
-    script.onerror = () => reject(new Error('Failed to load script: ' + src));
-    document.body.appendChild(script);
-  });
 
   useEffect(() => {
     let mounted = true;
