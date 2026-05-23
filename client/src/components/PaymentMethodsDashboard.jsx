@@ -69,14 +69,14 @@ function ProviderCard({ method, onOpen = () => {} }) {
         </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
-            <BadgeCheck className="h-3.5 w-3.5" />
-            Enabled in this workspace
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
-            <Sparkles className="h-3.5 w-3.5" />
-            Admin controls available
-          </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
+              <BadgeCheck className="h-3.5 w-3.5" />
+              Active
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
+              <Sparkles className="h-3.5 w-3.5" />
+              Manage keys & webhooks
+            </span>
         </div>
 
         <div className="mt-6 flex items-center justify-between gap-3 border-t border-white/10 pt-5">
@@ -155,10 +155,10 @@ export default function PaymentMethodsDashboard() {
           <div className="max-w-2xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.36em] text-cyan-200/80">Payments</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-              Payment gateways for your storefront
+              Payment Gateway & Billing
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
-              Select and manage the payment processors enabled for this workspace. Live gateways are highlighted so you can quickly configure and test checkout flows.
+              Checkout is active for customer orders. Billing, payouts, and refunds are handled by the configured payment provider. Use the Admin Payments settings to update keys, view payment logs, and issue refunds.
             </p>
           </div>
 
@@ -173,7 +173,7 @@ export default function PaymentMethodsDashboard() {
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Checkout feel</p>
-              <p className="mt-2 text-sm font-medium text-slate-100">Clean, customizable checkout experience</p>
+              <p className="mt-2 text-sm font-medium text-slate-100">Checkout experience: Clean, customizable, and brandable</p>
             </div>
           </div>
         </div>
