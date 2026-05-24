@@ -46,10 +46,7 @@ const SignupPage = () => {
     (import.meta.env.VITE_GOOGLE_CLIENT_ID || import.meta.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) as
       | string
       | undefined;
-  const isSupportedGoogleOrigin = typeof window !== 'undefined'
-    && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(window.location.origin)
-      ? false
-      : Boolean(googleClientId);
+  const isSupportedGoogleOrigin = Boolean(googleClientId);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

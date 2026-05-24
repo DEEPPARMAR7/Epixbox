@@ -23,7 +23,7 @@ export default function RazorpayPayButton({ order, onSuccess, onError, label }) 
         buyerName: order.buyer_name || undefined,
       }
 
-      const resp = await axiosClient.post('/razorpay/create-order', payload)
+      const resp = await axiosClient.post('/checkout/razorpay/create-order', payload)
       const data = resp.data
       if (!data) throw new Error('Failed to create order')
 
@@ -37,18 +37,14 @@ export default function RazorpayPayButton({ order, onSuccess, onError, label }) 
         order_id: data.razorpay_order_id || data.razorpayOrderId || data.razorpay_order_id,
         handler: async function (response) {
           try {
-            const verifyResp = await fetch(apiUrl('/razorpay/verify'), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                receipt: data.orderId,
-              }),
+            const verifyResp = await axiosClient.post('/checkout/razorpay/verify', {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              receipt: data.orderId,
             })
-            const verifyData = await verifyResp.json()
-            if (!verifyResp.ok) throw new Error(verifyData?.error || 'Verification failed')
+            const verifyData = verifyResp.data
+            if (!verifyResp || verifyResp.status >= 400) throw new Error(verifyData?.error || 'Verification failed')
             toast.success('Payment verified')
             onSuccess?.(verifyData)
           } catch (err) {
