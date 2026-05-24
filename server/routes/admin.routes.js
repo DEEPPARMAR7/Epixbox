@@ -9,6 +9,9 @@ const { getRateAnalytics } = require('../services/rateAnalytics.service');
 const { deleteFile } = require('../services/s3.service');
 const { getOwnerEmails } = require('../utils/roles');
 
+// Admin-visible order statuses (allow the same set as normal order route)
+const ADMIN_ORDER_STATUSES = new Set(['pending', 'paid', 'processing', 'shipped', 'cancelled']);
+
 function parseOrderMeta(order) {
   try {
     const parsed = order?.notes ? JSON.parse(order.notes) : {};
