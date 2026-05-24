@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { BadgeCheck, CreditCard, DollarSign, Sparkles } from 'lucide-react';
 import api from '../api/axiosClient';
+import { getMyOrders } from '../api/orderApi'
+import RazorpayPayButton from './RazorpayPayButton'
+import toast from 'react-hot-toast'
 
 const PROVIDER_META = {
   razorpay: {
@@ -28,7 +31,7 @@ const PROVIDER_META = {
 
 const getProviderMeta = (method) => PROVIDER_META[method.id] || PROVIDER_META.default;
 
-function ProviderCard({ method }) {
+function ProviderCard({ method, sampleOrder }) {
   const meta = getProviderMeta(method);
 
   return (
@@ -83,13 +86,26 @@ function ProviderCard({ method }) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Provider ID</p>
             <p className="mt-1 text-sm font-medium text-slate-200">{method.id}</p>
           </div>
-          <span
-            className="inline-flex cursor-default items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-200"
-            title="Status only"
-            aria-label="Gateway configured status"
-          >
-            Configured
-          </span>
+          <div className="flex items-center gap-3">
+            {method.id === 'razorpay' ? (
+              <RazorpayPayButton
+                order={sampleOrder || { total_cents: 100, buyer_email: '', buyer_name: 'Admin Test' }}
+                label="Checkout"
+                onSuccess={() => toast.success('Payment completed')}
+                onError={(err) => toast.error(err?.message || 'Payment failed')}
+              />
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-200 opacity-60"
+                title="Not configured"
+                aria-label="Gateway not configured"
+              >
+                Checkout
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -99,19 +115,32 @@ function ProviderCard({ method }) {
 export default function PaymentMethodsDashboard() {
   const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sampleOrder, setSampleOrder] = useState(null)
 
   useEffect(() => {
     let mounted = true;
 
     const fetchMethods = async () => {
       try {
-        const response = await api.get('/checkout/payment-methods');
+        const [response, orders] = await Promise.all([
+          api.get('/checkout/payment-methods'),
+          getMyOrders().catch(() => []),
+        ])
+
         if (mounted) {
           setMethods(Array.isArray(response.data) ? response.data : []);
+          // Prefer the most recent pending order, otherwise the latest order
+          const myOrders = Array.isArray(orders) ? orders : []
+          const pending = myOrders.find(o => o.status === 'pending')
+          const first = pending || myOrders[0] || null
+          setSampleOrder(first)
         }
       } catch (error) {
-        console.error('Failed to fetch payment methods:', error);
-        if (mounted) setMethods([]);
+        console.error('Failed to fetch payment methods or orders:', error);
+        if (mounted) {
+          setMethods([]);
+          setSampleOrder(null)
+        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -167,7 +196,7 @@ export default function PaymentMethodsDashboard() {
         ) : methods.length > 0 ? (
           <div className="grid gap-5 lg:grid-cols-2">
             {methods.map((method) => (
-              <ProviderCard key={method.id} method={method} />
+              <ProviderCard key={method.id} method={method} sampleOrder={sampleOrder} />
             ))}
           </div>
         ) : (

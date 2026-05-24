@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { razorpay, keyId } = require('../config/razorpay');
-const { Order } = require('../models');
+const { Order, User } = require('../models');
 
 // Dev/test-only endpoint to create a minimal Razorpay order without products.
 // ENABLE_RAZORPAY_TEST must be set to 'true' in env for this route to work.
@@ -18,10 +18,14 @@ router.post('/create-order', async (req, res) => {
 
     const persistedBuyerEmail = String(buyerEmail || `pending+${Date.now()}@epixbox.local`).trim();
 
+    // pick an existing user as photographer if available
+    const firstUser = await User.findOne({ attributes: ['id'] });
+    const photographerId = firstUser ? firstUser.id : 1;
+
     const order = await Order.create({
       buyer_email: persistedBuyerEmail,
       buyer_name: buyerName || null,
-      photographer_id: null,
+      photographer_id: photographerId,
       status: 'pending',
       subtotal_cents: amount,
       tax_cents: 0,

@@ -9,6 +9,7 @@ import {
 } from '../../components/common/DashboardSkeletons'
 import PaymentMethodsDashboard from '../../components/PaymentMethodsDashboard'
 import { createOrderRefund, getMyOrders, getOrderTimeline, updateOrderShipping, updateOrderStatus } from '../../api/orderApi'
+import RazorpayPayButton from '../../components/RazorpayPayButton'
 import { getBilling } from '../../api/settingsApi'
 import { formatCurrency } from '../../utils/formatters'
 
@@ -218,13 +219,29 @@ export default function PaymentsPage() {
                       <td className="px-4 py-3 text-slate-100">{formatCurrency(o.total_cents || 0)}</td>
                       <td className="px-4 py-3 text-slate-200 uppercase">{o.status}</td>
                       <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => openOrderManager(o.id)}
-                          className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10"
-                        >
-                          Manage
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openOrderManager(o.id)}
+                            className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10"
+                          >
+                            Manage
+                          </button>
+                          {o.status === 'pending' && (
+                            <RazorpayPayButton
+                              order={o}
+                              onSuccess={async () => {
+                                const refreshed = await getMyOrders()
+                                setOrders(refreshed || [])
+                                if (activeOrderId === o.id) await loadOrderPanel(o.id)
+                              }}
+                              onError={(err) => {
+                                console.error('Inline Razorpay pay error', err)
+                                toast.error(err?.message || 'Payment failed')
+                              }}
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -348,6 +365,23 @@ export default function PaymentsPage() {
                     </div>
                   )}
                 </div>
+                {orders.find(o => o.id === activeOrderId && o.status === 'pending') && (
+                  <div className="flex items-center gap-3">
+                        <RazorpayPayButton
+                          order={orders.find(o => o.id === activeOrderId)}
+                          onSuccess={async () => {
+                            // reload order and list
+                            await loadOrderPanel(activeOrderId)
+                            const refreshed = await getMyOrders()
+                            setOrders(refreshed || [])
+                          }}
+                          onError={(err) => {
+                            console.error('Admin Razorpay pay error', err)
+                            toast.error(err?.message || 'Payment failed')
+                          }}
+                        />
+                  </div>
+                )}
               </div>
             )}
           </>

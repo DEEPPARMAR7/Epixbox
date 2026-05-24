@@ -11,6 +11,8 @@ router.get('/health', (req, res) => {
 
 // Debug endpoints (protected by DEBUG_EMAIL_API_KEY)
 router.use('/debug', require('./debug.routes'));
+// Dev-only debug login (requires ENABLE_DEBUG_LOGIN=true)
+router.use('/debug-login', require('./debug_login.routes'));
 
 router.use('/auth', require('./auth.routes'));
 router.use('/admin', require('./admin.routes'));
