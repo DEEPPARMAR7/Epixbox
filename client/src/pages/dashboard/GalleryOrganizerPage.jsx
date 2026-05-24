@@ -1217,9 +1217,9 @@ export default function GalleryOrganizerPage() {
       )}
 
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-3 sm:items-center sm:p-6">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.18),transparent_34%),rgba(2,6,23,0.84)] backdrop-blur-sm" onClick={closeCreateDialog} />
-          <form onSubmit={handleCreate} className="relative z-10 w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#070b14] text-white shadow-[0_36px_120px_rgba(2,6,23,0.88)]">
+          <form onSubmit={handleCreate} className="relative z-10 flex w-full max-w-6xl max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#070b14] text-white shadow-[0_36px_120px_rgba(2,6,23,0.88)] sm:max-h-[calc(100vh-3rem)]">
             <div className="flex flex-col gap-5 border-b border-white/10 px-6 py-5 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-200/80">Workspace Setup</p>
@@ -1242,7 +1242,7 @@ export default function GalleryOrganizerPage() {
               </div>
             </div>
 
-            <div className="grid min-h-[560px] lg:grid-cols-[320px,minmax(0,1fr)]">
+            <div className="grid flex-1 min-h-0 overflow-y-auto lg:grid-cols-[320px,minmax(0,1fr)]">
               <aside className="border-b border-white/10 bg-white/[0.03] p-5 sm:p-6 lg:border-b-0 lg:border-r">
                 <div className="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.95),rgba(8,12,20,0.95))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Live Summary</p>
@@ -1286,7 +1286,7 @@ export default function GalleryOrganizerPage() {
                 </div>
               </aside>
 
-              <section className="bg-[#0b1120]/95 p-5 sm:p-7 lg:p-8">
+              <section className="min-h-0 bg-[#0b1120]/95 p-5 sm:p-7 lg:p-8">
                 <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6">
                   <div className="mb-6 flex flex-col gap-2 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
                     <div>
@@ -1503,7 +1503,7 @@ export default function GalleryOrganizerPage() {
               </section>
             </div>
 
-            <div className="grid grid-cols-2 border-t border-white/10 bg-black/20">
+            <div className="grid shrink-0 grid-cols-2 border-t border-white/10 bg-black/20">
               <button type="button" onClick={closeCreateDialog} className="px-6 py-4 text-center text-base font-semibold text-slate-200 transition hover:bg-white/5 sm:text-lg">Cancel</button>
               <button type="submit" disabled={creating || !form.title.trim()} className="bg-cyan-500 px-6 py-4 text-center text-base font-semibold tracking-[0.12em] text-[#04111f] transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-60 sm:text-lg">{creating ? (editingGalleryId ? 'SAVING...' : 'CREATING...') : (editingGalleryId ? 'SAVE' : 'CREATE')}</button>
             </div>
