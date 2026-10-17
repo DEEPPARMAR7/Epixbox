@@ -51,10 +51,15 @@ async function startServer() {
       console.warn('  Error:', dbErr.message);
     }
 
-    // Run migrations if auto-migrate is enabled (default: true)
-    const autoMigrate = process.env.AUTO_MIGRATE !== 'false';
+    // A pending-migration override is an explicit safety switch for databases
+    // whose newer migrations have not been reviewed for production.
+    const autoMigrate =
+      process.env.AUTO_MIGRATE === 'true' &&
+      process.env.ALLOW_PENDING_MIGRATIONS !== 'true';
     if (autoMigrate) {
       await runMigrations();
+    } else if (process.env.ALLOW_PENDING_MIGRATIONS === 'true') {
+      console.warn('⚠ Pending migrations are explicitly deferred; skipping automatic migrations.');
     }
 
     server.listen(PORT, () => {

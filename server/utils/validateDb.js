@@ -148,14 +148,21 @@ async function validateAllStartupChecks() {
   }
   console.log('✓ All required environment variables are set');
 
-  // Check database migrations. If AUTO_MIGRATE is enabled, allow startup to continue
-  // when migrations are pending so server.js can run migrations immediately after connect.
+  // Check database migrations. Allow startup to continue when migrations are
+  // explicitly deferred or when startup is configured to run them.
   const dbValidation = await validateDatabaseMigrations();
   if (!dbValidation.valid) {
-    if (process.env.AUTO_MIGRATE !== 'false') {
+    if (
+      process.env.AUTO_MIGRATE !== 'false' ||
+      process.env.ALLOW_PENDING_MIGRATIONS === 'true'
+    ) {
       console.warn(`⚠ ${dbValidation.message}`);
-      console.warn('⚠ AUTO_MIGRATE is enabled, server will attempt migrations on startup.');
-      return true; // Allow startup to continue - server.js will run migrations
+      if (process.env.ALLOW_PENDING_MIGRATIONS === 'true') {
+        console.warn('⚠ Pending migrations are explicitly deferred; startup will not modify the database.');
+      } else {
+        console.warn('⚠ AUTO_MIGRATE is enabled, server will attempt migrations on startup.');
+      }
+      return true;
     } else {
       console.error(`❌ ${dbValidation.message}`);
       return false;
