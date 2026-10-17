@@ -22,6 +22,9 @@ services:
         value: production
 
       - key: AUTO_MIGRATE
+        value: "false"
+
+      - key: ALLOW_PENDING_MIGRATIONS
         value: "true"
 
       - key: PORT
