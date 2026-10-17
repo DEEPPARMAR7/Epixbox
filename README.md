@@ -14,11 +14,15 @@ EpixBox is a monorepo containing a React/Vite client and a Node.js/Express
 API. The application supports photographer portfolios, galleries, private
 proofing workflows, photo downloads, orders, subscriptions, and administration.
 
-The current public deployment is:
+The current public application deployment is:
 
 ```text
 Vercel frontend -> Render API -> Neon PostgreSQL + AWS S3
 ```
+
+AWS S3 image assets are also delivered through the manually configured
+CloudFront distribution. CloudFront is used as the CDN for S3 assets; it is
+not the frontend hosting platform.
 
 The repository also contains Docker, Docker Compose, Docker Desktop Kubernetes,
 Terraform, and GitHub Actions configuration for local DevOps practice and
@@ -61,7 +65,7 @@ public production deployment.
 - GitHub Actions CI/CD
 - Terraform configuration for a future AWS VPC, ECR, S3, and EKS setup
 - Vercel frontend hosting and Render API hosting
-- Neon PostgreSQL and AWS S3 in the hosted architecture
+- Neon PostgreSQL, AWS S3, and CloudFront CDN for hosted image assets
 
 ## Repository Structure
 
@@ -304,8 +308,11 @@ and deployment. It defines:
 - Private encrypted and versioned S3 storage
 - EKS cluster and managed node group
 
-It is not connected to the existing Vercel, Render, or Neon resources. No AWS
-resources are created by CI. Validate it locally with:
+The existing S3-to-CloudFront distribution was configured separately in AWS and
+is not currently created by this Terraform configuration. The Terraform
+foundation is not connected to the existing Vercel, Render, Neon, or
+CloudFront resources. No AWS resources are created by CI. Validate it locally
+with:
 
 ```powershell
 terraform -chdir=terraform init -backend=false
@@ -355,10 +362,11 @@ migration plan.
 
 ### Data safety
 
-The hosted database is Neon PostgreSQL and file storage uses AWS S3. The
-Docker, Kubernetes, and Terraform workflows must not be used to replace or
-reset the existing hosted data. Never run destructive database commands such
-as `DROP`, `TRUNCATE`, or Sequelize `sync({ force: true })` against production.
+The hosted database is Neon PostgreSQL and file storage uses AWS S3. CloudFront
+delivers the S3-hosted image assets through a CDN. The Docker, Kubernetes, and
+Terraform workflows must not be used to replace or reset the existing hosted
+data. Never run destructive database commands such as `DROP`, `TRUNCATE`, or
+Sequelize `sync({ force: true })` against production.
 
 ## Validation
 
