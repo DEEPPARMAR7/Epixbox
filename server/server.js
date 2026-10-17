@@ -26,8 +26,7 @@ async function runMigrations() {
     console.error('⚠ Migration error (non-blocking):', err.message);
     console.error('Migration stderr:', err.stderr?.toString());
     console.error('Migration stdout:', err.stdout?.toString());
-    // Non-blocking error - server will still start
-    // This allows for graceful degradation if migrations fail
+    throw err;
   }
 }
 
@@ -53,7 +52,7 @@ async function startServer() {
     }
 
     // Run migrations if auto-migrate is enabled (default: true)
-    const autoMigrate = process.env.AUTO_MIGRATE !== 'false'; // Default is TRUE
+    const autoMigrate = process.env.AUTO_MIGRATE !== 'false';
     if (autoMigrate) {
       await runMigrations();
     }

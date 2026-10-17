@@ -118,6 +118,84 @@ Open `/api/docs` or `/api/v1/docs` when the server is running to view the Swagge
 - Client: configured for Vercel (see `client/vercel.json`)
 - Server: suitable for Render, Heroku, or any Node host. Ensure SSL/DB connection strings and webhooks are configured properly.
 
+### Local Docker deployment
+
+The project also includes a production-style local container setup:
+
+- `Dockerfile.client` builds the React/Vite application and serves it with Nginx.
+- `Dockerfile.server` runs the Express API as a non-root Node.js process.
+- `docker-compose.yml` connects the frontend and API containers.
+- Neon remains the external PostgreSQL provider; Docker does not create a local database.
+
+Set the required application variables in `server/.env`, then run:
+
+```bash
+docker compose up --build
+```
+
+Open `http://localhost:8080`. The Nginx container serves the SPA and proxies `/api` and
+Socket.IO traffic to the API container. The API container runs the existing startup
+validation and migrations against the configured Neon database.
+
+To stop the containers:
+
+```bash
+docker compose down
+```
+
+The Compose setup is intended for local learning and validation. The hosted deployment
+continues to use Vercel for the client and Render for the API.
+
+### Local Kubernetes deployment with Minikube
+
+The `k8s/` directory contains Kubernetes resources for running the two Docker images
+locally with Minikube. Neon remains the external PostgreSQL database.
+
+Start Minikube with Docker, then load the locally built images:
+
+```powershell
+minikube start --driver=docker
+minikube image load epic-api:latest
+minikube image load epic-client:latest
+```
+
+Create a local Secret file from the example and replace its placeholder Neon `DB_*`
+values and local JWT secrets. The API supports both a single `DATABASE_URL` and
+separate `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `DB_SSL`
+variables. Do not commit `k8s/secret.yaml`.
+
+```powershell
+Copy-Item k8s/secret.example.yaml.template k8s/secret.yaml
+# Edit k8s/secret.yaml, then apply the resources:
+kubectl apply -f k8s/
+```
+
+Check the rollout:
+
+```powershell
+kubectl get pods -n epixbox
+kubectl get services -n epixbox
+kubectl rollout status deployment/epixbox-api -n epixbox
+kubectl rollout status deployment/epixbox-client -n epixbox
+```
+
+Open the client through its Minikube service:
+
+```powershell
+minikube service client -n epixbox
+```
+
+The API Deployment uses readiness and liveness probes against `/health`. The client
+uses `/healthz`. ConfigMaps hold non-secret runtime settings, while the Secret holds
+the Neon connection string and JWT secrets. The API image runs with
+`AUTO_MIGRATE=false` in Kubernetes so schema changes remain an explicit deployment
+operation. For the first local Kubernetes deployment, `AUTO_MIGRATE=true` allows the
+API to initialize a fresh Neon database using the existing migrations. After the
+database is initialized, set it back to `false` for safer controlled deployments.
+The local API Deployment uses the Minikube host network because Docker
+Desktop's default Pod network cannot reach Neon PostgreSQL on port 5432 in this
+environment; the frontend remains on standard Kubernetes networking.
+
 ## Contributing
 
 1. Fork the repo

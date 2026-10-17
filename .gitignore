@@ -13,4 +13,4 @@ skills-lock.json
 .claude/
 server/logs/*
 !server/logs/.gitkeep
-
+k8s/secret.yaml

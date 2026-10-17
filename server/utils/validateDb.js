@@ -54,6 +54,13 @@ async function validateDatabaseMigrations() {
     const pending = migrationFiles.filter((name) => !appliedNames.has(name));
 
     if (pending.length > 0) {
+      if (process.env.ALLOW_PENDING_MIGRATIONS === 'true') {
+        return {
+          valid: true,
+          message: `Database has ${appliedMigrations.length} applied migrations; deferred migrations: ${pending.join(', ')}`,
+        };
+      }
+
       return {
         valid: false,
         message: `Pending migrations detected: ${pending.join(', ')}. Run migrations with: npm run db:migrate`,
