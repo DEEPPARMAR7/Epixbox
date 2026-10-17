@@ -33,5 +33,21 @@ jobs:
       - name: Build client
         run: npm run build
 
-      - name: Server sanity check
-        run: node -e "console.log('server workspace ready')"
+      - name: Build API image
+        run: docker build -f Dockerfile.server -t epixbox-api:ci .
+
+      - name: Build client image
+        run: docker build -f Dockerfile.client -t epixbox-client:ci .
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Validate Kubernetes manifests
+        run: |
+          kubectl apply --dry-run=client --validate=false \
+            -f k8s/namespace.yaml \
+            -f k8s/configmap.yaml \
+            -f k8s/api-deployment.yaml \
+            -f k8s/api-service.yaml \
+            -f k8s/client-deployment.yaml \
+            -f k8s/client-service.yaml
