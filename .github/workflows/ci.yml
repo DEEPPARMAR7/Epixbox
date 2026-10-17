@@ -39,15 +39,17 @@ jobs:
       - name: Build client image
         run: docker build -f Dockerfile.client -t epixbox-client:ci .
 
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v4
-
       - name: Validate Kubernetes manifests
         run: |
-          kubectl apply --dry-run=client --validate=false \
-            -f k8s/namespace.yaml \
-            -f k8s/configmap.yaml \
-            -f k8s/api-deployment.yaml \
-            -f k8s/api-service.yaml \
-            -f k8s/client-deployment.yaml \
-            -f k8s/client-service.yaml
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/work" \
+            -w /work \
+            ghcr.io/yannh/kubeconform:v0.7.0 \
+            -strict \
+            -ignore-missing-schemas \
+            k8s/namespace.yaml \
+            k8s/configmap.yaml \
+            k8s/api-deployment.yaml \
+            k8s/api-service.yaml \
+            k8s/client-deployment.yaml \
+            k8s/client-service.yaml
