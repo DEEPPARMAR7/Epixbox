@@ -196,6 +196,26 @@ The local API Deployment uses the Minikube host network because Docker
 Desktop's default Pod network cannot reach Neon PostgreSQL on port 5432 in this
 environment; the frontend remains on standard Kubernetes networking.
 
+### AWS infrastructure with Terraform
+
+The `terraform/` directory contains a plan-only AWS foundation for a future
+deployment: a VPC, private/public subnets, ECR repositories, an encrypted and
+private S3 uploads bucket, and an EKS cluster with a managed node group.
+
+Terraform validation runs in GitHub Actions. To inspect the configuration locally,
+install Terraform, copy `terraform/terraform.tfvars.example` to
+`terraform/terraform.tfvars`, and run:
+
+```powershell
+terraform -chdir=terraform init
+terraform -chdir=terraform validate
+terraform -chdir=terraform plan
+```
+
+Do not run `terraform apply` until AWS account, budget, IAM, and production
+architecture decisions are reviewed. The configuration is not connected to the
+existing Render, Vercel, or Neon resources and does not modify them.
+
 ## Contributing
 
 1. Fork the repo

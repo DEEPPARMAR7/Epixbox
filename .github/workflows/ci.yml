@@ -53,3 +53,24 @@ jobs:
             k8s/api-service.yaml \
             k8s/client-deployment.yaml \
             k8s/client-service.yaml
+
+  terraform:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive terraform
+
+      - name: Initialize Terraform without backend
+        run: terraform -chdir=terraform init -backend=false
+
+      - name: Validate Terraform configuration
+        run: terraform -chdir=terraform validate
