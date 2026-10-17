@@ -146,17 +146,26 @@ docker compose down
 The Compose setup is intended for local learning and validation. The hosted deployment
 continues to use Vercel for the client and Render for the API.
 
-### Local Kubernetes deployment with Minikube
+### Local Kubernetes deployment with Docker Desktop
 
 The `k8s/` directory contains Kubernetes resources for running the two Docker images
-locally with Minikube. Neon remains the external PostgreSQL database.
+locally with Docker Desktop Kubernetes. Neon remains the external PostgreSQL database.
+The cluster is a single-node local learning environment, not the public production
+deployment.
 
-Start Minikube with Docker, then load the locally built images:
+Enable Kubernetes in Docker Desktop, select the kubeadm provisioning method, and
+wait for the `docker-desktop` node to become Ready:
 
 ```powershell
-minikube start --driver=docker
-minikube image load epic-api:latest
-minikube image load epic-client:latest
+kubectl config use-context docker-desktop
+kubectl get nodes
+```
+
+Build the images directly into Docker Desktop's image store:
+
+```powershell
+docker build -f Dockerfile.server -t epic-api:latest .
+docker build -f Dockerfile.client -t epic-client:latest .
 ```
 
 Create a local Secret file from the example and replace its placeholder Neon `DB_*`
@@ -179,22 +188,29 @@ kubectl rollout status deployment/epixbox-api -n epixbox
 kubectl rollout status deployment/epixbox-client -n epixbox
 ```
 
-Open the client through its Minikube service:
+Open the client through the local NodePort:
 
 ```powershell
-minikube service client -n epixbox
+kubectl get service client -n epixbox
+# Open http://localhost:<NodePort>, for example http://localhost:31161
 ```
 
 The API Deployment uses readiness and liveness probes against `/health`. The client
 uses `/healthz`. ConfigMaps hold non-secret runtime settings, while the Secret holds
 the Neon connection string and JWT secrets. The API image runs with
-`AUTO_MIGRATE=false` in Kubernetes so schema changes remain an explicit deployment
-operation. For the first local Kubernetes deployment, `AUTO_MIGRATE=true` allows the
-API to initialize a fresh Neon database using the existing migrations. After the
-database is initialized, set it back to `false` for safer controlled deployments.
-The local API Deployment uses the Minikube host network because Docker
-Desktop's default Pod network cannot reach Neon PostgreSQL on port 5432 in this
-environment; the frontend remains on standard Kubernetes networking.
+`AUTO_MIGRATE=false` and `ALLOW_PENDING_MIGRATIONS=true` so deferred schema changes
+remain an explicit deployment operation. The current API manifest uses host
+networking as a local connectivity workaround; do not reuse that setting unchanged
+for a cloud Kubernetes cluster.
+
+The public deployment remains separate:
+
+```text
+Vercel frontend → Render API → Neon PostgreSQL + AWS S3
+```
+
+Docker Desktop Kubernetes is used for local container-orchestration practice and
+verification.
 
 ### AWS infrastructure with Terraform
 
